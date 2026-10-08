@@ -12,10 +12,17 @@ interface AIComparisonPanelProps {
 export const AIComparisonPanel: React.FC<AIComparisonPanelProps> = ({ products }) => {
   const { language, t } = useLanguage();
 
+  const isKu = language === 'ckb' || language === 'ku';
+  const isAr = language === 'ar';
+
   if (products.length < 2) {
     return (
       <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 text-xs text-amber-800">
-        Please select at least 2 products to trigger the AI Information Gap & Feasibility Engine.
+        {isKu
+          ? 'تکایە لانیکەم ٢ بەرهەم هەڵبژێرە بۆ بەگەڕخستنی بزوێنەری شیکاری کەلێنی زانیاری و گونجاوی ژیری دەستکرد.'
+          : isAr
+          ? 'يرجى اختيار منتجين على الأقل لتشغيل محرك فجوات المعلومات والجدوى بالذكاء الاصطناعي.'
+          : 'Please select at least 2 products to trigger the AI Information Gap & Feasibility Engine.'}
       </div>
     );
   }
@@ -30,16 +37,48 @@ export const AIComparisonPanel: React.FC<AIComparisonPanelProps> = ({ products }
             <span>{t('aiComparison')}</span>
           </div>
           <span className="text-[11px] font-semibold bg-[#FFF5DD] text-[#8C5E00] px-2.5 py-0.5 rounded-full">
-            AI Gap & Feasibility Engine
+            {isKu
+              ? 'بزوێنەری شیکاری کەلێن و گونجاوی ژیری دەستکرد'
+              : isAr
+              ? 'محرك تحليل الفجوات والجدوى بالذكاء الاصطناعي'
+              : 'AI Gap & Feasibility Engine'}
           </span>
         </div>
 
         <p className="text-xs sm:text-sm text-neutral-700 leading-relaxed">
-          Based on the provided vendor disclosures,{' '}
-          <span className="font-bold text-neutral-900">{products[0]?.name}</span> offers stronger localized
-          warranty and fast delivery, whereas{' '}
-          <span className="font-bold text-neutral-900">{products[1]?.name}</span> differs primarily in capacity and
-          technical footprint.
+          {isKu ? (
+            <>
+              بەپێی زانیاری و بەڵێننامەی فرۆشیاران،{' '}
+              <span className="font-bold text-neutral-900">
+                {products[0]?.name_ckb || products[0]?.name}
+              </span>{' '}
+              گەرەنتییەکی بەهێزتر و گەیاندنی خێراتری ناوخۆیی دابین دەکات، لە کاتێکدا{' '}
+              <span className="font-bold text-neutral-900">
+                {products[1]?.name_ckb || products[1]?.name}
+              </span>{' '}
+              جیاوازی سەرەکی لە قەبارە و تایبەتمەندی تەکنیکیدایە.
+            </>
+          ) : isAr ? (
+            <>
+              بناءً على التزامات وبيانات التجار المقدمة، يوفر{' '}
+              <span className="font-bold text-neutral-900">
+                {products[0]?.name_ar || products[0]?.name}
+              </span>{' '}
+              ضماناً محلياً أوثق وتوصيلاً أسرع، بينما يتميز{' '}
+              <span className="font-bold text-neutral-900">
+                {products[1]?.name_ar || products[1]?.name}
+              </span>{' '}
+              بفروقات السعة والحجم الفني.
+            </>
+          ) : (
+            <>
+              Based on the provided vendor disclosures,{' '}
+              <span className="font-bold text-neutral-900">{products[0]?.name}</span> offers stronger localized
+              warranty and fast delivery, whereas{' '}
+              <span className="font-bold text-neutral-900">{products[1]?.name}</span> differs primarily in capacity and
+              technical footprint.
+            </>
+          )}
         </p>
       </div>
 
@@ -50,9 +89,9 @@ export const AIComparisonPanel: React.FC<AIComparisonPanelProps> = ({ products }
           <span>{t('informationGaps')}</span>
         </div>
         <p className="text-xs text-amber-800 mb-3">
-          {language === 'ckb'
+          {isKu
             ? 'بازاڕی گەورە بە شێوەیەکی خۆکار پشکنین بۆ ڕوونی بەرهەمەکە دەکات تاوەکو کڕیار بزانێت چ بەڵێنێکی فرۆشیار نادیارە پێش بڕیاردانی کڕین:'
-            : language === 'ar'
+            : isAr
             ? 'يقوم بازاري گەورە بتدقيق شفافية الإعلان تلقائياً ليعلم المشتري ما ينقص من التزامات التاجر قبل الشراء:'
             : 'Bazary Gawra automatically audits listing transparency so buyers understand what merchant commitments are missing before making a purchasing decision:'}
         </p>
@@ -62,25 +101,25 @@ export const AIComparisonPanel: React.FC<AIComparisonPanelProps> = ({ products }
             const missing = [];
             if (!p.warranty || p.warranty === 'Information unavailable')
               missing.push(
-                language === 'ckb'
+                isKu
                   ? 'ماوەی گەرەنتی و مەرجی چاککردنەوە لەلایەن فرۆشیارەوە دیاری نەکراوە'
-                  : language === 'ar'
+                  : isAr
                   ? 'مدة الضمان وشروط الصيانة المحلية غير مذكورة'
                   : 'Warranty duration and local repair terms not provided'
               );
             if (!p.return_policy || p.return_policy === 'Not provided')
               missing.push(
-                language === 'ckb'
+                isKu
                   ? 'مەرجی گەڕاندنەوە یان گۆڕینەوە لەلایەن فرۆشیارەوە دیاری نەکراوە'
-                  : language === 'ar'
+                  : isAr
                   ? 'سياسة الإرجاع أو الاستبدال غير موضحة من قبل التاجر'
                   : 'Return / exchange policy not stated by seller'
               );
             if (!p.origin || p.origin === 'Not provided')
               missing.push(
-                language === 'ckb'
+                isKu
                   ? 'وڵاتی دروستکەر پشتڕاست نەکراوەتەوە'
-                  : language === 'ar'
+                  : isAr
                   ? 'بلد المنشأ والتصنيع غير مؤكد'
                   : 'Manufacturer origin not verified'
               );
@@ -88,15 +127,15 @@ export const AIComparisonPanel: React.FC<AIComparisonPanelProps> = ({ products }
             return (
               <div key={p.id} className="p-3 rounded-xl bg-white border border-amber-200/80 text-xs">
                 <span className="font-bold text-neutral-900 block mb-1">
-                  {language === 'ckb' && p.name_ckb ? p.name_ckb : language === 'ar' && p.name_ar ? p.name_ar : p.name}:
+                  {isKu && p.name_ckb ? p.name_ckb : isAr && p.name_ar ? p.name_ar : p.name}:
                 </span>
                 {missing.length === 0 ? (
                   <div className="flex items-center gap-1.5 text-emerald-700">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                     <span>
-                      {language === 'ckb'
+                      {isKu
                         ? 'هەموو زانیارییە بنەڕەتییەکانی شەفافیەت لەلایەن فرۆشیارەوە دابینکراون'
-                        : language === 'ar'
+                        : isAr
                         ? 'جميع معايير الشفافية الأساسية متوفرة من قبل التاجر'
                         : 'All essential transparency criteria provided by seller'}
                     </span>

@@ -93,6 +93,12 @@ export const mockProducts: Product[] = [
     origin: 'Italy (Assembled in PRC)',
     description: 'Slimline 15 cm width stainless steel manual espresso machine. Includes double filter, pannarello milk frother wand, and rapid thermo-block heating system. Perfect for home baristas in Kurdistan.',
     image_url: 'https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1509785307050-d4066910ec1e?auto=format&fit=crop&w=1200&q=80',
+    ],
     created_at: '2026-03-15T10:00:00Z',
     information_signals: {
       has_location: true,
@@ -128,6 +134,12 @@ export const mockProducts: Product[] = [
     origin: 'Romania / Netherlands',
     description: 'Fresh bean-to-cup coffee with 100% ceramic grinders. Intuitive touch display lets you adjust aroma strength and coffee quantity easily.',
     image_url: 'https://images.unsplash.com/photo-1509785307050-d4066910ec1e?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1509785307050-d4066910ec1e?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1200&q=80',
+    ],
     created_at: '2026-03-12T11:20:00Z',
     information_signals: {
       has_location: true,
@@ -163,6 +175,11 @@ export const mockProducts: Product[] = [
     origin: 'China',
     description: 'Compact rapid Turkish coffee pot with anti-overflow sensor and stainless steel base. Affordable daily kitchen device.',
     image_url: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1200&q=80',
+    ],
     created_at: '2026-03-10T14:15:00Z',
     information_signals: {
       has_location: true,
@@ -198,6 +215,12 @@ export const mockProducts: Product[] = [
     origin: 'United States brand (Assembled in PRC)',
     description: 'Cook 2 foods 2 ways and finish at the same time with Sync Cook feature. Large capacity suitable for big Kurdish family feasts.',
     image_url: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80',
+    ],
     created_at: '2026-03-09T09:45:00Z',
     information_signals: {
       has_location: true,
@@ -233,6 +256,11 @@ export const mockProducts: Product[] = [
     origin: 'China',
     description: 'Transparent visual window allows real-time monitoring. Connects to Mi Home app for remote scheduling, voice control, and over 100 cloud recipes.',
     image_url: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=1200&q=80',
+    ],
     created_at: '2026-03-08T15:30:00Z',
     information_signals: {
       has_location: true,
@@ -268,6 +296,11 @@ export const mockProducts: Product[] = [
     origin: 'Penjwen Highlands, Kurdistan Region',
     description: 'Harvested from wild mountain flora in high altitude Penjwen mountains. Unpasteurized, cold-extracted, and raw with zero artificial additives.',
     image_url: 'https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1471943311424-646960669fbc?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?auto=format&fit=crop&w=1200&q=80',
+    ],
     created_at: '2026-03-07T12:00:00Z',
     information_signals: {
       has_location: true,
@@ -303,6 +336,12 @@ export const mockProducts: Product[] = [
     origin: 'Germany (Designed in Germany)',
     description: 'Braun flagship hand blender featuring ActiveBlade technology that moves up and down to chop even the hardest foods like nuts and root vegetables easily.',
     image_url: 'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1590794056226-79ef3a8147e1?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1585515320310-259814833e62?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80',
+    ],
     created_at: '2026-03-05T17:10:00Z',
     information_signals: {
       has_location: true,
@@ -338,6 +377,12 @@ export const mockProducts: Product[] = [
     origin: 'Hawraman / Kurdistan',
     description: 'Traditional flat-weave wool kelim crafted by master artisans using 100% organic local sheep wool and hand-extracted vegetable dyes. Genuine heirloom quality.',
     image_url: 'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1600121848594-d8644e57abab?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1579656381226-5fc0f0100c3b?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80',
+    ],
     created_at: '2026-03-01T10:30:00Z',
     information_signals: {
       has_location: true,
@@ -373,6 +418,11 @@ export const mockProducts: Product[] = [
     origin: 'United Kingdom brand (Manufactured in Malaysia)',
     description: 'Lightweight cordless vacuum with laser illumination that reveals invisible dust on hard floors. Piezo sensor scientifically sizes and counts dust particles.',
     image_url: 'https://images.unsplash.com/photo-1558317374-067fb5f30001?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1558317374-067fb5f30001?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80',
+    ],
     created_at: '2026-02-28T09:15:00Z',
     information_signals: {
       has_location: true,

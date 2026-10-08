@@ -58,6 +58,9 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ product, onClose, isDr
     }
   };
 
+  const isKu = language === 'ckb' || language === 'ku';
+  const isAr = language === 'ar';
+
   return (
     <div
       className={`rounded-2xl border border-[#F4B942]/60 bg-gradient-to-br from-[#FFFBF0] to-white p-5 shadow-sm text-start flex flex-col ${
@@ -76,12 +79,14 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ product, onClose, isDr
                 {t('askAiAboutProduct')}
               </h4>
               <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-[#F4B942] text-neutral-950">
-                AI
+                {isKu ? 'ژیری دەستکرد' : isAr ? 'ذكاء اصطناعي' : 'AI'}
               </span>
             </div>
             <p className="text-[11px] text-neutral-500 mt-0.5">
-              {language === 'ku'
+              {isKu
                 ? 'وەڵامدانەوە بەپێی بەڵگەنامە و زانیاری ڕاستەقینەی فرۆشگا'
+                : isAr
+                ? 'التحقق من الإجابات وفقاً لبيانات التاجر المعتمدة'
                 : 'Verifies answers against seller disclosures'}
             </p>
           </div>
@@ -100,7 +105,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ product, onClose, isDr
       {/* Suggested quick chips */}
       <div className="flex flex-wrap gap-1.5 mb-4">
         {sampleQuestions.map((sq, idx) => {
-          const qText = language === 'ckb' || language === 'ku' ? sq.ckb : language === 'ar' ? sq.ar : sq.en;
+          const qText = isKu ? sq.ckb : isAr ? sq.ar : sq.en;
           return (
             <button
               key={idx}
@@ -130,23 +135,23 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ product, onClose, isDr
             <div className="font-bold flex items-center justify-between text-[11px]">
               <div className="flex items-center gap-1.5">
                 {msg.sender === 'user' ? (
-                  <span>You</span>
+                  <span>{isKu ? 'تۆ' : isAr ? 'أنت' : 'You'}</span>
                 ) : msg.isInformationGap ? (
                   <>
                     <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                    <span className="text-amber-800 font-bold">Information Gap Detected</span>
+                    <span className="text-amber-800 font-bold">{isKu ? 'کەلێنی زانیاری دۆزرایەوە' : isAr ? 'تم رصد فجوة معلومات' : 'Information Gap Detected'}</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="w-3.5 h-3.5 text-[#657A52]" />
-                    <span className="text-[#657A52] font-bold">Bazary Gawra AI</span>
+                    <span className="text-[#657A52] font-bold">{isKu ? 'ژیری دەستکردی بازاڕی گەورە' : isAr ? 'ذكاء بازاري گەورە' : 'Bazary Gawra AI'}</span>
                   </>
                 )}
               </div>
 
               {msg.sender !== 'user' && (
                 <span className="text-[10px] text-neutral-400 font-normal italic">
-                  Based on the available information
+                  {isKu ? 'بەپێی زانیاری بەردەست' : isAr ? 'بناءً على المعلومات المتاحة' : 'Based on the available information'}
                 </span>
               )}
             </div>
@@ -157,7 +162,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ product, onClose, isDr
             {msg.sender !== 'user' && (
               <div className="pt-2 border-t border-black/5 flex items-center justify-between text-[11px] text-neutral-500">
                 <span className="text-[10px] text-neutral-400">
-                  {language === 'ku' ? 'ئەم وەڵامە بەسوود بوو؟' : 'Was this response helpful?'}
+                  {isKu ? 'ئەم وەڵامە بەسوود بوو؟' : isAr ? 'هل كانت هذه الإجابة مفيدة؟' : 'Was this response helpful?'}
                 </span>
                 <div className="flex items-center gap-1.5">
                   <button
@@ -198,7 +203,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ product, onClose, isDr
               <div className="h-2.5 w-4/5 bg-neutral-200 rounded" />
             </div>
             <div className="text-[10px] text-neutral-400 italic">
-              Based on the available information...
+              {isKu ? 'بەپێی زانیاری بەردەست...' : isAr ? 'بناءً على المعلومات المتاحة...' : 'Based on the available information...'}
             </div>
           </div>
         )}

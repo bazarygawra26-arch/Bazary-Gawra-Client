@@ -5,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Sparkles, FileSearch, Scale } from 'lucide-react';
 
 export const WhyBazaryGawra: React.FC = () => {
-  const { language } = useLanguage();
+  const { language, isKu } = useLanguage();
 
   const steps = [
     {
@@ -15,7 +15,7 @@ export const WhyBazaryGawra: React.FC = () => {
       title_ku: 'تێگەیشتن لە گەڕانی کوردی',
       title_ar: 'فهم البحث الكردي والعربي',
       desc_en: 'Translates natural local queries into structured technical parameters without guessing.',
-      desc_ku: 'پرسیار و داواکارییەکانت لە هەر شارێک بێت دەگۆڕێت بۆ تایبەتمەندی ڕوون و ورد.',
+      desc_ku: 'پرسیار و داواکارییەکانت لە هەر شارێک بێت دەگۆڕێت بۆ تایبەتمەندی ڕوون و ورد بەبێ مەزەندەکردن.',
       desc_ar: 'تحويل الاستفسارات الطبيعية إلى معايير فنية منظمة ومحددة بدقة.',
     },
     {
@@ -25,7 +25,7 @@ export const WhyBazaryGawra: React.FC = () => {
       title_ku: 'پشکنینی شەفافیەتی زانیاری',
       title_ar: 'تدقيق الإفصاحات والضمان',
       desc_en: 'Flags missing warranties and delivery policies. Never hallucinates unprovided data.',
-      desc_ku: 'ئاگادارت دەکاتەوە ئەگەر گەرەنتی یان گەیاندن نادیار بێت بەبێ هەڵبەستنی زانیاری.',
+      desc_ku: 'ئاگادارت دەکاتەوە ئەگەر گەرەنتی یان گەیاندن نادیار بێت، و هەرگیز زانیاری بەردەستنەبوو هەڵنابەستێت.',
       desc_ar: 'تنبيهك في حال غياب معلومات الضمان أو التوصيل دون اختلاق أي بيانات غير متوفرة.',
     },
     {
@@ -35,8 +35,8 @@ export const WhyBazaryGawra: React.FC = () => {
       title_ku: 'بەراوردکردنی ڕاستەقینە و بێلایەن',
       title_ar: 'مقارنة دقيقة ومحايدة',
       desc_en: 'Direct WhatsApp connection to local merchants in Sulaymaniyah, Erbil, and Duhok.',
-      desc_ku: 'بەراوردی تایبەتمەندییەکان و پەیوەندی ڕاستەوخۆی واتسئەپ لەگەڵ فرۆشگاکان.',
-      desc_ar: 'مقارنة جنب إلى جنب مع تواصل مباشر عبر واتساب مع المتاجر المحلية.',
+      desc_ku: 'بەراوردی تایبەتمەندییەکان و پەیوەندی ڕاستەوخۆی واتسئەپ لەگەڵ فرۆشگاکانی سلێمانی، هەولێر و دهۆک.',
+      desc_ar: 'مقارنة جنب إلى جنب مع تواصل مباشر عبر واتساب مع المتاجر المحلية في السليمانية وأربيل ودهوك.',
     },
   ];
 
@@ -47,12 +47,18 @@ export const WhyBazaryGawra: React.FC = () => {
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF5DD] text-[#8C5E00] text-xs font-bold mb-2">
             <Sparkles className="w-3.5 h-3.5 text-[#F4B942]" />
             <span>
-              {language === 'ku' ? 'چۆن زیرەکی دەستکرد یارمەتیت دەدات؟' : 'How the AI Helps'}
+              {isKu
+                ? 'چۆن زیرەکی دەستکرد یارمەتیت دەدات؟'
+                : language === 'ar'
+                ? 'كيف يساعدك الذكاء الاصطناعي؟'
+                : 'How the AI Helps'}
             </span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
-            {language === 'ku'
+            {isKu
               ? 'سێ هەنگاو بۆ کڕینێکی دڵنیا و شەفاف'
+              : language === 'ar'
+              ? 'ثلاث خطوات لاكتشاف محلي نزيه وموثوق'
               : 'Three Steps to Honest Local Discovery'}
           </h2>
         </div>
@@ -61,9 +67,9 @@ export const WhyBazaryGawra: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {steps.map((step) => {
             const title =
-              language === 'ku' ? step.title_ku : language === 'ar' ? step.title_ar : step.title_en;
+              isKu ? step.title_ku : language === 'ar' ? step.title_ar : step.title_en;
             const desc =
-              language === 'ku' ? step.desc_ku : language === 'ar' ? step.desc_ar : step.desc_en;
+              isKu ? step.desc_ku : language === 'ar' ? step.desc_ar : step.desc_en;
 
             return (
               <div

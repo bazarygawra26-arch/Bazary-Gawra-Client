@@ -2,18 +2,19 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useLanguage } from '../context/LanguageContext';
 import { useComparison } from '../context/ComparisonContext';
-import { Sparkles, Globe, Menu, X, ArrowLeftRight, Search } from 'lucide-react';
+import { Sparkles, Globe, Menu, X, ArrowLeftRight, Search, Store } from 'lucide-react';
 import { SupportedLanguage } from '../types';
 
 export const Header: React.FC = () => {
-  const { language, setLanguage, t, dir } = useLanguage();
+  const { language, setLanguage, t, dir, isKu } = useLanguage();
   const { comparedProducts, setIsDrawerOpen } = useComparison();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const languages: { code: SupportedLanguage; label: string }[] = [
-    { code: 'ckb', label: 'کوردی' },
+    { code: 'ku', label: 'کوردی' },
     { code: 'ar', label: 'العربية' },
     { code: 'en', label: 'English' },
   ];
@@ -24,16 +25,39 @@ export const Header: React.FC = () => {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 rounded-xl bg-[#F4B942] flex items-center justify-center shadow-sm text-neutral-900 font-extrabold text-xl group-hover:scale-105 transition-transform">
-                <Sparkles className="w-5 h-5 fill-neutral-900" />
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative w-11 h-11 flex-shrink-0 flex items-center justify-center">
+                <Image
+                  src="/images/logo.png"
+                  alt="BAZARY GAWRA"
+                  width={44}
+                  height={44}
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                  priority
+                />
               </div>
               <div className="flex flex-col">
                 <span className="font-extrabold tracking-tight text-xl sm:text-2xl text-neutral-900 leading-tight">
-                  BAZARY <span className="text-[#8C5E00]">GAWRA</span>
+                  {isKu ? (
+                    <>
+                      بازاڕی <span className="text-[#8C5E00]">گەورە</span>
+                    </>
+                  ) : language === 'ar' ? (
+                    <>
+                      بازاري <span className="text-[#8C5E00]">كورة</span>
+                    </>
+                  ) : (
+                    <>
+                      BAZARY <span className="text-[#8C5E00]">GAWRA</span>
+                    </>
+                  )}
                 </span>
                 <span className="text-[10px] tracking-wider uppercase text-neutral-500 font-medium hidden sm:inline">
-                  Kurdistan AI Marketplace
+                  {isKu
+                    ? 'بازاڕی ژیری دەستکرد لە کوردستان'
+                    : language === 'ar'
+                      ? 'سوق كوردستان بالذكاء الاصطناعي'
+                      : 'Kurdistan AI Marketplace'}
                 </span>
               </div>
             </Link>
@@ -63,14 +87,21 @@ export const Header: React.FC = () => {
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[#8C5E00] bg-[#FFF5DD] hover:bg-[#F4B942]/20 font-bold transition-colors"
               >
                 <Sparkles className="w-3.5 h-3.5 fill-[#F4B942] text-[#F4B942]" />
-                <span>AI Scanner</span>
+                <span>
+                  {isKu
+                    ? 'سکانەری ژیری دەستکرد'
+                    : language === 'ar'
+                      ? 'ماسح الذكاء الاصطناعي'
+                      : 'AI Scanner'}
+                </span>
               </a>
-              <a
-                href="#sellers"
-                className="px-3.5 py-2 rounded-lg hover:text-neutral-900 hover:bg-[#EAE7DF]/40 transition-colors"
+              <Link
+                href="/seller/dashboard"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-neutral-800 hover:text-neutral-900 border border-[#EAE7DF] bg-white hover:bg-neutral-50 font-bold transition-all shadow-2xs ms-1"
               >
-                {t('navSellers')}
-              </a>
+                <Store className="w-3.5 h-3.5 text-[#657A52]" />
+                <span>{isKu ? 'فرۆشگاکەم (دانانی کاڵا)' : language === 'ar' ? 'متجري (إضافة منتج)' : 'My Shop'}</span>
+              </Link>
             </nav>
           </div>
 
@@ -98,11 +129,10 @@ export const Header: React.FC = () => {
                 <button
                   key={item.code}
                   onClick={() => setLanguage(item.code)}
-                  className={`px-2.5 py-1 rounded-md transition-all ${
-                    language === item.code
+                  className={`px-2.5 py-1 rounded-md transition-all ${language === item.code
                       ? 'bg-[#F4B942] text-neutral-950 font-bold shadow-2xs'
                       : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100'
-                  }`}
+                    }`}
                 >
                   {item.label}
                 </button>
@@ -150,7 +180,13 @@ export const Header: React.FC = () => {
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#8C5E00] font-bold bg-[#FFF5DD]"
             >
               <Sparkles className="w-4 h-4 fill-[#F4B942] text-[#F4B942]" />
-              <span>AI Product Scanner</span>
+              <span>
+                {isKu
+                  ? 'سکانەری ژیری دەستکرد'
+                  : language === 'ar'
+                    ? 'ماسح الذكاء الاصطناعي'
+                    : 'AI Product Scanner'}
+              </span>
             </a>
             <a
               href="#sellers"

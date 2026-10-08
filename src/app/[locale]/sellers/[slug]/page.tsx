@@ -8,6 +8,8 @@ import { ShopHeader } from '../../../../components/seller/ShopHeader';
 import { ProductGrid } from '../../../../components/product/ProductGrid';
 import { useLanguage } from '../../../../context/LanguageContext';
 import { SellerProfile, Product } from '../../../../types';
+import { localizeCategory, localizeLocation } from '../../../../lib/i18nData';
+import { AddProductModal } from '../../../../components/seller/AddProductModal';
 import {
   ArrowLeft,
   ArrowRight,
@@ -19,6 +21,7 @@ import {
   ShieldCheck,
   Truck,
   RotateCcw,
+  PlusCircle,
 } from 'lucide-react';
 
 export default function SellerShopPage({
@@ -27,14 +30,15 @@ export default function SellerShopPage({
   params: Promise<{ slug: string; locale: string }>;
 }) {
   const { slug } = use(params);
-  const { language } = useLanguage();
-  const isRtl = language === 'ku' || language === 'ar';
+  const { language, isKu } = useLanguage();
+  const isRtl = isKu || language === 'ar';
   const ArrowIcon = isRtl ? ArrowRight : ArrowLeft;
 
   const [seller, setSeller] = useState<SellerProfile | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<'products' | 'about'>('products');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isProductsLoading, setIsProductsLoading] = useState(false);
 
@@ -106,7 +110,7 @@ export default function SellerShopPage({
           >
             <ArrowIcon className="w-3.5 h-3.5" />
             <span>
-              {language === 'ku'
+              {isKu
                 ? 'گەڕانەوە بۆ سەرجەم فرۆشگاکان'
                 : language === 'ar'
                 ? 'العودة إلى جميع المتاجر'
@@ -119,7 +123,11 @@ export default function SellerShopPage({
           <div className="py-24 flex flex-col items-center justify-center gap-3 text-neutral-400">
             <Loader2 className="w-8 h-8 animate-spin text-[#F4B942]" />
             <p className="text-sm font-medium">
-              {language === 'ku' ? 'بارکردنی فرۆشگا لە داتابەیس...' : 'Loading shop profile...'}
+              {isKu
+                ? 'بارکردنی فرۆشگا لە داتابەیس...'
+                : language === 'ar'
+                ? 'جاري تحميل المتجر...'
+                : 'Loading shop profile...'}
             </p>
           </div>
         ) : seller ? (
@@ -128,38 +136,49 @@ export default function SellerShopPage({
             <ShopHeader seller={seller} />
 
             {/* Shop Navigation Tabs */}
-            <div className="flex items-center gap-2 border-b border-[#EAE7DF] mb-6">
-              <button
-                onClick={() => setActiveTab('products')}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${
-                  activeTab === 'products'
-                    ? 'border-[#F4B942] text-neutral-900 text-[#8C5E00]'
-                    : 'border-transparent text-neutral-500 hover:text-neutral-900'
-                }`}
-              >
-                <Grid className="w-4 h-4" />
-                <span>
-                  {language === 'ku' ? 'بەرهەمەکان' : language === 'ar' ? 'المنتجات' : 'Products'} (
-                  {seller.product_count})
-                </span>
-              </button>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#EAE7DF] mb-6">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveTab('products')}
+                  className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${
+                    activeTab === 'products'
+                      ? 'border-[#F4B942] text-neutral-900 text-[#8C5E00]'
+                      : 'border-transparent text-neutral-500 hover:text-neutral-900'
+                  }`}
+                >
+                  <Grid className="w-4 h-4" />
+                  <span>
+                    {isKu ? 'بەرهەمەکان' : language === 'ar' ? 'المنتجات' : 'Products'} (
+                    {seller.product_count})
+                  </span>
+                </button>
 
+                <button
+                  onClick={() => setActiveTab('about')}
+                  className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${
+                    activeTab === 'about'
+                      ? 'border-[#F4B942] text-neutral-900 text-[#8C5E00]'
+                      : 'border-transparent text-neutral-500 hover:text-neutral-900'
+                  }`}
+                >
+                  <Info className="w-4 h-4" />
+                  <span>
+                    {isKu
+                      ? 'دەربارەی فرۆشگا'
+                      : language === 'ar'
+                      ? 'حول المتجر'
+                      : 'About Shop'}
+                  </span>
+                </button>
+              </div>
+
+              {/* Seller Add Product Quick Action */}
               <button
-                onClick={() => setActiveTab('about')}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${
-                  activeTab === 'about'
-                    ? 'border-[#F4B942] text-neutral-900 text-[#8C5E00]'
-                    : 'border-transparent text-neutral-500 hover:text-neutral-900'
-                }`}
+                onClick={() => setIsAddModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 font-bold text-xs shadow-xs transition-colors cursor-pointer"
               >
-                <Info className="w-4 h-4" />
-                <span>
-                  {language === 'ku'
-                    ? 'دەربارەی فرۆشگا'
-                    : language === 'ar'
-                    ? 'حول المتجر'
-                    : 'About Shop'}
-                </span>
+                <PlusCircle className="w-4 h-4" />
+                <span>{isKu ? '+ دانانی بەرهەم لەم فرۆشگایە' : '+ Add Product to Shop'}</span>
               </button>
             </div>
 
@@ -177,7 +196,7 @@ export default function SellerShopPage({
                           : 'bg-white border border-[#EAE7DF] text-neutral-700 hover:bg-neutral-50'
                       }`}
                     >
-                      {language === 'ku' ? 'هەموو' : language === 'ar' ? 'الكل' : 'All'} (
+                      {isKu ? 'هەموو' : language === 'ar' ? 'الكل' : 'All'} (
                       {seller.product_count})
                     </button>
 
@@ -191,7 +210,7 @@ export default function SellerShopPage({
                             : 'bg-white border border-[#EAE7DF] text-neutral-700 hover:bg-neutral-50'
                         }`}
                       >
-                        {c.name} ({c.count})
+                        {localizeCategory(c.name, language)} ({c.count})
                       </button>
                     ))}
                   </div>
@@ -201,7 +220,13 @@ export default function SellerShopPage({
                 {isProductsLoading ? (
                   <div className="py-16 flex flex-col items-center justify-center gap-2 text-neutral-400">
                     <Loader2 className="w-6 h-6 animate-spin text-[#F4B942]" />
-                    <span className="text-xs">Updating shop catalog...</span>
+                    <span className="text-xs">
+                      {isKu
+                        ? 'نوێکردنەوەی بەرهەمەکانی فرۆشگا...'
+                        : language === 'ar'
+                        ? 'جاري تحديث منتجات المتجر...'
+                        : 'Updating shop catalog...'}
+                    </span>
                   </div>
                 ) : products.length > 0 ? (
                   <ProductGrid products={products} />
@@ -209,8 +234,10 @@ export default function SellerShopPage({
                   <div className="bg-white rounded-2xl border border-[#EAE7DF] p-12 text-center text-neutral-500">
                     <Store className="w-10 h-10 mx-auto text-neutral-300 mb-2" />
                     <p className="text-sm font-semibold">
-                      {language === 'ku'
+                      {isKu
                         ? 'هیچ بەرهەمێک لەم پۆلەدا نەدۆزرایەوە'
+                        : language === 'ar'
+                        ? 'لا توجد منتجات في هذه الفئة حالياً'
                         : 'No products in this category yet.'}
                     </p>
                   </div>
@@ -224,28 +251,33 @@ export default function SellerShopPage({
                 <div className="md:col-span-2 bg-white rounded-2xl border border-[#EAE7DF] p-6 sm:p-8 space-y-6">
                   <div>
                     <h2 className="text-lg font-bold text-neutral-900 mb-2">
-                      {language === 'ku' ? 'دەربارەی فرۆشگا' : 'About the Shop'}
+                      {isKu ? 'دەربارەی فرۆشگا' : language === 'ar' ? 'حول المتجر' : 'About the Shop'}
                     </h2>
                     <p className="text-sm text-neutral-600 leading-relaxed">
-                      {seller.description ||
-                        (language === 'ku'
-                          ? 'ئەم فرۆشگایە ئەندامێکی تۆمارکراوە لە بازاڕی گەورە، کە زانیاری شەفاف سەبارەت بە نرخ، گەرەنتی و گەیاندنی کاڵاکانی پێشکەش دەکات.'
-                          : 'This local merchant lists verified products in Bazary Gawra with transparent specifications and local support.')}
+                      {isKu
+                        ? (seller.description && !seller.description.includes('Local Kurdish merchant')
+                            ? seller.description
+                            : 'ئەم فرۆشگایە ئەندامێکی تۆمارکراوە لە بازاڕی گەورە، کە زانیاری شەفاف سەبارەت بە نرخ، گەرەنتی و گەیاندنی کاڵاکانی پێشکەش دەکات بەبێ نێوەندگیر.')
+                        : language === 'ar'
+                        ? (seller.description && !seller.description.includes('Local Kurdish merchant')
+                            ? seller.description
+                            : 'هذا التاجر المحلي مسجل في بازاري گەورە ويوفر مواصفات شفافة وضماناً وخدمة توصيل حقيقية.')
+                        : seller.description || 'This local merchant lists verified products in Bazary Gawra with transparent specifications and local support.'}
                     </p>
                   </div>
 
                   <div className="pt-6 border-t border-[#EAE7DF]">
                     <h3 className="text-sm font-bold text-neutral-900 mb-3">
-                      {language === 'ku' ? 'شوێن و خزمەتگوزارییەکان' : 'Location & Services'}
+                      {isKu ? 'شوێن و خزمەتگوزارییەکان' : language === 'ar' ? 'الموقع والخدمات' : 'Location & Services'}
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="flex items-center gap-3 p-3 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
                         <MapPin className="w-4 h-4 text-[#657A52]" />
                         <div className="text-xs">
                           <span className="font-semibold text-neutral-700 block">
-                            {language === 'ku' ? 'شار و ناونیشان' : 'City & Address'}
+                            {isKu ? 'شار و ناونیشان' : language === 'ar' ? 'المدينة والعنوان' : 'City & Address'}
                           </span>
-                          <span className="text-neutral-500">{seller.location}</span>
+                          <span className="text-neutral-500">{localizeLocation(seller.location, language)}</span>
                         </div>
                       </div>
 
@@ -253,15 +285,19 @@ export default function SellerShopPage({
                         <Truck className="w-4 h-4 text-[#657A52]" />
                         <div className="text-xs">
                           <span className="font-semibold text-neutral-700 block">
-                            {language === 'ku' ? 'گەیاندن' : 'Delivery'}
+                            {isKu ? 'گەیاندن' : language === 'ar' ? 'التوصيل' : 'Delivery'}
                           </span>
                           <span className="text-neutral-500">
                             {seller.info_summary.with_delivery_info > 0
-                              ? language === 'ku'
+                              ? isKu
                                 ? 'گەیاندنی ناوخۆیی بەردەستە'
+                                : language === 'ar'
+                                ? 'التوصيل المحلي متوفر'
                                 : 'Local delivery available'
-                              : language === 'ku'
+                              : isKu
                               ? 'وەرگرتن لە فرۆشگا'
+                              : language === 'ar'
+                              ? 'استلام من المتجر فقط'
                               : 'In-store pickup only'}
                           </span>
                         </div>
@@ -273,7 +309,7 @@ export default function SellerShopPage({
                 {/* Transparency Checklist Box */}
                 <div className="bg-[#FAF9F6] rounded-2xl border border-[#EAE7DF] p-6 space-y-4">
                   <h3 className="text-xs font-black uppercase tracking-wider text-[#657A52]">
-                    {language === 'ku' ? 'شەفافیەتی بازاڕی گەورە' : 'Bazary Gawra Transparency Audit'}
+                    {isKu ? 'شەفافیەتی بازاڕی گەورە' : language === 'ar' ? 'تدقيق الشفافية في بازاري گەورە' : 'Bazary Gawra Transparency Audit'}
                   </h3>
 
                   <div className="space-y-3">
@@ -281,11 +317,13 @@ export default function SellerShopPage({
                       <ShieldCheck className="w-4 h-4 text-[#657A52] shrink-0 mt-0.5" />
                       <div className="text-xs text-neutral-700">
                         <span className="font-bold block">
-                          {language === 'ku' ? 'بەرهەمی ڕاستەقینە' : 'Honest Disclosures'}
+                          {isKu ? 'بەرهەمی ڕاستەقینە' : language === 'ar' ? 'إفصاحات حقيقية' : 'Honest Disclosures'}
                         </span>
                         <span className="text-neutral-500">
-                          {language === 'ku'
+                          {isKu
                             ? 'هیچ زانیارییەکی ساختە یاخود هەڵبەستراو لەم فرۆشگایە نییە'
+                            : language === 'ar'
+                            ? 'لا توجد تقييمات مزيفة أو رسوم مخفية.'
                             : 'No fabricated reviews or hidden fees.'}
                         </span>
                       </div>
@@ -295,11 +333,13 @@ export default function SellerShopPage({
                       <RotateCcw className="w-4 h-4 text-[#657A52] shrink-0 mt-0.5" />
                       <div className="text-xs text-neutral-700">
                         <span className="font-bold block">
-                          {language === 'ku' ? 'پەیوەندی ڕاستەوخۆ' : 'Direct WhatsApp'}
+                          {isKu ? 'پەیوەندی ڕاستەوخۆ' : language === 'ar' ? 'واتساب وتواصل مباشر' : 'Direct WhatsApp'}
                         </span>
                         <span className="text-neutral-500">
-                          {language === 'ku'
+                          {isKu
                             ? 'پەیوەندی ڕاستەوخۆ لەگەڵ خاوەن فرۆشگا بەبێ نێوەندگیر'
+                            : language === 'ar'
+                            ? 'تواصل مباشر مع التاجر دون وسطاء.'
                             : 'Direct contact with merchant without intermediaries.'}
                         </span>
                       </div>
@@ -312,11 +352,30 @@ export default function SellerShopPage({
         ) : (
           <div className="py-24 text-center">
             <h2 className="text-xl font-bold text-neutral-800">
-              {language === 'ku' ? 'فرۆشگا نەدۆزرایەوە' : 'Shop not found'}
+              {isKu ? 'فرۆشگا نەدۆزرایەوە' : language === 'ar' ? 'المتجر غير موجود' : 'Shop not found'}
             </h2>
           </div>
         )}
       </main>
+
+      {/* Add Product Studio Modal for Seller */}
+      {isAddModalOpen && seller && (
+        <AddProductModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          sellerId={seller.id}
+          sellerName={seller.name}
+          sellerSlug={seller.slug}
+          sellerLocation={seller.location}
+          sellerPhone={seller.phone}
+          onProductCreated={(newProd) => {
+            setProducts((prev) => [newProd, ...prev]);
+            if (seller) {
+              setSeller({ ...seller, product_count: seller.product_count + 1 });
+            }
+          }}
+        />
+      )}
 
       <Footer />
     </div>

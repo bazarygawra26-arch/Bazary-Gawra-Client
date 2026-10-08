@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { TrustSignals } from './TrustSignals';
 import { localizeProduct } from '../lib/i18nData';
+import { Gallery } from './product/Gallery';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -35,6 +36,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
   const [isAsking, setIsAsking] = useState(false);
 
   if (!product) return null;
+
+  const isKu = language === 'ckb' || language === 'ku';
+  const isAr = language === 'ar';
 
   const lp = localizeProduct(product, language);
   const compared = isCompared(lp.id);
@@ -68,40 +72,40 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
       if (lower.includes('warranty') || qText.includes('گەرەنتی') || qText.includes('ضمان')) {
         answer =
           product.warranty && product.warranty !== 'Information unavailable'
-            ? language === 'ckb'
+            ? isKu
               ? `بەپێی زانیاری دیاریکراوی فرۆشیار، ئەم کاڵایە ئەم گەرەنتییەی هەیە: "${product.warranty}".`
-              : language === 'ar'
+              : isAr
               ? `وفقاً لبيانات التاجر، يأتي هذا المنتج مع الضمان التالي: "${product.warranty}".`
               : `According to the seller's stated information, this product comes with: "${product.warranty}".`
-            : language === 'ckb'
+            : isKu
             ? `کەلێنی زانیاری دۆزرایەوە: فرۆشیار مەرجی گەرەنتی دیاری نەکردووە بۆ ئەم بەرهەمە. پێشنیار دەکەین پێش کڕین لە فرۆشیار دڵنیابیتەوە.`
-            : language === 'ar'
+            : isAr
             ? `تم رصد فجوة معلومات: لم يحدد التاجر شروط الضمان لهذا المنتج. نوصي بالتأكد من البائع قبل الشراء.`
             : `Information gap detected: The seller has not provided warranty terms for this listing. We recommend confirming with the seller before purchasing.`;
-      } else if (lower.includes('deliver') || qText.includes('گەیاندن') || qText.includes('توصيل')) {
+      } else if (lower.includes('deliver') || qText.includes('گەیاندن') || qText.includes('دەگات') || qText.includes('توصيل')) {
         answer = product.delivery_info
-          ? language === 'ckb'
+          ? isKu
             ? `مەرجی گەیاندنی فرۆشیار: "${product.delivery_info}".`
-            : language === 'ar'
+            : isAr
             ? `شروط التوصيل المحددة من البائع: "${product.delivery_info}".`
             : `Delivery terms provided by seller: "${product.delivery_info}".`
-          : language === 'ckb'
+          : isKu
           ? `زانیاری گەیاندن لەلایەن فرۆشیارەوە لەم لیستەدا دیاری نەکراوە.`
-          : language === 'ar'
+          : isAr
           ? `تفاصيل التوصيل غير محددة صراحة في هذا الإعلان.`
           : `Delivery details are not explicitly stated in this merchant listing.`;
-      } else if (lower.includes('power') || lower.includes('watt') || lower.includes('capacity') || qText.includes('وات') || qText.includes('قەبارە') || qText.includes('سعة')) {
+      } else if (lower.includes('power') || lower.includes('watt') || lower.includes('capacity') || qText.includes('وات') || qText.includes('قەبارە') || qText.includes('سعة') || qText.includes('توانا')) {
         answer =
-          language === 'ckb'
+          isKu
             ? `تایبەتمەندییە تۆمارکراوەکان: قەبارە: ${product.capacity || 'دیاری نەکراوە'}، هێزی کارەبا: ${product.power || 'دیاری نەکراوە'}.`
-            : language === 'ar'
+            : isAr
             ? `المواصفات الفنية المسجلة: السعة: ${product.capacity || 'غير محددة'}، القدرة: ${product.power || 'غير محددة'}.`
             : `Technical specifications on file: Capacity: ${product.capacity || 'Not provided'}, Power: ${product.power || 'Not provided'}.`;
       } else {
         answer =
-          language === 'ckb'
+          isKu
             ? `لە سەر تۆماری پشتڕاستکراوی دووکانەکە: ئەمە ${displayName}یە لەلایەن ${product.seller_name} لە ${product.location} بە نرخی ${product.price.toLocaleString()} ${t('priceIQD')}. خاڵە نادیارەکان لە لیستی شەفافیەت نیشاندراون.`
-            : language === 'ar'
+            : isAr
             ? `بناءً على سجل التاجر المعتمد: هذا المنتج ${displayName} من متجر ${product.seller_name} في ${product.location} بسعر ${product.price.toLocaleString()} ${t('priceIQD')}. النقاط المفقودة موضحة في تدقيق الشفافية.`
             : `Based strictly on the verified merchant record: This is the ${product.name} offered by ${product.seller_name} located in ${product.location} for ${product.price.toLocaleString()} ${product.currency}. Missing attributes are flagged in the information transparency checklist.`;
       }
@@ -130,19 +134,16 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
             {/* Gallery Image Left */}
             <div className="space-y-3">
-              <div className="w-full aspect-4/3 rounded-2xl overflow-hidden bg-neutral-100 border border-[#EAE7DF]">
-                <img
-                  src={product.image_url}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              <Gallery
+                images={lp.images && lp.images.length > 0 ? lp.images : [lp.image_url]}
+                alt={displayName}
+              />
               <div className="flex items-center gap-2 text-xs text-neutral-500">
-                <span className="font-semibold text-neutral-800">{language === 'ckb' ? 'پۆل:' : language === 'ar' ? 'التصنيف:' : 'Category:'}</span>
+                <span className="font-semibold text-neutral-800">{isKu ? 'پۆل:' : isAr ? 'التصنيف:' : 'Category:'}</span>
                 <span>{lp.category}</span>
                 <span>•</span>
-                <span className="font-semibold text-neutral-800">{language === 'ckb' ? 'دروستکراوی:' : language === 'ar' ? 'المنشأ:' : 'Origin:'}</span>
-                <span>{lp.origin || (language === 'ckb' ? 'دیاری نەکراوە' : language === 'ar' ? 'غير محدد' : 'Not provided')}</span>
+                <span className="font-semibold text-neutral-800">{isKu ? 'دروستکراوی:' : isAr ? 'المنشأ:' : 'Origin:'}</span>
+                <span>{lp.origin || (isKu ? 'دیاری نەکراوە' : isAr ? 'غير محدد' : 'Not provided')}</span>
               </div>
             </div>
 
@@ -173,19 +174,19 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               {/* Key Specs Pills */}
               <div className="grid grid-cols-2 gap-2 text-xs pt-2">
                 <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
-                  <span className="text-neutral-400 block text-[11px]">{language === 'ckb' ? 'قەبارە' : language === 'ar' ? 'السعة' : 'Capacity'}</span>
-                  <span className="font-semibold text-neutral-800">{lp.capacity || (language === 'ckb' ? 'دیاری نەکراوە' : language === 'ar' ? 'غير محدد' : 'Not provided')}</span>
+                  <span className="text-neutral-400 block text-[11px]">{isKu ? 'قەبارە' : isAr ? 'السعة' : 'Capacity'}</span>
+                  <span className="font-semibold text-neutral-800">{lp.capacity || (isKu ? 'دیاری نەکراوە' : isAr ? 'غير محدد' : 'Not provided')}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
-                  <span className="text-neutral-400 block text-[11px]">{language === 'ckb' ? 'هێز / تایبەتمەندی' : language === 'ar' ? 'القدرة / المواصفات' : 'Power / Specs'}</span>
-                  <span className="font-semibold text-neutral-800">{lp.power || (language === 'ckb' ? 'دیاری نەکراوە' : language === 'ar' ? 'غير محدد' : 'Not provided')}</span>
+                  <span className="text-neutral-400 block text-[11px]">{isKu ? 'هێز / تایبەتمەندی' : isAr ? 'القدرة / المواصفات' : 'Power / Specs'}</span>
+                  <span className="font-semibold text-neutral-800">{lp.power || (isKu ? 'دیاری نەکراوە' : isAr ? 'غير محدد' : 'Not provided')}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
-                  <span className="text-neutral-400 block text-[11px]">{language === 'ckb' ? 'گەرەنتی' : language === 'ar' ? 'الضمان' : 'Warranty'}</span>
+                  <span className="text-neutral-400 block text-[11px]">{isKu ? 'گەرەنتی' : isAr ? 'الضمان' : 'Warranty'}</span>
                   <span className="font-semibold text-neutral-800">{lp.warranty || t('warrantyMissing')}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
-                  <span className="text-neutral-400 block text-[11px]">{language === 'ckb' ? 'مەرجی گەڕاندنەوە' : language === 'ar' ? 'سياسة الإرجاع' : 'Return Policy'}</span>
+                  <span className="text-neutral-400 block text-[11px]">{isKu ? 'مەرجی گەڕاندنەوە' : isAr ? 'سياسة الإرجاع' : 'Return Policy'}</span>
                   <span className="font-semibold text-neutral-800">{lp.return_policy || t('returnPolicyMissing')}</span>
                 </div>
               </div>
@@ -209,7 +210,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
           {/* Description */}
           <div className="space-y-2 pt-4 border-t border-[#EAE7DF]">
-            <h3 className="font-bold text-neutral-900 text-sm">{language === 'ckb' ? 'وەسفی بەرهەم' : language === 'ar' ? 'وصف المنتج' : 'Product Description'}</h3>
+            <h3 className="font-bold text-neutral-900 text-sm">{isKu ? 'وەسفی بەرهەم' : isAr ? 'وصف المنتج' : 'Product Description'}</h3>
             <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
               {product.description}
             </p>
@@ -227,13 +228,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               <span>{t('askAiAboutProduct')}</span>
             </div>
             <p className="text-xs text-neutral-600 mb-4">
-              {language === 'ckb' ? 'بە کوردی، عەرەبی یان ئینگلیزی بپرسە. ژیری دەستکردی بازاڕی گەورە پشت بە زانیاری پشتڕاستکراوی فرۆشیار دەبەستێت.' : language === 'ar' ? 'اسأل بالكوردية أو العربية أو الإنجليزية. يتحقق بازاري گەورە من البيانات المؤكدة من البائع فقط.' : 'Ask in Kurdish, Arabic, or English. Bazary Gawra strictly checks confirmed merchant disclosures without fabricating details.'}
+              {isKu ? 'بە کوردی، عەرەبی یان ئینگلیزی بپرسە. ژیری دەستکردی بازاڕی گەورە پشت بە زانیاری پشتڕاستکراوی فرۆشیار دەبەستێت.' : isAr ? 'اسأل بالكوردية أو العربية أو الإنجليزية. يتحقق بازاري گەورە من البيانات المؤكدة من البائع فقط.' : 'Ask in Kurdish, Arabic, or English. Bazary Gawra strictly checks confirmed merchant disclosures without fabricating details.'}
             </p>
 
             {/* Quick question chips */}
             <div className="flex flex-wrap gap-1.5 mb-4">
               {sampleQuestions.map((sq, idx) => {
-                const text = language === 'ckb' ? sq.ckb : language === 'ar' ? sq.ar : sq.en;
+                const text = isKu ? sq.ckb : isAr ? sq.ar : sq.en;
                 return (
                   <button
                     key={idx}
@@ -253,10 +254,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                   <div key={i} className="space-y-1.5 text-xs">
                     <div className="font-bold text-neutral-800 flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-[#8C5E00]" />
-                      <span>{language === 'ckb' ? 'تۆ:' : language === 'ar' ? 'أنت:' : 'You:'} {item.q}</span>
+                      <span>{isKu ? 'تۆ:' : isAr ? 'أنت:' : 'You:'} {item.q}</span>
                     </div>
                     <div className="p-2.5 rounded-lg bg-[#FAF9F6] text-neutral-700 border border-[#EAE7DF] leading-relaxed">
-                      🤖 <span className="font-medium text-neutral-900">{language === 'ckb' ? 'یاریدەدەری زیرەک:' : language === 'ar' ? 'المساعد الذكي:' : 'AI Assistant:'}</span> {item.a}
+                      🤖 <span className="font-medium text-neutral-900">{isKu ? 'یاریدەدەری زیرەک:' : isAr ? 'المساعد الذكي:' : 'AI Assistant:'}</span> {item.a}
                     </div>
                   </div>
                 ))}

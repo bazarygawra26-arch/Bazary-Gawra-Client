@@ -42,7 +42,7 @@ export const AIRecommendations: React.FC<AIRecommendationsProps> = ({ products, 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {recommendedItems.map((prod) => {
             const displayName =
-              language === 'ckb' && prod.name_ckb
+              (language === 'ckb' || language === 'ku') && prod.name_ckb
                 ? prod.name_ckb
                 : language === 'ar' && prod.name_ar
                 ? prod.name_ar
@@ -167,7 +167,11 @@ export const AIRecommendations: React.FC<AIRecommendationsProps> = ({ products, 
               <div className="py-4 space-y-4 text-xs">
                 <div>
                   <div className="font-bold text-neutral-900 text-sm mb-1">
-                    {selectedAIProduct.name}
+                    {(language === 'ckb' || language === 'ku') && selectedAIProduct.name_ckb
+                      ? selectedAIProduct.name_ckb
+                      : language === 'ar' && selectedAIProduct.name_ar
+                      ? selectedAIProduct.name_ar
+                      : selectedAIProduct.name}
                   </div>
                   <div className="text-neutral-500">
                     {t('navSellers')}: {selectedAIProduct.seller_name} • {t('locationLabel')}: {selectedAIProduct.location}

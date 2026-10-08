@@ -25,6 +25,9 @@ export const ProductComparisonDrawer: React.FC = () => {
 
   if (!isDrawerOpen) return null;
 
+  const isKu = language === 'ckb' || language === 'ku';
+  const isAr = language === 'ar';
+
   // Localize all items according to the active language
   const localizedItems = comparedProducts.map((p) => localizeProduct(p, language));
 
@@ -42,9 +45,9 @@ export const ProductComparisonDrawer: React.FC = () => {
                 {t('compareDrawerTitle')}
               </h2>
               <p className="text-xs text-neutral-500">
-                {language === 'ckb'
-                  ? 'تایبەتمەندییەکان بەراورد بکە و شیکاری کەلێنی زانیاریی AI ببینە'
-                  : language === 'ar'
+                {isKu
+                  ? 'تایبەتمەندییەکان بەراورد بکە و شیکاری کەلێنی زانیاریی ژیری دەستکرد ببینە'
+                  : isAr
                   ? 'قارن المواصفات جنباً إلى جنب واطلع على تحليل الفجوات بالذكاء الاصطناعي'
                   : 'Compare side-by-side specs and review AI information gap analysis'}
               </p>
@@ -78,12 +81,12 @@ export const ProductComparisonDrawer: React.FC = () => {
                 <ArrowLeftRight className="w-8 h-8" />
               </div>
               <h3 className="font-bold text-neutral-900 text-lg mb-1">
-                {language === 'ckb' ? 'هیچ کاڵایەک هەڵنەبژێردراوە' : language === 'ar' ? 'لم يتم اختيار أي منتج بعد' : 'No products selected yet'}
+                {isKu ? 'هیچ کاڵایەک هەڵنەبژێردراوە' : isAr ? 'لم يتم اختيار أي منتج بعد' : 'No products selected yet'}
               </h3>
               <p className="text-sm text-neutral-500 max-w-sm mx-auto">
-                {language === 'ckb'
+                {isKu
                   ? 'کلیک لەسەر دوگمەی "بەراوردکردن" بکە لەسەر هەر بەرهەمێک بۆ هەڵسەنگاندنی تایبەتمەندییەکان.'
-                  : language === 'ar'
+                  : isAr
                   ? 'انقر على "مقارنة" في أي بطاقة منتج لتقييم الميزات جنباً إلى جنب.'
                   : 'Click "Compare" on any product card on the marketplace to evaluate features side-by-side.'}
               </p>
@@ -98,9 +101,9 @@ export const ProductComparisonDrawer: React.FC = () => {
                     <span>{t('aiComparison')}</span>
                   </div>
                   <span className="text-[11px] font-semibold bg-[#FFF5DD] text-[#8C5E00] px-2 py-0.5 rounded-full">
-                    {language === 'ckb'
-                      ? 'بزوێنەری شیکاری کەلێن و گونجاوی AI'
-                      : language === 'ar'
+                    {isKu
+                      ? 'بزوێنەری شیکاری کەلێن و گونجاوی ژیری دەستکرد'
+                      : isAr
                       ? 'محرك تحليل الفجوات والجدوى بالذكاء الاصطناعي'
                       : 'AI Gap & Feasibility Engine'}
                   </span>
@@ -108,14 +111,14 @@ export const ProductComparisonDrawer: React.FC = () => {
 
                 <p className="text-xs sm:text-sm text-neutral-700 leading-relaxed">
                   {localizedItems.length === 1 ? (
-                    language === 'ckb'
-                      ? 'لانیکەم بەرهەمێکی تر زیاد بکە بۆ دروستکردنی شیکارییەکی گشتگیری گونجاوی و بەراوردکاری AI.'
-                      : language === 'ar'
+                    isKu
+                      ? 'لانیکەم بەرهەمێکی تر زیاد بکە بۆ دروستکردنی شیکارییەکی گشتگیری گونجاوی و بەراوردکاری ژیری دەستکرد.'
+                      : isAr
                       ? 'أضف منتجاً واحداً على الأقل لإنشاء تحليل مقارنة شامل للجدوى والمفاضلة بالذكاء الاصطناعي.'
                       : 'Add at least one more product to generate a comprehensive AI comparative feasibility and trade-off synthesis.'
                   ) : (
                     <>
-                      {language === 'ckb' ? (
+                      {isKu ? (
                         <>
                           بەپێی زانیاری و بەڵێننامەی فرۆشیاران،{' '}
                           <span className="font-bold text-neutral-900">
@@ -127,7 +130,7 @@ export const ProductComparisonDrawer: React.FC = () => {
                           </span>{' '}
                           جیاوازی سەرەکی لە قەبارە و تایبەتمەندی تەکنیکیدایە.
                         </>
-                      ) : language === 'ar' ? (
+                      ) : isAr ? (
                         <>
                           بناءً على التزامات وبيانات التجار المقدمة، يوفر{' '}
                           <span className="font-bold text-neutral-900">
@@ -198,9 +201,9 @@ export const ProductComparisonDrawer: React.FC = () => {
               {/* 3. Deep Specification Matrix Table */}
               <div className="rounded-xl border border-[#EAE7DF] overflow-hidden bg-white shadow-2xs text-xs">
                 <div className="bg-[#FAF9F6] px-4 py-2.5 border-b border-[#EAE7DF] font-bold text-neutral-800">
-                  {language === 'ckb'
+                  {isKu
                     ? 'وردەکاری تەواوی تایبەتمەندییەکان'
-                    : language === 'ar'
+                    : isAr
                     ? 'تفاصيل المواصفات الدقيقة'
                     : 'Detailed Feature Breakdown'}
                 </div>
@@ -209,7 +212,7 @@ export const ProductComparisonDrawer: React.FC = () => {
                   <div className="grid grid-cols-4 p-3 gap-2 items-center">
                     <span className="font-semibold text-neutral-500 flex items-center gap-1 col-span-1">
                       <MapPin className="w-3.5 h-3.5" />{' '}
-                      {language === 'ckb' ? 'شوێن' : language === 'ar' ? 'الموقع' : 'Location'}
+                      {isKu ? 'شوێن' : isAr ? 'الموقع' : 'Location'}
                     </span>
                     {localizedItems.map((p) => (
                       <span key={p.id} className="text-neutral-800 font-medium truncate col-span-1">
@@ -222,7 +225,7 @@ export const ProductComparisonDrawer: React.FC = () => {
                   <div className="grid grid-cols-4 p-3 gap-2 items-center">
                     <span className="font-semibold text-neutral-500 flex items-center gap-1 col-span-1">
                       <Store className="w-3.5 h-3.5" />{' '}
-                      {language === 'ckb' ? 'فرۆشیار' : language === 'ar' ? 'المتجر' : 'Seller'}
+                      {isKu ? 'فرۆشیار' : isAr ? 'المتجر' : 'Seller'}
                     </span>
                     {localizedItems.map((p) => (
                       <span key={p.id} className="text-neutral-800 font-medium truncate col-span-1">
@@ -235,7 +238,7 @@ export const ProductComparisonDrawer: React.FC = () => {
                   <div className="grid grid-cols-4 p-3 gap-2 items-center">
                     <span className="font-semibold text-neutral-500 flex items-center gap-1 col-span-1">
                       <ShieldCheck className="w-3.5 h-3.5" />{' '}
-                      {language === 'ckb' ? 'گەرەنتی' : language === 'ar' ? 'الضمان' : 'Warranty'}
+                      {isKu ? 'گەرەنتی' : isAr ? 'الضمان' : 'Warranty'}
                     </span>
                     {localizedItems.map((p) => (
                       <span
@@ -255,7 +258,7 @@ export const ProductComparisonDrawer: React.FC = () => {
                   <div className="grid grid-cols-4 p-3 gap-2 items-center">
                     <span className="font-semibold text-neutral-500 flex items-center gap-1 col-span-1">
                       <Truck className="w-3.5 h-3.5" />{' '}
-                      {language === 'ckb' ? 'گەیاندن' : language === 'ar' ? 'التوصيل' : 'Delivery'}
+                      {isKu ? 'گەیاندن' : isAr ? 'التوصيل' : 'Delivery'}
                     </span>
                     {localizedItems.map((p) => (
                       <span key={p.id} className="text-neutral-800 font-medium truncate col-span-1">
@@ -268,7 +271,7 @@ export const ProductComparisonDrawer: React.FC = () => {
                   <div className="grid grid-cols-4 p-3 gap-2 items-center">
                     <span className="font-semibold text-neutral-500 flex items-center gap-1 col-span-1">
                       <RotateCcw className="w-3.5 h-3.5" />{' '}
-                      {language === 'ckb' ? 'مەرجی گەڕاندنەوە' : language === 'ar' ? 'سياسة الإرجاع' : 'Return Policy'}
+                      {isKu ? 'مەرجی گەڕاندنەوە' : isAr ? 'سياسة الإرجاع' : 'Return Policy'}
                     </span>
                     {localizedItems.map((p) => (
                       <span
@@ -287,11 +290,11 @@ export const ProductComparisonDrawer: React.FC = () => {
                   {/* Capacity & Power */}
                   <div className="grid grid-cols-4 p-3 gap-2 items-center">
                     <span className="font-semibold text-neutral-500 col-span-1">
-                      {language === 'ckb' ? 'قەبارە / هێز' : language === 'ar' ? 'السعة / القدرة' : 'Capacity / Power'}
+                      {isKu ? 'قەبارە / هێز' : isAr ? 'السعة / القدرة' : 'Capacity / Power'}
                     </span>
                     {localizedItems.map((p) => (
                       <span key={p.id} className="text-neutral-800 font-medium truncate col-span-1">
-                        {p.capacity || (language === 'ckb' ? 'دیاری نەکراوە' : language === 'ar' ? 'غير محدد' : 'N/A')} {p.power ? `(${p.power})` : ''}
+                        {p.capacity || (isKu ? 'دیاری نەکراوە' : isAr ? 'غير محدد' : 'N/A')} {p.power ? `(${p.power})` : ''}
                       </span>
                     ))}
                   </div>
@@ -299,11 +302,11 @@ export const ProductComparisonDrawer: React.FC = () => {
                   {/* Origin */}
                   <div className="grid grid-cols-4 p-3 gap-2 items-center">
                     <span className="font-semibold text-neutral-500 col-span-1">
-                      {language === 'ckb' ? 'دروستکراوی' : language === 'ar' ? 'بلد المنشأ' : 'Origin / Build'}
+                      {isKu ? 'دروستکراوی' : isAr ? 'بلد المنشأ' : 'Origin / Build'}
                     </span>
                     {localizedItems.map((p) => (
                       <span key={p.id} className="text-neutral-800 font-medium truncate col-span-1">
-                        {p.origin || (language === 'ckb' ? 'دیاری نەکراوە' : language === 'ar' ? 'غير محدد' : 'Not provided')}
+                        {p.origin || (isKu ? 'دیاری نەکراوە' : isAr ? 'غير محدد' : 'Not provided')}
                       </span>
                     ))}
                   </div>
@@ -317,9 +320,9 @@ export const ProductComparisonDrawer: React.FC = () => {
                   <span>{t('informationGaps')}</span>
                 </div>
                 <p className="text-xs text-amber-800 mb-3">
-                  {language === 'ckb'
+                  {isKu
                     ? 'بازاڕی گەورە بە شێوەیەکی خۆکار پشکنین بۆ ڕوونی بەرهەمەکە دەکات تاوەکو کڕیار بزانێت چ بەڵێنێکی فرۆشیار نادیارە پێش بڕیاردانی کڕین:'
-                    : language === 'ar'
+                    : isAr
                     ? 'يقوم بازاري گەورە بتدقيق شفافية الإعلان تلقائياً ليعلم المشتري ما ينقص من التزامات التاجر قبل الشراء:'
                     : 'Bazary Gawra automatically audits listing transparency so buyers understand what merchant commitments are missing before making a purchasing decision:'}
                 </p>
@@ -348,25 +351,25 @@ export const ProductComparisonDrawer: React.FC = () => {
 
                     if (isMissingWarranty)
                       missing.push(
-                        language === 'ckb'
+                        isKu
                           ? 'ماوەی گەرەنتی و مەرجی چاککردنەوە لەلایەن فرۆشیارەوە دیاری نەکراوە'
-                          : language === 'ar'
+                          : isAr
                           ? 'مدة الضمان وشروط الصيانة المحلية غير مذكورة'
                           : 'Warranty duration and local repair terms not provided'
                       );
                     if (isMissingReturn)
                       missing.push(
-                        language === 'ckb'
+                        isKu
                           ? 'مەرجی گەڕاندنەوە یان گۆڕینەوە لەلایەن فرۆشیارەوە دیاری نەکراوە'
-                          : language === 'ar'
+                          : isAr
                           ? 'سياسة الإرجاع أو الاستبدال غير موضحة من قبل التاجر'
                           : 'Return / exchange policy not stated by seller'
                       );
                     if (isMissingOrigin)
                       missing.push(
-                        language === 'ckb'
+                        isKu
                           ? 'وڵاتی دروستکەر پشتڕاست نەکراوەتەوە'
-                          : language === 'ar'
+                          : isAr
                           ? 'بلد المنشأ والتصنيع غير مؤكد'
                           : 'Manufacturer origin not verified'
                       );
@@ -380,9 +383,9 @@ export const ProductComparisonDrawer: React.FC = () => {
                           <div className="flex items-center gap-1.5 text-emerald-700">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                             <span>
-                              {language === 'ckb'
+                              {isKu
                                 ? 'هەموو زانیارییە بنەڕەتییەکانی شەفافیەت لەلایەن فرۆشیارەوە دابینکراون'
-                                : language === 'ar'
+                                : isAr
                                 ? 'جميع معايير الشفافية الأساسية متوفرة من قبل التاجر'
                                 : 'All essential transparency criteria provided by seller'}
                             </span>

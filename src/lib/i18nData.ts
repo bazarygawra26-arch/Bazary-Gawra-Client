@@ -124,6 +124,121 @@ const locationDict: Record<string, { en: string; ckb: string; ar: string }> = {
     ckb: 'سلێمانی و پێنجوێن',
     ar: 'السليمانية وبنجوين',
   },
+  'penjwen & sulaymaniyah': {
+    en: 'Penjwen & Sulaymaniyah',
+    ckb: 'پێنجوێن و سلێمانی',
+    ar: 'بنجوين والسليمانية',
+  },
+  'penjwen & sulaymaniyah outlet': {
+    en: 'Penjwen & Sulaymaniyah outlet',
+    ckb: 'پێنجوێن و پێشانگەی سلێمانی',
+    ar: 'بنجوين ومنفذ السليمانية',
+  },
+  'sulaymaniyah (qaisari bazaar)': {
+    en: 'Sulaymaniyah (Qaisari Bazaar)',
+    ckb: 'سلێمانی (بازاڕی قەیسەری)',
+    ar: 'السليمانية (سوق القيصرية)',
+  },
+  'sulaymaniyah old bazaar': {
+    en: 'Sulaymaniyah Old Bazaar',
+    ckb: 'سلێمانی (بازاڕی کۆن)',
+    ar: 'السليمانية (السوق القديم)',
+  },
+  'sulaymaniyah, ashti district': {
+    en: 'Sulaymaniyah, Ashti District',
+    ckb: 'سلێمانی، گەڕەکی ئاشتی',
+    ar: 'السليمانية، حي آشتي',
+  },
+  'sulaymaniyah, ashti': {
+    en: 'Sulaymaniyah, Ashti',
+    ckb: 'سلێمانی، گەڕەکی ئاشتی',
+    ar: 'السليمانية، حي آشتي',
+  },
+  'sulaymaniyah (bakrajo)': {
+    en: 'Sulaymaniyah (Bakrajo)',
+    ckb: 'سلێمانی (بەکرەجۆ)',
+    ar: 'السليمانية (بكرجو)',
+  },
+  'sulaymaniyah (salim st)': {
+    en: 'Sulaymaniyah (Salim St)',
+    ckb: 'سلێمانی (شەقامی سالم)',
+    ar: 'السليمانية (شارع سالم)',
+  },
+  'sulaymaniyah, salim st': {
+    en: 'Sulaymaniyah, Salim St',
+    ckb: 'سلێمانی (شەقامی سالم)',
+    ar: 'السليمانية (شارع سالم)',
+  },
+  'sulaymaniyah, mawlawi': {
+    en: 'Sulaymaniyah, Mawlawi',
+    ckb: 'سلێمانی، شەقامی مەولەوی',
+    ar: 'السليمانية، شارع مولوي',
+  },
+  'sulaymaniyah (sarchinar)': {
+    en: 'Sulaymaniyah (Sarchinar)',
+    ckb: 'سلێمانی (سەرچنار)',
+    ar: 'السليمانية (سرجنار)',
+  },
+  'sulaymaniyah, sarchinar': {
+    en: 'Sulaymaniyah, Sarchinar',
+    ckb: 'سلێمانی (سەرچنار)',
+    ar: 'السليمانية (سرجنار)',
+  },
+  'erbil (60m road)': {
+    en: 'Erbil (60m Road)',
+    ckb: 'هەولێر (شەقامی ٦٠ مەتری)',
+    ar: 'أربيل (شارع 60 متري)',
+  },
+  'erbil, 60m road': {
+    en: 'Erbil, 60m Road',
+    ckb: 'هەولێر (شەقامی ٦٠ مەتری)',
+    ar: 'أربيل (شارع 60 متري)',
+  },
+  'erbil (100m road)': {
+    en: 'Erbil (100m Road)',
+    ckb: 'هەولێر (شەقامی ١٠٠ مەتری)',
+    ar: 'أربيل (شارع 100 متري)',
+  },
+  'erbil, 100m road': {
+    en: 'Erbil, 100m Road',
+    ckb: 'هەولێر (شەقامی ١٠٠ مەتری)',
+    ar: 'أربيل (شارع 100 متري)',
+  },
+  'erbil (italian city 1)': {
+    en: 'Erbil (Italian City 1)',
+    ckb: 'هەولێر (شاری ئیتاڵی ١)',
+    ar: 'أربيل (القرية الإيطالية 1)',
+  },
+  'erbil, gulan street & empire': {
+    en: 'Erbil, Gulan Street & Empire',
+    ckb: 'هەولێر، شەقامی گوڵان و ئیمپایەر',
+    ar: 'أربيل، شارع كولان وإمباير',
+  },
+  'erbil, gulan st': {
+    en: 'Erbil, Gulan St',
+    ckb: 'هەولێر، شەقامی گوڵان',
+    ar: 'أربيل، شارع كولان',
+  },
+  'erbil, dream city': {
+    en: 'Erbil, Dream City',
+    ckb: 'هەولێر، دریم سیتی',
+    ar: 'أربيل، دريم سيتي',
+  },
+  'duhok (kro district)': {
+    en: 'Duhok (KRO District)',
+    ckb: 'دهۆک (ناوچەی KRO)',
+    ar: 'دهوك (منطقة KRO)',
+  },
+  'duhok, kro': {
+    en: 'Duhok, KRO',
+    ckb: 'دهۆک (ناوچەی KRO)',
+    ar: 'دهوك (منطقة KRO)',
+  },
+  'duhok, kro commercial area': {
+    en: 'Duhok, KRO Commercial Area',
+    ckb: 'دهۆک (ناوچەی بازرگانی KRO)',
+    ar: 'دهوك (المنطقة التجارية KRO)',
+  },
   'sulaymaniyah': {
     en: 'Sulaymaniyah',
     ckb: 'سلێمانی',
@@ -330,6 +445,46 @@ export function localizeWarranty(raw: string | undefined, lang: string): string 
   const l = normalizeLang(lang);
   const lower = raw.toLowerCase();
 
+  if (lower.includes('vegetable') || lower.includes('authenticity') || lower.includes('ڕەسەنایەتی') || lower.includes('أصالة')) {
+    return l === 'ckb'
+      ? 'گەرەنتی ڕەسەنایەتی (ڕەنگی سروشتی ڕووەکی)'
+      : l === 'ar'
+      ? 'ضمان الأصالة (أصباغ نباتية طبيعية)'
+      : 'Authenticity Guarantee (Natural Vegetable Dyes)';
+  }
+
+  if (lower.includes('dyson') || lower.includes('دایسۆن')) {
+    return l === 'ckb'
+      ? '٢ ساڵ گەرەنتی دایسۆن (بریکاری فەرمی لە هەولێر)'
+      : l === 'ar'
+      ? 'سنتان ضمان دايسون (الوكيل المعتمد في أربيل)'
+      : '2 Years Dyson Warranty (Agent in Erbil)';
+  }
+
+  if (lower.includes('philips') || lower.includes('فیلیپس')) {
+    return l === 'ckb'
+      ? '٢ ساڵ گەرەنتی بریکاری فەرمی فیلیپس'
+      : l === 'ar'
+      ? 'سنتان ضمان وكيل فيليبس الرسمي'
+      : '2 Years Official Philips Agent Warranty';
+  }
+
+  if (lower.includes('6 month') || lower.includes('٦ مانگ')) {
+    return l === 'ckb'
+      ? '٦ مانگ گەرەنتی فرۆشگای ناوخۆیی'
+      : l === 'ar'
+      ? '6 أشهر ضمان المتجر المحلي'
+      : '6 Months Local Shop Warranty';
+  }
+
+  if (lower.includes('repair') || lower.includes('parts') || lower.includes('پارچە')) {
+    return l === 'ckb'
+      ? '١ ساڵ گەرەنتی ناوخۆیی (چاککردنەوە و پارچەی یەدەگ)'
+      : l === 'ar'
+      ? 'سنة واحدة ضمان محلي (تصليح وقطع غيار)'
+      : '1 Year Local Warranty (Repair & Parts)';
+  }
+
   if (lower.includes('purity') || lower.includes('lab') || lower.includes('پاکی') || lower.includes('نقاوة')) {
     return l === 'ckb'
       ? 'گەرەنتی پاکی ١٠٠٪ (بڕوانامەی تاقیگەی باوەڕپێکراو)'
@@ -385,6 +540,70 @@ export function localizeDelivery(raw: string | undefined, lang: string): string 
   const l = normalizeLang(lang);
   const lower = raw.toLowerCase();
 
+  if (lower.includes('insured delivery') || lower.includes('anywhere in kurdistan') || lower.includes('بیمەکراو')) {
+    return l === 'ckb'
+      ? 'گەیاندنی بیمەکراوی بێبەرامبەر بۆ هەموو کوردستان'
+      : l === 'ar'
+      ? 'توصيل مؤمن مجاني لكافة مناطق كوردستان'
+      : 'Free insured delivery anywhere in Kurdistan';
+  }
+
+  if (lower.includes('free same-day delivery in erbil') || (lower.includes('erbil') && lower.includes('6,000'))) {
+    return l === 'ckb'
+      ? 'گەیاندنی بێبەرامبەری هەمان ڕۆژ لە هەولێر، ٦,٠٠٠ دینار بۆ سلێمانی و دهۆک'
+      : l === 'ar'
+      ? 'توصيل مجاني بنفس اليوم في أربيل، 6,000 دينار للسليمانية ودهوك'
+      : 'Free same-day delivery in Erbil, 6,000 IQD to Sulaymaniyah/Duhok';
+  }
+
+  if (lower.includes('same-day delivery in sulaymaniyah') || (lower.includes('sulaymaniyah') && lower.includes('3,000'))) {
+    return l === 'ckb'
+      ? 'گەیاندنی هەمان ڕۆژ لە سلێمانی (٣,٠٠٠ دینار)، ٢ ڕۆژ بۆ هەولێر و دهۆک'
+      : l === 'ar'
+      ? 'توصيل بنفس اليوم في السليمانية (3,000 دينار)، يومان لأربيل ودهوك'
+      : 'Same-day delivery in Sulaymaniyah (3,000 IQD), 2 days to Erbil/Duhok';
+  }
+
+  if (lower.includes('free delivery in erbil') || (lower.includes('erbil') && lower.includes('5,000'))) {
+    return l === 'ckb'
+      ? 'گەیاندنی بێبەرامبەر لە هەولێر، ٥,٠٠٠ دینار بۆ شارەکانی تر'
+      : l === 'ar'
+      ? 'توصيل مجاني في أربيل، 5,000 دينار لباقي مدن كوردستان'
+      : 'Free delivery in Erbil, 5,000 IQD other Kurdistan cities';
+  }
+
+  if (lower.includes('duhok') && lower.includes('2,500')) {
+    return l === 'ckb'
+      ? 'گەیاندن لە دهۆک (٢,٥٠٠ دینار) و هەولێر (٤,٠٠٠ دینار)'
+      : l === 'ar'
+      ? 'التوصيل متوفر في دهوك (2,500 دينار) وأربيل (4,000 دينار)'
+      : 'Delivery available in Duhok (2,500 IQD) and Erbil (4,000 IQD)';
+  }
+
+  if (lower.includes('free delivery across sulaymaniyah') || (lower.includes('sulaymaniyah') && lower.includes('4,000') && lower.includes('free'))) {
+    return l === 'ckb'
+      ? 'گەیاندنی بێبەرامبەر لە سلێمانی، ٤,٠٠٠ دینار بۆ شارەکانی تر'
+      : l === 'ar'
+      ? 'توصيل مجاني داخل السليمانية، 4,000 دينار لباقي المناطق'
+      : 'Free delivery across Sulaymaniyah, 4,000 IQD elsewhere in KRI';
+  }
+
+  if (lower.includes('erbil 3,000')) {
+    return l === 'ckb'
+      ? 'گەیاندن لە هەولێر (٣,٠٠٠ دینار)'
+      : l === 'ar'
+      ? 'التوصيل متوفر في أربيل (3,000 دينار)'
+      : 'Delivery available (Erbil 3,000 IQD)';
+  }
+
+  if (lower.includes('sulaymaniyah (4,000')) {
+    return l === 'ckb'
+      ? 'گەیاندن لە سلێمانی (٤,٠٠٠ دینار)'
+      : l === 'ar'
+      ? 'التوصيل متوفر في السليمانية (4,000 دينار)'
+      : 'Delivery available in Sulaymaniyah (4,000 IQD)';
+  }
+
   if (lower.includes('free delivery') || lower.includes('2+ jar') || lower.includes('بێبەرامبەر') || lower.includes('مجاني')) {
     return l === 'ckb'
       ? 'گەیاندنی بێبەرامبەر بۆ ٢ دانە و زیاتر لە سەرتاسەری کوردستان'
@@ -432,6 +651,38 @@ export function localizeReturnPolicy(raw: string | undefined, lang: string): str
   const l = normalizeLang(lang);
   const lower = raw.toLowerCase();
 
+  if (lower.includes('unsoiled') || lower.includes('inspection') || lower.includes('پشکنین')) {
+    return l === 'ckb'
+      ? '٧ ڕۆژ مافی پشکنین و گەڕاندنەوە ئەگەر بەکارنەهاتبێت'
+      : l === 'ar'
+      ? '7 أيام للمعاينة والاسترجاع في حال عدم الاستخدام'
+      : '7 days inspection and return if unsoiled';
+  }
+
+  if (lower.includes('technical failure') || (lower.includes('14') && lower.includes('warranty'))) {
+    return l === 'ckb'
+      ? '١٤ ڕۆژ گەرەنتی بەرامبەر کێشەی تەکنیکی'
+      : l === 'ar'
+      ? '14 يوماً ضمان ضد الأعطال الفنية'
+      : '14 days warranty against technical failure';
+  }
+
+  if (lower.includes('manufacturing defects') || lower.includes('3-day replacement')) {
+    return l === 'ckb'
+      ? '٣ ڕۆژ گۆڕینەوە لە کاتی بوونی کێشەی دروستکردن'
+      : l === 'ar'
+      ? 'استبدال خلال 3 أيام في حال وجود عيب مصنعي'
+      : '3-day replacement for manufacturing defects';
+  }
+
+  if (lower.includes('unused return') || lower.includes('7 days unused')) {
+    return l === 'ckb'
+      ? '٧ ڕۆژ مافی گەڕاندنەوە بۆ کاڵای بەکارنەهاتوو'
+      : l === 'ar'
+      ? '7 أيام إرجاع للمنتجات غير المستخدمة'
+      : '7 days unused return policy';
+  }
+
   if (lower.includes('purity') || lower.includes('laboratory') || lower.includes('تاقیگە') || lower.includes('مخبر')) {
     return l === 'ckb'
       ? 'گەڕاندنەوەی تەواوی پارە ئەگەر پشکنینی تاقیگە دەرنەچوو'
@@ -446,6 +697,14 @@ export function localizeReturnPolicy(raw: string | undefined, lang: string): str
       : l === 'ar'
       ? '48 ساعة تجربة واستبدال فوري'
       : '48 hours test & replacement guarantee';
+  }
+
+  if (lower.includes('3 days exchange') || lower.includes('٣ ڕۆژ')) {
+    return l === 'ckb'
+      ? '٣ ڕۆژ مافی گۆڕینەوە'
+      : l === 'ar'
+      ? 'سياسة استبدال خلال 3 أيام'
+      : '3 days exchange policy';
   }
 
   if (lower.includes('7') || lower.includes('satisfaction') || lower.includes('ناڕازی') || lower.includes('استرجاع')) {
@@ -513,10 +772,10 @@ export function localizeOrigin(raw: string | undefined, lang: string): string {
 
   if (lower.includes('united kingdom') || lower.includes('dyson') || lower.includes('بەریتانیا') || lower.includes('المملكة المتحدة')) {
     return l === 'ckb'
-      ? 'بەریتانیا (تایبەت بە دایسۆن)'
+      ? 'بەریتانیا (براندی دایسۆن / دروستکراوی مالیزیا)'
       : l === 'ar'
-      ? 'المملكة المتحدة (أبحاث دايسون)'
-      : 'United Kingdom (Dyson)';
+      ? 'المملكة المتحدة (علامة دايسون / تصنيع ماليزيا)'
+      : 'United Kingdom brand (Manufactured in Malaysia)';
   }
 
   if (lower.includes('china') || lower.includes('چین') || lower.includes('الصين')) {
@@ -530,18 +789,164 @@ export function localizeOrigin(raw: string | undefined, lang: string): string {
   return raw;
 }
 
+// 7.1 Capacities
+export function localizeCapacity(raw: string | undefined, lang: string): string {
+  if (!raw || raw === 'N/A') {
+    return normalizeLang(lang) === 'ckb' ? 'دیاری نەکراوە' : normalizeLang(lang) === 'ar' ? 'غير محدد' : 'N/A';
+  }
+  const l = normalizeLang(lang);
+  const lower = raw.toLowerCase();
+
+  if (lower.includes('150cm') || lower.includes('200cm')) {
+    return l === 'ckb' ? '١٥٠سم × ٢٠٠سم' : l === 'ar' ? '150سم × 200سم' : '150cm x 200cm';
+  }
+  if (lower.includes('1.1')) {
+    return l === 'ckb' ? '١.١ لیتر' : l === 'ar' ? '1.1 لتر' : '1.1 Liters';
+  }
+  if (lower.includes('1.8')) {
+    return l === 'ckb' ? '١.٨ لیتر (لەگەڵ کۆگای دانەوێڵە)' : l === 'ar' ? '1.8 لتر مع خزان الحبوب' : '1.8 Liters with Bean Hopper';
+  }
+  if (lower.includes('4 cup') || lower.includes('250ml')) {
+    return l === 'ckb' ? '٤ کووپ (٢٥٠ مل)' : l === 'ar' ? '4 أكواب (250 مل)' : '4 Cups (250ml)';
+  }
+  if (lower.includes('9.5')) {
+    return l === 'ckb' ? '٩.٥ لیتر (٢ سەبەتەی ٤.٧٥ لیتری)' : l === 'ar' ? '9.5 لتر (سلتان سعة 4.75 لتر)' : '9.5 Liters (2 x 4.75L Baskets)';
+  }
+  if (lower.includes('4.0') || lower.includes('4l')) {
+    return l === 'ckb' ? '٤.٠ لیتر' : l === 'ar' ? '4.0 لتر' : '4.0 Liters';
+  }
+  if (lower.includes('1,000') || lower.includes('1000')) {
+    return l === 'ckb' ? '١,٠٠٠ گرام (پوخت)' : l === 'ar' ? '1,000 غرام (صافي)' : '1,000 grams (Net)';
+  }
+  if (lower.includes('2.0l') || lower.includes('food processor')) {
+    return l === 'ckb' ? '٢.٠ لیتر خۆراک ئامادەکەر + ٥٠٠ مل وردکەرەوە' : l === 'ar' ? 'محضر طعام 2.0 لتر + مفرمة 500 مل' : '2.0L Food Processor + 500ml Chopper';
+  }
+  if (lower.includes('0.35l') || lower.includes('2.2kg')) {
+    return l === 'ckb' ? '٠.٣٥ لیتر کۆکەرەوە / کێش ٢.٢ کگم' : l === 'ar' ? 'حاوية 0.35 لتر / وزن 2.2 كغم' : '0.35L Bin / 2.2kg Weight';
+  }
+
+  return raw;
+}
+
+// 7.2 Power
+export function localizePower(raw: string | undefined, lang: string): string {
+  if (!raw || raw === 'N/A') {
+    return normalizeLang(lang) === 'ckb' ? 'بەردەست نییە' : normalizeLang(lang) === 'ar' ? 'غير متوفر' : 'N/A';
+  }
+  const l = normalizeLang(lang);
+  const lower = raw.toLowerCase();
+
+  if (lower.includes('1300w') || lower.includes('15-bar')) {
+    return l === 'ckb' ? '١٣٠٠ وات / پەستانی ١٥ بار' : l === 'ar' ? '1300 واط / ضغط 15 بار' : '1300W / 15-Bar Pressure';
+  }
+  if (lower.includes('1500w') || lower.includes('ceramic grinder')) {
+    return l === 'ckb' ? '١٥٠٠ وات / هاڕەڕی سیرامیکی ناوەکی' : l === 'ar' ? '1500 واط / مطحنة سيراميك مدمجة' : '1500W / Ceramic Grinder built-in';
+  }
+  if (lower.includes('800w')) {
+    return l === 'ckb' ? '٨٠٠ وات' : l === 'ar' ? '800 واط' : '800W';
+  }
+  if (lower.includes('2470w')) {
+    return l === 'ckb' ? '٢٤٧٠ وات' : l === 'ar' ? '2470 واط' : '2470W';
+  }
+  if (lower.includes('1600w')) {
+    return l === 'ckb' ? '١٦٠٠ وات / ٤٠ بۆ ٢٠٠ پلەی سیلیزی' : l === 'ar' ? '1600 واط / 40 - 200 درجة مئوية' : '1600W / 40°C - 200°C';
+  }
+  if (lower.includes('1200w')) {
+    return l === 'ckb' ? '١٢٠٠ وات تیغەی ئەکتیڤ بلەیدی بەهێز' : l === 'ar' ? '1200 واط شفرة أكتيف بليد قوية' : '1200W Heavy-duty ActiveBlade';
+  }
+  if (lower.includes('150 air watts') || lower.includes('60 min')) {
+    return l === 'ckb' ? '١٥٠ ئێر وات / ٦٠ خولەک کارکردن' : l === 'ar' ? '150 واط هوائي / 60 دقيقة تشغيل' : '150 Air Watts / 60 Min Runtime';
+  }
+
+  return raw;
+}
+
+// 7.3 Descriptions
+const descriptionsDict: Record<string, { en: string; ckb: string; ar: string }> = {
+  'prod-001': {
+    en: 'Slimline 15 cm width stainless steel manual espresso machine. Includes double filter, pannarello milk frother wand, and rapid thermo-block heating system. Perfect for home baristas in Kurdistan.',
+    ckb: 'ئامێری دروستکردنی قاوەی ئیسپرێسۆی دەستی لە ستیلی دژە ژەنگ بە پانی ١٥ سم. فلتەری دووانی، چڵی فۆمکردنی شیر، و سیستەمی گەرمکردنی خێرای تێرمۆبلۆک لەخۆدەگرێت. گونجاوە بۆ بارێستاکانی ماڵەوە لە کوردستان.',
+    ar: 'ماكينة إسبريسو يدوية من الفولاذ المقاوم للصدأ بعرض 15 سم. تحتوي على فلتر مزدوج، وعصا تبخير الحليب، ونظام تسخين سريع ثيرموبلوك. مثالية لعشاق القهوة في كوردستان.',
+  },
+  'prod-002': {
+    en: 'Fresh bean-to-cup coffee with 100% ceramic grinders. Intuitive touch display lets you adjust aroma strength and coffee quantity easily.',
+    ckb: 'قاوەی فرێش لە دانەوێڵەوە بۆ کووپ بە هاڕەڕی ١٠٠٪ سیرامیک. شاشەی دەستلێدانی ژیر ڕێگەت پێدەدات خەستی و بڕی قاوەکە بە ئاسانی ڕێکبخەیت.',
+    ar: 'قهوة طازجة من الحبوب مباشرة بفضل مطاحن سيراميك 100%. شاشة لمس بديهية تتيح لك ضبط قوة النكهة وكمية القهوة بسهولة.',
+  },
+  'prod-003': {
+    en: 'Compact rapid Turkish coffee pot with anti-overflow sensor and stainless steel base. Affordable daily kitchen device.',
+    ckb: 'قاوەسازی بچووک و خێرای تورکی بە هەستەوەری دژە ڕژان و بنی ستیلی دژە ژەنگ. ئامێرێکی هەرزان و گونجاو بۆ بەکارهێنانی ڕۆژانەی چێشتخانە.',
+    ar: 'وعاء قهوة تركي مدمج وسريع مع مستشعر مانع للانسكاب وقاعدة من الفولاذ المقاوم للصدأ. جهاز اقتصادي ومثالي للاستخدام اليومي.',
+  },
+  'prod-004': {
+    en: 'Cook 2 foods 2 ways and finish at the same time with Sync Cook feature. Large capacity suitable for big Kurdish family feasts.',
+    ckb: 'دوو خواردن بە دوو شێوازی جیاواز ئامادە بکە و لە یەک کاتدا تەواو ببن بە تایبەتمەندی Sync Cook. قەبارەی گەورە و گونجاو بۆ خێزانە گەورەکانی کوردستان.',
+    ar: 'اطبخ وجبتين بطريقتين مختلفتين وانتهِ في نفس الوقت بفضل ميزة المزامنة Sync Cook. سعة كبيرة مناسبة للعائلات الكبيرة في كوردستان.',
+  },
+  'prod-005': {
+    en: 'Transparent visual window allows real-time monitoring. Connects to Mi Home app for remote scheduling, voice control, and over 100 cloud recipes.',
+    ckb: 'پەنجەرەی شوشەیی شەفاف ڕێگە دەدات بە شێوازی ڕاستەوخۆ چاودێری برژاندن بکەیت. دەبەسترێتەوە بە ئەپی Mi Home بۆ کۆنترۆڵی دەنگی و زیاتر لە ١٠٠ ڕەچەتەی ئۆنلاین.',
+    ar: 'نافذة زجاجية شفافة تتيح متابعة الطهي مباشرة. تتصل بتطبيق Mi Home للتحكم عن بُعد والجدولة وأكثر من 100 وصفة سحابية.',
+  },
+  'prod-006': {
+    en: 'Harvested from wild mountain flora in high altitude Penjwen mountains. Unpasteurized, cold-extracted, and raw with zero artificial additives.',
+    ckb: 'بەرهەمهێنراو لە گوڵ و گیای کێوی لە شاخە بەرزەکانی پێنجوێن. خاو، نەکوڵاو و بەبێ هیچ ماددەیەکی کیمیایی یان دەستکاری کراو.',
+    ar: 'مجموع من أزهار البرية في مرتفعات بنجوين الشاهقة. عسل خام غير مبستر معصور على البارد وبدون أي إضافات صناعية.',
+  },
+  'prod-007': {
+    en: 'Braun flagship hand blender featuring ActiveBlade technology that moves up and down to chop even the hardest foods like nuts and root vegetables easily.',
+    ckb: 'میکسەری دەستی بەناوبانگی براون بە تەکنەلۆجیای ActiveBlade کە سەردەکەوێت و دێتە خوارەوە بۆ وردکردنی ڕەقترین کەرەستە وەک چەرەزات و سەوزە بە ئاسانی.',
+    ar: 'خلاط براون الرائد المزود بتقنية ActiveBlade التي تتحرك لأعلى ولأسفل لفرم أصلب المكونات مثل المكسرات والخضروات بسهولة.',
+  },
+  'prod-008': {
+    en: 'Traditional flat-weave wool kelim crafted by master artisans using 100% organic local sheep wool and hand-extracted vegetable dyes. Genuine heirloom quality.',
+    ckb: 'بەرمای دەستچنی ڕەسەنی کوردی لە خوری سروشتی مەڕی خۆماڵی و بە ڕەنگی ڕووەکی دەرهێنراو بە دەست. بەرهەمێکی کەلەپووری بەنرخ و کوالیتی بەرز.',
+    ar: 'سجاد كليم كردي تقليدي منسوج يدوياً من صوف الأغنام المحلي 100% وأصباغ نباتية طبيعية مستخرجة يدوياً. قطعة تراثية أصيلة عالية القيمة.',
+  },
+  'prod-009': {
+    en: 'Lightweight cordless vacuum with laser illumination that reveals invisible dust on hard floors. Piezo sensor scientifically sizes and counts dust particles.',
+    ckb: 'گسکە کارەبایی بێ وایەری کێش سووک بە ڕووناکیی لەیزەر کە تۆزی نادیار لەسەر زەوی دەردەخات. هەستەوەری پێزۆ بە شێوەیەکی زانستی قەبارە و ژمارەی تۆزەکە دیاری دەکات.',
+    ar: 'مكنسة لاسلكية خفيفة الوزن مزودة بإضاءة ليزر تكشف الغبار غير المرئي على الأرضيات الصلبة. مستشعر بيزو يقيس ويعد جزيئات الغبار علمياً.',
+  },
+};
+
+export function localizeDescription(raw: string | undefined, idOrSlug: string | undefined, lang: string): string {
+  if (!raw && !idOrSlug) return '';
+  const l = normalizeLang(lang);
+  if (idOrSlug && descriptionsDict[idOrSlug]) {
+    return descriptionsDict[idOrSlug][l];
+  }
+
+  // Fallback search by matching snippet in dictionary
+  if (raw) {
+    const rawLower = raw.toLowerCase();
+    for (const item of Object.values(descriptionsDict)) {
+      if (rawLower.includes(item.en.toLowerCase().slice(0, 20))) {
+        return item[l];
+      }
+    }
+  }
+
+  return raw || '';
+}
+
 // 8. Universal Product Localizer
 export function localizeProduct<T extends {
+  id?: string;
   name: string;
   name_ckb?: string;
   name_ar?: string;
   category: string;
   location: string;
   seller_name: string;
+  seller_location?: string;
+  capacity?: string;
+  power?: string;
   warranty?: string;
   delivery_info?: string;
   return_policy?: string;
   origin?: string;
+  description?: string;
 }>(prod: T, lang: string): T {
   const l = normalizeLang(lang);
   const localizedName =
@@ -557,10 +962,15 @@ export function localizeProduct<T extends {
     category: localizeCategory(prod.category, lang),
     location: localizeLocation(prod.location, lang),
     seller_name: localizeSellerName(prod.seller_name, lang),
+    seller_location: prod.seller_location ? localizeLocation(prod.seller_location, lang) : prod.seller_location,
+    capacity: prod.capacity ? localizeCapacity(prod.capacity, lang) : prod.capacity,
+    power: prod.power ? localizePower(prod.power, lang) : prod.power,
     warranty: localizeWarranty(prod.warranty, lang),
     delivery_info: localizeDelivery(prod.delivery_info, lang),
     return_policy: localizeReturnPolicy(prod.return_policy, lang),
     origin: localizeOrigin(prod.origin, lang),
+    description: localizeDescription(prod.description, prod.id, lang),
+    images: (prod as any).images && (prod as any).images.length > 0 ? (prod as any).images : [(prod as any).image_url].filter(Boolean),
   };
 }
 

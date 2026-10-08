@@ -2,6 +2,7 @@ import 'server-only';
 import { supabaseAdmin } from '../supabaseAdmin';
 import { Product } from '../../../types';
 import { mockProducts } from '../../../data/mockData';
+import { localizeProduct } from '../../../lib/i18nData';
 
 // Map a Supabase row (either from search_products RPC or get_product_context_by_slug) to domain Product
 function mapDbProductToDomain(row: any, lang: 'en' | 'ku' | 'ar' = 'ku'): Product {
@@ -78,6 +79,9 @@ function mapDbProductToDomain(row: any, lang: 'en' | 'ku' | 'ar' = 'ku'): Produc
     origin: row.origin || undefined,
     description: row.description || '',
     image_url: row.image_url || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
+    images: Array.isArray(row.images) && row.images.length > 0
+      ? row.images
+      : [row.image_url || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80'],
     information_signals: {
       has_location: !!location,
       has_warranty: hasWarranty,
@@ -153,7 +157,7 @@ export async function findProducts(filters?: {
     );
   }
 
-  return result;
+  return result.map((p) => localizeProduct(p, activeLang));
 }
 
 export async function findProductById(id: string, lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Product | null> {
@@ -166,14 +170,15 @@ export async function findProductById(id: string, lang: 'en' | 'ku' | 'ar' = 'ku
       if (!error && data) {
         const prod = mapDbProductToDomain(data, lang);
         await enrichProductWithSellerSlug(prod);
-        return prod;
+        return localizeProduct(prod, lang);
       }
     } catch (err) {
       console.warn('Repository findProductById error:', err);
     }
   }
 
-  return mockProducts.find((p) => p.id === id) || null;
+  const found = mockProducts.find((p) => p.id === id);
+  return found ? localizeProduct(found, lang) : null;
 }
 
 export async function findProductBySlug(slug: string, lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Product | null> {
@@ -186,7 +191,7 @@ export async function findProductBySlug(slug: string, lang: 'en' | 'ku' | 'ar' =
       if (!error && data) {
         const prod = mapDbProductToDomain(data, lang);
         await enrichProductWithSellerSlug(prod);
-        return prod;
+        return localizeProduct(prod, lang);
       }
     } catch (err) {
       console.warn('Repository findProductBySlug error:', err);
@@ -204,8 +209,9 @@ export async function findProductBySlug(slug: string, lang: 'en' | 'ku' | 'ar' =
   );
   if (matched) {
     await enrichProductWithSellerSlug(matched);
+    return localizeProduct(matched, lang);
   }
-  return matched;
+  return null;
 }
 
 async function enrichProductWithSellerSlug(prod: Product) {
@@ -246,4 +252,78 @@ export async function getProductsForComparison(productIds: string[], lang: 'en' 
 
   const all = await findProducts({ lang });
   return all.filter((p) => productIds.includes(p.id));
+}
+
+export async function createProduct(input: Partial<Product>): Promise<Product> {
+  const newId = `prod-${Date.now().toString().slice(-6)}`;
+  const slug = input.slug || input.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || newId;
+
+  const newProd: Product = {
+    id: newId,
+    slug: slug,
+    name: input.name || 'New Product',
+    name_ckb: input.name_ckb || input.name,
+    name_ar: input.name_ar || input.name,
+    category: input.category || 'Kitchen & Home',
+    price: Number(input.price) || 0,
+    currency: 'IQD',
+    location: input.location || 'Sulaymaniyah',
+    seller_name: input.seller_name || 'Sulaymaniyah Home Tech',
+    seller_location: input.seller_location || input.location || 'Sulaymaniyah',
+    seller_phone: input.seller_phone || '+964 770 123 4567',
+    seller_whatsapp: input.seller_whatsapp || '+964 770 123 4567',
+    seller_id: input.seller_id || 'seller-01',
+    seller_slug: input.seller_slug || 'sulaymaniyah-home-tech',
+    warranty: input.warranty || '١٢ مانگ گەرەنتی فەرمی ناوخۆیی',
+    delivery_info: input.delivery_info || 'گەیاندنی خێرا لە سەرتاسەری کوردستان',
+    return_policy: input.return_policy || '٧ ڕۆژ مافی پشکنین و گەڕاندنەوە',
+    capacity: input.capacity,
+    power: input.power,
+    brand: input.brand,
+    description: input.description || '',
+    image_url:
+      input.image_url ||
+      'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
+    images: input.images && input.images.length > 0
+      ? input.images
+      : [input.image_url || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80'],
+    created_at: new Date().toISOString(),
+    information_signals: {
+      has_location: true,
+      has_warranty: Boolean(input.warranty),
+      has_delivery: Boolean(input.delivery_info),
+      has_return_policy: Boolean(input.return_policy),
+      has_specifications: Boolean(input.capacity || input.power),
+      missing_points: [],
+    },
+    ai_match: {
+      score: 95,
+      match_reason: 'Listed with transparent specifications by local merchant.',
+      highlights: [input.location || 'Kurdistan', `${Number(input.price || 0).toLocaleString()} IQD`],
+      cautions: [],
+    },
+  };
+
+  if (supabaseAdmin) {
+    try {
+      await (supabaseAdmin as any).from('products').insert({
+        id: newProd.id,
+        slug: newProd.slug,
+        price: newProd.price,
+        currency: newProd.currency,
+        brand: newProd.brand,
+        capacity: newProd.capacity,
+        warranty_details: newProd.warranty,
+        delivery_info: newProd.delivery_info,
+        return_policy: newProd.return_policy,
+        image_url: newProd.image_url,
+        is_demo: false,
+      });
+    } catch (err) {
+      console.warn('Database insert fallback to memory:', err);
+    }
+  }
+
+  mockProducts.unshift(newProd);
+  return newProd;
 }

@@ -153,7 +153,7 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#657A52] mb-1.5">
                 <ShoppingBag className="w-4 h-4" />
-                <span>{language === 'ckb' ? 'دۆزینەوەی ناوخۆیی' : language === 'ar' ? 'اكتشاف محلي' : 'Local Discovery'}</span>
+                <span>{language === 'ckb' || language === 'ku' ? 'دۆزینەوەی ناوخۆیی' : language === 'ar' ? 'اكتشاف محلي' : 'Local Discovery'}</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
                 {selectedCategory ? selectedCategory : t('featuredTitle')}
@@ -167,10 +167,10 @@ export default function Home() {
               {isLoading ? (
                 <span className="flex items-center gap-1.5 text-neutral-400">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  {language === 'ckb' ? 'بارکردنی داتا...' : 'Loading dynamic database...'}
+                  {language === 'ckb' || language === 'ku' ? 'بارکردنی داتا...' : 'Loading dynamic database...'}
                 </span>
               ) : (
-                language === 'ckb'
+                language === 'ckb' || language === 'ku'
                   ? `نیشاندانی ${displayedProducts.length} کاڵای ناوخۆیی لە داتابەیس`
                   : language === 'ar'
                   ? `عرض ${displayedProducts.length} منتج محلي من قاعدة البيانات`

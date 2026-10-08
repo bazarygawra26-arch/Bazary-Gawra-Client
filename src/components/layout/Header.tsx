@@ -2,13 +2,14 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useLanguage } from '../../context/LanguageContext';
 import { useComparison } from '../../context/ComparisonContext';
-import { Sparkles, Menu, X, ArrowLeftRight } from 'lucide-react';
+import { Sparkles, Menu, X, ArrowLeftRight, Store } from 'lucide-react';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
 export const Header: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language, isKu } = useLanguage();
   const { comparedProducts, setIsDrawerOpen } = useComparison();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -18,16 +19,39 @@ export const Header: React.FC = () => {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 rounded-xl bg-[#F4B942] flex items-center justify-center shadow-sm text-neutral-900 font-extrabold text-xl group-hover:scale-105 transition-transform">
-                <Sparkles className="w-5 h-5 fill-neutral-900" />
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative w-11 h-11 flex-shrink-0 flex items-center justify-center">
+                <Image
+                  src="/images/logo.png"
+                  alt="BAZARY GAWRA"
+                  width={44}
+                  height={44}
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                  priority
+                />
               </div>
               <div className="flex flex-col">
                 <span className="font-extrabold tracking-tight text-xl sm:text-2xl text-neutral-900 leading-tight">
-                  BAZARY <span className="text-[#8C5E00]">GAWRA</span>
+                  {isKu ? (
+                    <>
+                      بازاڕی <span className="text-[#8C5E00]">گەورە</span>
+                    </>
+                  ) : language === 'ar' ? (
+                    <>
+                      بازاري <span className="text-[#8C5E00]">گەورە</span>
+                    </>
+                  ) : (
+                    <>
+                      BAZARY <span className="text-[#8C5E00]">GAWRA</span>
+                    </>
+                  )}
                 </span>
                 <span className="text-[10px] tracking-wider uppercase text-neutral-500 font-medium hidden sm:inline">
-                  Kurdistan AI Marketplace
+                  {isKu
+                    ? 'بازاڕی ژیری دەستکرد لە کوردستان'
+                    : language === 'ar'
+                      ? 'سوق كوردستان بالذكاء الاصطناعي'
+                      : 'Kurdistan AI Marketplace'}
                 </span>
               </div>
             </Link>
@@ -57,13 +81,20 @@ export const Header: React.FC = () => {
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[#8C5E00] bg-[#FFF5DD] hover:bg-[#F4B942]/20 font-bold transition-colors"
               >
                 <Sparkles className="w-3.5 h-3.5 fill-[#F4B942] text-[#F4B942]" />
-                <span>AI Scanner</span>
+                <span>
+                  {isKu
+                    ? 'سکانەری ژیری دەستکرد'
+                    : language === 'ar'
+                      ? 'ماسح الذكاء الاصطناعي'
+                      : 'AI Scanner'}
+                </span>
               </Link>
               <Link
-                href="/#sellers"
-                className="px-3.5 py-2 rounded-lg hover:text-neutral-900 hover:bg-[#EAE7DF]/40 transition-colors"
+                href="/seller/dashboard"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-neutral-800 hover:text-neutral-900 border border-[#EAE7DF] bg-white hover:bg-neutral-50 font-bold transition-all shadow-2xs ms-1"
               >
-                {t('navSellers')}
+                <Store className="w-3.5 h-3.5 text-[#657A52]" />
+                <span>{isKu ? 'فرۆشگاکەم (دانانی کاڵا)' : language === 'ar' ? 'متجري (إضافة منتج)' : 'My Shop'}</span>
               </Link>
             </nav>
           </div>
@@ -129,7 +160,13 @@ export const Header: React.FC = () => {
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#8C5E00] font-bold bg-[#FFF5DD]"
             >
               <Sparkles className="w-4 h-4 fill-[#F4B942] text-[#F4B942]" />
-              <span>AI Product Scanner</span>
+              <span>
+                {isKu
+                  ? 'سکانەری ژیری دەستکرد'
+                  : language === 'ar'
+                    ? 'ماسح الذكاء الاصطناعي'
+                    : 'AI Product Scanner'}
+              </span>
             </Link>
             <Link
               href="/compare"
@@ -137,6 +174,14 @@ export const Header: React.FC = () => {
               className="block px-3 py-2 rounded-lg text-neutral-800 font-medium hover:bg-white"
             >
               {t('navCompare')}
+            </Link>
+            <Link
+              href="/seller/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-neutral-900 font-bold bg-[#FAF9F6] border border-[#EAE7DF]"
+            >
+              <Store className="w-4 h-4 text-[#657A52]" />
+              <span>{isKu ? 'فرۆشگاکەم (دانانی کاڵا)' : language === 'ar' ? 'متجري (إضافة منتج)' : 'My Shop'}</span>
             </Link>
           </div>
         )}

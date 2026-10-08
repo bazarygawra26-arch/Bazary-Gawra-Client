@@ -3,6 +3,7 @@
 import React from 'react';
 import { SellerProfile } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
+import { localizeSellerName, localizeLocation } from '../../lib/i18nData';
 import {
   Store,
   MapPin,
@@ -19,7 +20,7 @@ interface ShopHeaderProps {
 }
 
 export const ShopHeader: React.FC<ShopHeaderProps> = ({ seller }) => {
-  const { language } = useLanguage();
+  const { language, isKu } = useLanguage();
   const isVerified = seller.verification_status === 'verified';
   const isDemo = seller.is_demo;
 
@@ -27,6 +28,9 @@ export const ShopHeader: React.FC<ShopHeaderProps> = ({ seller }) => {
   const cleanPhone = (seller.whatsapp || seller.phone || '').replace(/[^0-9]/g, '');
   const whatsappUrl = cleanPhone ? `https://wa.me/${cleanPhone}` : null;
   const telUrl = seller.phone ? `tel:${seller.phone}` : null;
+
+  const displayName = localizeSellerName(seller.name, language);
+  const displayLocation = localizeLocation(seller.location, language);
 
   return (
     <div className="bg-white rounded-2xl border border-[#EAE7DF] shadow-sm overflow-hidden mb-8">
@@ -40,7 +44,7 @@ export const ShopHeader: React.FC<ShopHeaderProps> = ({ seller }) => {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={seller.logo_url}
-                  alt={seller.name}
+                  alt={displayName}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -51,29 +55,32 @@ export const ShopHeader: React.FC<ShopHeaderProps> = ({ seller }) => {
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2.5">
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
-                  {seller.name}
+                  {displayName}
                 </h1>
 
                 {/* Honest Badge */}
                 {isVerified ? (
                   <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-0.5 rounded-full">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>{language === 'ku' ? 'فرۆشگای پشتڕاستکراو' : 'Verified Merchant'}</span>
+                    <span>{isKu ? 'فرۆشگای پشتڕاستکراو' : language === 'ar' ? 'متجر معتمد' : 'Verified Merchant'}</span>
                   </span>
                 ) : isDemo ? (
                   <span className="inline-flex items-center text-xs font-bold text-neutral-600 bg-neutral-100 border border-neutral-200 px-2.5 py-0.5 rounded-full">
-                    {language === 'ku' ? 'لیستکردنی دیمۆ' : 'Demo Merchant'}
+                    {isKu ? 'لیستکردنی دیمۆ' : language === 'ar' ? 'متجر تجريبي' : 'Demo Merchant'}
                   </span>
                 ) : null}
               </div>
 
               <div className="flex items-center gap-2 text-sm text-neutral-500 font-medium">
                 <MapPin className="w-4 h-4 text-[#657A52] shrink-0" />
-                <span>{seller.location}</span>
+                <span>{displayLocation}</span>
                 <span className="text-neutral-300">•</span>
                 <span>
-                  {seller.product_count}{' '}
-                  {language === 'ku' ? 'بەرهەم' : language === 'ar' ? 'منتجات' : 'products'}
+                  {isKu
+                    ? `${seller.product_count} بەرهەم`
+                    : language === 'ar'
+                    ? `${seller.product_count} منتج`
+                    : `${seller.product_count} products`}
                 </span>
               </div>
             </div>
@@ -105,7 +112,7 @@ export const ShopHeader: React.FC<ShopHeaderProps> = ({ seller }) => {
               <span className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-neutral-100 text-neutral-400 text-xs font-medium">
                 <Phone className="w-3.5 h-3.5" />
                 <span>
-                  {language === 'ku' ? 'پەیوەندی دیاری نەکراوە' : 'Contact not provided'}
+                  {isKu ? 'پەیوەندی دیاری نەکراوە' : language === 'ar' ? 'معلومات الاتصال غير متوفرة' : 'Contact not provided'}
                 </span>
               </span>
             ) : null}
@@ -121,11 +128,14 @@ export const ShopHeader: React.FC<ShopHeaderProps> = ({ seller }) => {
           </div>
           <div>
             <div className="text-xs font-bold text-neutral-800">
-              {seller.info_summary.with_warranty} / {seller.product_count}{' '}
-              {language === 'ku' ? 'بەرهەم گەرەنتییان هەیە' : 'list warranty information'}
+              {isKu
+                ? `${seller.info_summary.with_warranty} لە ${seller.product_count} بەرهەم گەرەنتییان هەیە`
+                : language === 'ar'
+                ? `${seller.info_summary.with_warranty} من ${seller.product_count} منتجات تحتوي على ضمان`
+                : `${seller.info_summary.with_warranty} / ${seller.product_count} list warranty information`}
             </div>
             <div className="text-[11px] text-neutral-500">
-              {language === 'ku' ? 'زانیاری گەرەنتی ڕوونە' : 'Transparent warranty terms'}
+              {isKu ? 'زانیاری و مەرجی گەرەنتی ڕوونە' : language === 'ar' ? 'شروط ضمان شفافة ومحددة' : 'Transparent warranty terms'}
             </div>
           </div>
         </div>
@@ -136,11 +146,14 @@ export const ShopHeader: React.FC<ShopHeaderProps> = ({ seller }) => {
           </div>
           <div>
             <div className="text-xs font-bold text-neutral-800">
-              {seller.info_summary.with_delivery_info} / {seller.product_count}{' '}
-              {language === 'ku' ? 'زانیاری گەیاندنیان هەیە' : 'list delivery coverage'}
+              {isKu
+                ? `${seller.info_summary.with_delivery_info} لە ${seller.product_count} بەرهەم گەیاندنیان هەیە`
+                : language === 'ar'
+                ? `${seller.info_summary.with_delivery_info} من ${seller.product_count} منتجات توفر توصيل`
+                : `${seller.info_summary.with_delivery_info} / ${seller.product_count} list delivery coverage`}
             </div>
             <div className="text-[11px] text-neutral-500">
-              {language === 'ku' ? 'گەیاندنی ناوخۆیی' : 'Local city delivery details'}
+              {isKu ? 'خزمەتگوزاری گەیاندنی ناوخۆیی' : language === 'ar' ? 'تفاصيل التوصيل للمدن المحلية' : 'Local city delivery details'}
             </div>
           </div>
         </div>
@@ -151,11 +164,14 @@ export const ShopHeader: React.FC<ShopHeaderProps> = ({ seller }) => {
           </div>
           <div>
             <div className="text-xs font-bold text-neutral-800">
-              {seller.info_summary.with_return_policy} / {seller.product_count}{' '}
-              {language === 'ku' ? 'سیاسەتی گەڕاندنەوەیان هەیە' : 'list return policy'}
+              {isKu
+                ? `${seller.info_summary.with_return_policy} لە ${seller.product_count} بەرهەم مەرجی گەڕاندنەوەیان هەیە`
+                : language === 'ar'
+                ? `${seller.info_summary.with_return_policy} من ${seller.product_count} منتجات تحدد سياسة الإرجاع`
+                : `${seller.info_summary.with_return_policy} / ${seller.product_count} list return policy`}
             </div>
             <div className="text-[11px] text-neutral-500">
-              {language === 'ku' ? 'مەرجی گەڕاندنەوە دیارە' : 'Transparent return window'}
+              {isKu ? 'ماوە و مەرجی گەڕاندنەوە دیارە' : language === 'ar' ? 'فترة إرجاع شفافة ومحددة' : 'Transparent return window'}
             </div>
           </div>
         </div>

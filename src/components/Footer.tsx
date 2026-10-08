@@ -2,12 +2,13 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useLanguage } from '../context/LanguageContext';
-import { Sparkles, MapPin } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { SupportedLanguage } from '../types';
 
 export const Footer: React.FC = () => {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t, isKu } = useLanguage();
 
   return (
     <footer className="bg-white border-t border-[#EAE7DF] pt-14 pb-10 text-neutral-600 text-sm">
@@ -15,12 +16,30 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 pb-12 border-b border-[#EAE7DF]">
           {/* Brand Col */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#F4B942] flex items-center justify-center text-neutral-950 font-bold">
-                <Sparkles className="w-4 h-4 fill-neutral-950" />
+            <div className="flex items-center gap-2.5">
+              <div className="relative w-8 h-8 flex-shrink-0 flex items-center justify-center">
+                <Image
+                  src="/images/logo.png"
+                  alt="BAZARY GAWRA"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <span className="font-extrabold text-xl text-neutral-900 tracking-tight">
-                BAZARY <span className="text-[#8C5E00]">GAWRA</span>
+                {isKu ? (
+                  <>
+                    بازاڕی <span className="text-[#8C5E00]">گەورە</span>
+                  </>
+                ) : language === 'ar' ? (
+                  <>
+                    بازاري <span className="text-[#8C5E00]">كورة</span>
+                  </>
+                ) : (
+                  <>
+                    BAZARY <span className="text-[#8C5E00]">GAWRA</span>
+                  </>
+                )}
               </span>
             </div>
             <p className="text-xs text-neutral-500 max-w-sm leading-relaxed">
@@ -119,8 +138,8 @@ export const Footer: React.FC = () => {
           <div className="flex items-center gap-4">
             <span className="text-neutral-400 font-medium">{t('footerLanguages')}</span>
             <button
-              onClick={() => setLanguage('ckb')}
-              className={`hover:text-neutral-900 ${language === 'ckb' ? 'font-bold text-[#8C5E00]' : ''}`}
+              onClick={() => setLanguage('ku')}
+              className={`hover:text-neutral-900 ${language === 'ckb' || language === 'ku' ? 'font-bold text-[#8C5E00]' : ''}`}
             >
               کوردی (سۆرانی)
             </button>

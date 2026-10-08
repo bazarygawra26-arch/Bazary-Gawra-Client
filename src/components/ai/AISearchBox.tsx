@@ -17,6 +17,9 @@ export const AISearchBox: React.FC<AISearchBoxProps> = ({ onSearchSubmit, isSear
   const [query, setQuery] = useState(initialValue || '');
   const [activeInterpretation, setActiveInterpretation] = useState<AISearchInterpretation | null>(null);
 
+  const isKu = language === 'ckb' || language === 'ku';
+  const isAr = language === 'ar';
+
   const samplePrompts = [
     {
       en: 'Coffee machine in Sulaymaniyah under 200,000 IQD',
@@ -26,7 +29,11 @@ export const AISearchBox: React.FC<AISearchBoxProps> = ({ onSearchSubmit, isSear
         query: 'Coffee machine in Sulaymaniyah under 200,000 IQD',
         detected_language: 'ckb',
         product_type: 'Espresso & Coffee Machines',
+        product_type_ckb: 'ئامێری قاوەساز و ئێسپرێسۆ',
+        product_type_ar: 'مكائن القهوة والإسبريسو',
         target_location: 'Sulaymaniyah',
+        target_location_ckb: 'سلێمانی',
+        target_location_ar: 'السليمانية',
         budget_max: 200000,
         currency: 'IQD',
         extracted_preferences: ['Local Warranty', 'Home Espresso'],
@@ -45,7 +52,11 @@ export const AISearchBox: React.FC<AISearchBoxProps> = ({ onSearchSubmit, isSear
         query: 'Air fryer in Erbil with local delivery',
         detected_language: 'ckb',
         product_type: 'Air Fryers & Kitchen Appliances',
+        product_type_ckb: 'قلاوەرسی هەوایی و ئامێرەکانی چێشتخانە',
+        product_type_ar: 'القلايات الهوائية',
         target_location: 'Erbil',
+        target_location_ckb: 'هەولێر',
+        target_location_ar: 'أربيل',
         budget_max: 180000,
         currency: 'IQD',
         extracted_preferences: ['Delivery Included'],
@@ -64,7 +75,11 @@ export const AISearchBox: React.FC<AISearchBoxProps> = ({ onSearchSubmit, isSear
         query: 'Pure Mount Halgurd honey with lab test',
         detected_language: 'ckb',
         product_type: 'Mountain Wild Honey',
+        product_type_ckb: 'هەنگوینی شاخاوی کێوی',
+        product_type_ar: 'عسل الجبال الطبيعي',
         target_location: 'Kurdistan Region',
+        target_location_ckb: 'هەرێمی کوردستان',
+        target_location_ar: 'إقليم كوردستان',
         budget_max: 60000,
         currency: 'IQD',
         extracted_preferences: ['Lab Tested', 'Raw Mountain'],
@@ -85,8 +100,13 @@ export const AISearchBox: React.FC<AISearchBoxProps> = ({ onSearchSubmit, isSear
 
   const handlePromptClick = (text: string, promptData: (typeof samplePrompts)[0]) => {
     setQuery(text);
-    setActiveInterpretation(promptData.interpretation as AISearchInterpretation);
-    onSearchSubmit(text, promptData.interpretation as AISearchInterpretation);
+    const interp = {
+      ...promptData.interpretation,
+      query: text,
+      detected_language: isKu ? 'ckb' : language,
+    };
+    setActiveInterpretation(interp as unknown as AISearchInterpretation);
+    onSearchSubmit(text, interp as unknown as AISearchInterpretation);
   };
 
   return (
@@ -142,7 +162,7 @@ export const AISearchBox: React.FC<AISearchBoxProps> = ({ onSearchSubmit, isSear
           {t('naturalPromptsLabel')}
         </span>
         {samplePrompts.map((p, idx) => {
-          const text = language === 'ckb' ? p.ckb : language === 'ar' ? p.ar : p.en;
+          const text = isKu ? p.ckb : isAr ? p.ar : p.en;
           return (
             <button
               key={idx}
@@ -175,7 +195,13 @@ export const AISearchBox: React.FC<AISearchBoxProps> = ({ onSearchSubmit, isSear
                 <Tag className="w-3 h-3 text-neutral-400" />
                 {t('productTypeLabel')}
               </div>
-              <div className="font-semibold text-neutral-900">{activeInterpretation.product_type}</div>
+              <div className="font-semibold text-neutral-900">
+                {isKu
+                  ? activeInterpretation.product_type_ckb || activeInterpretation.product_type
+                  : isAr
+                  ? activeInterpretation.product_type_ar || activeInterpretation.product_type
+                  : activeInterpretation.product_type}
+              </div>
             </div>
 
             <div className="p-2 rounded-lg bg-[#FAF9F6] border border-[#EAE7DF]/80">
@@ -183,7 +209,13 @@ export const AISearchBox: React.FC<AISearchBoxProps> = ({ onSearchSubmit, isSear
                 <MapPin className="w-3 h-3 text-neutral-400" />
                 {t('locationLabel')}
               </div>
-              <div className="font-semibold text-neutral-900">{activeInterpretation.target_location}</div>
+              <div className="font-semibold text-neutral-900">
+                {isKu
+                  ? activeInterpretation.target_location_ckb || activeInterpretation.target_location
+                  : isAr
+                  ? activeInterpretation.target_location_ar || activeInterpretation.target_location
+                  : activeInterpretation.target_location}
+              </div>
             </div>
 
             <div className="p-2 rounded-lg bg-[#FAF9F6] border border-[#EAE7DF]/80">

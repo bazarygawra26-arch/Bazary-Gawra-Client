@@ -162,7 +162,7 @@ export const AISearchHero: React.FC<AISearchHeroProps> = ({ onSearchSubmit, isSe
               {t('naturalPromptsLabel')}
             </span>
             {samplePrompts.map((p, idx) => {
-              const text = language === 'ckb' ? p.ckb : language === 'ar' ? p.ar : p.en;
+              const text = (language === 'ckb' || language === 'ku') ? p.ckb : language === 'ar' ? p.ar : p.en;
               return (
                 <button
                   key={idx}

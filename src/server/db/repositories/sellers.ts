@@ -2,6 +2,7 @@ import 'server-only';
 import { supabaseAdmin } from '../supabaseAdmin';
 import { Seller, SellerProfile, Product } from '../../../types';
 import { mockSellers, mockProducts } from '../../../data/mockData';
+import { localizeSellerName, localizeLocation } from '../../../lib/i18nData';
 
 export async function findSellers(lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Seller[]> {
   if (supabaseAdmin) {
@@ -247,17 +248,29 @@ export async function getSellerProfile(
   return {
     id: matched.id,
     slug: matched.id,
-    name: matched.name,
-    description: 'Local Kurdish merchant offering transparent electronics and authentic home goods.',
-    location: matched.location,
+    name: localizeSellerName(matched.name, lang),
+    description: lang === 'ku'
+      ? 'فرۆشیارێکی ناوخۆیی کوردستان کە کەلوپەلی ئەلیکترۆنی شەفاف و پێداویستییە ڕەسەنەکانی ماڵ پێشکەش دەکات.'
+      : lang === 'ar'
+      ? 'تاجر محلي يقدم إلكترونيات شفافة ومستلزمات منزلية أصلية.'
+      : 'Local Kurdish merchant offering transparent electronics and authentic home goods.',
+    location: localizeLocation(matched.location, lang),
     phone: matched.phone_placeholder,
     whatsapp: '+9647700000000',
     verification_status: 'unverified',
     is_demo: true,
     product_count: matched.productCount || 4,
     categories: [
-      { slug: 'coffee-machines', name: 'Coffee & Espresso', count: 2 },
-      { slug: 'kitchen-appliances', name: 'Kitchen & Home', count: 2 },
+      {
+        slug: 'coffee-machines',
+        name: lang === 'ku' ? 'قاوە و قاوەساز' : lang === 'ar' ? 'القهوة والإسبريسو' : 'Coffee & Espresso',
+        count: 2,
+      },
+      {
+        slug: 'kitchen-home',
+        name: lang === 'ku' ? 'چێشتخانە و ماڵ' : lang === 'ar' ? 'المطبخ والمنزل' : 'Kitchen & Home',
+        count: 2,
+      },
     ],
     info_summary: {
       with_warranty: 3,

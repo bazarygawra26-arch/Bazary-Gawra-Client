@@ -4,47 +4,49 @@ import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { CheckCircle2, AlertTriangle, Info, MapPin, ShieldCheck, Truck, RotateCcw, FileText } from 'lucide-react';
 import { Product } from '../../types';
+import { localizeProduct } from '../../lib/i18nData';
 
 interface TrustSignalsProps {
   product?: Product;
 }
 
 export const TrustSignals: React.FC<TrustSignalsProps> = ({ product }) => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+  const lp = product ? localizeProduct(product, language) : null;
 
   const signals = [
     {
       id: 'location',
       label: t('signalLocationLabel'),
-      status: Boolean(product ? product.seller_location : true),
-      desc: product?.seller_location || t('signalLocationDesc'),
+      status: Boolean(lp ? lp.seller_location : true),
+      desc: lp?.seller_location || t('signalLocationDesc'),
       icon: <MapPin className="w-4 h-4" />,
     },
     {
       id: 'warranty',
       label: t('signalWarrantyLabel'),
-      status: Boolean(product ? product.warranty && product.warranty !== 'Information unavailable' : true),
-      desc: product?.warranty || t('signalWarrantyDesc'),
+      status: Boolean(lp ? lp.warranty && lp.warranty !== 'Information unavailable' && !lp.warranty.includes('دیاری نەکراوە') && !lp.warranty.includes('غير محدد') : true),
+      desc: lp?.warranty || t('signalWarrantyDesc'),
       icon: <ShieldCheck className="w-4 h-4" />,
     },
     {
       id: 'delivery',
       label: t('signalDeliveryLabel'),
-      status: Boolean(product ? product.delivery_info : true),
-      desc: product?.delivery_info || t('signalDeliveryDesc'),
+      status: Boolean(lp ? lp.delivery_info && !lp.delivery_info.includes('دیاری نەکراوە') && !lp.delivery_info.includes('غير محدد') : true),
+      desc: lp?.delivery_info || t('signalDeliveryDesc'),
       icon: <Truck className="w-4 h-4" />,
     },
     {
       id: 'return_policy',
       label: t('signalReturnLabel'),
-      status: Boolean(product ? product.return_policy && product.return_policy !== 'Not provided' : true),
-      desc: product?.return_policy || t('signalReturnDesc'),
+      status: Boolean(lp ? lp.return_policy && lp.return_policy !== 'Not provided' && !lp.return_policy.includes('دیاری نەکراوە') && !lp.return_policy.includes('غير محدد') : true),
+      desc: lp?.return_policy || t('signalReturnDesc'),
       icon: <RotateCcw className="w-4 h-4" />,
     },
     {
       id: 'specifications',
       label: t('signalSpecsLabel'),
-      status: Boolean(product ? product.capacity || product.power : true),
+      status: Boolean(lp ? lp.capacity || lp.power : true),
       desc: t('signalSpecsDesc'),
       icon: <FileText className="w-4 h-4" />,
     },

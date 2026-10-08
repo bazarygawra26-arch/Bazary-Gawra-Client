@@ -21,7 +21,7 @@ export const MobileBottomNav: React.FC = () => {
   // Multi-lingual labels
   const labels = {
     home: language === 'ku' ? 'سەرەتا' : language === 'ar' ? 'الرئيسية' : 'Home',
-    aiSearch: language === 'ku' ? 'گەڕانی AI' : language === 'ar' ? 'بحث ذكي' : 'AI Search',
+    aiSearch: language === 'ku' ? 'گەڕانی ژیر' : language === 'ar' ? 'بحث ذكي' : 'AI Search',
     compare: language === 'ku' ? 'بەراورد' : language === 'ar' ? 'مقارنة' : 'Compare',
     shops: language === 'ku' ? 'فرۆشگاکان' : language === 'ar' ? 'المتاجر' : 'Shops',
   };

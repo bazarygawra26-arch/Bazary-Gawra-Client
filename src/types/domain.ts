@@ -20,6 +20,7 @@ export interface Product {
   origin?: string;
   description: string;
   image_url: string;
+  images?: string[];
   created_at?: string;
   slug?: string;
   seller_id?: string;
@@ -108,7 +109,11 @@ export interface AISearchInterpretation {
   query: string;
   detected_language: string;
   product_type: string;
+  product_type_ckb?: string;
+  product_type_ar?: string;
   target_location: string;
+  target_location_ckb?: string;
+  target_location_ar?: string;
   budget_max?: number | null;
   currency?: string;
   extracted_preferences: string[];

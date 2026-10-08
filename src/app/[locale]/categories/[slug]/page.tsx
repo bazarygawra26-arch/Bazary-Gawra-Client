@@ -57,7 +57,7 @@ export default function CategoryProductsPage({
   }, [slug, language]);
 
   const categoryName = category
-    ? language === 'ckb'
+    ? (language === 'ckb' || language === 'ku')
       ? category.name_ckb
       : language === 'ar'
       ? category.name_ar

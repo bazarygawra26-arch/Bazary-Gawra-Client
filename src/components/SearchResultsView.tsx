@@ -190,7 +190,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
             <div className="mt-4 pt-1 flex flex-wrap items-center gap-2.5 text-xs">
               <span className="font-bold text-neutral-800 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-[#8C5E00]" />
-                <span>{isCkb ? 'پارامیتەرەکانی AI:' : isAr ? 'معايير الفهم:' : 'AI Parameters:'}</span>
+                <span>{isCkb ? 'پارامیتەرەکانی ژیری دەستکرد:' : isAr ? 'معايير الفهم:' : 'AI Parameters:'}</span>
               </span>
               <span className="px-2.5 py-1 rounded-lg bg-[#FAF9F6] border border-[#EAE7DF] text-neutral-700">
                 {isCkb ? 'شار:' : isAr ? 'المدينة:' : 'City:'} <strong className="text-neutral-900">{interpretation.target_location}</strong>

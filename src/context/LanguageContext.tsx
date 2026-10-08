@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { SupportedLanguage } from '../types';
 
 interface LanguageContextType {
@@ -8,6 +9,8 @@ interface LanguageContextType {
   setLanguage: (lang: SupportedLanguage) => void;
   dir: 'ltr' | 'rtl';
   t: (key: string) => string;
+  isKurdish: boolean;
+  isKu: boolean;
 }
 
 const translationsData = {
@@ -170,11 +173,11 @@ const translationsData = {
     heroHeadline: 'بەرهەمە ناوخۆییەکان زیرەکانەتر بدۆزەرەوە.',
     heroSubheadline: 'گەڕان، بەراوردکردن، و تێگەیشتن لە بەرهەمە ناوخۆیییەکان لە سلێمانی، هەولێر، و دهۆک بە ژیری دەستکرد.',
     searchPlaceholder: 'قاوەسازێکم دەوێت لە سلێمانی تا ٢٠٠ هەزار دینار...',
-    searchButton: 'گەڕان بە AI',
+    searchButton: 'گەڕان بە ژیری دەستکرد',
     navHome: 'سەرەکی',
     navCategories: 'پۆلەکان',
     navProducts: 'بەرهەمەکان',
-    navScanner: 'سکانەری AI',
+    navScanner: 'سکانەری ژیری دەستکرد',
     navSellers: 'فرۆشیارانی ناوخۆ',
     navCompare: 'بەراوردکردن',
     categoriesTitle: 'گەڕان بەپێی پۆل',
@@ -220,7 +223,7 @@ const translationsData = {
     scannerChangePhoto: 'گۆڕینی وێنە',
     scannerSummaryTitle: 'پوختەی پشکنینی ژیری دەستکرد بۆ بەرهەمەکە',
     scannerAttributesTitle: 'تایبەتمەندییە دیارەکان کە لە وێنەکەدا ناسراونەتەوە',
-    scannerInfoCheckTitle: 'پشکنینی زانیارییەکانی AI (ڕوونی و شەفافیەت)',
+    scannerInfoCheckTitle: 'پشکنینی زانیارییەکانی ژیری دەستکرد (ڕوونی و شەفافیەت)',
     scannerAvailableTitle: 'زانیارییە بەردەستەکان (لە وێنەکەدا دەبینرێت):',
     scannerMissingTitle: 'زانیارییە نادیارەکان (لە وێنەکەدا نین):',
     scannerBuyerTab: '🔍 دۆزینەوەی بەرهەم بۆ کڕیار',
@@ -233,7 +236,7 @@ const translationsData = {
     filterAllCities: 'هەموو شارەکانی کوردستان',
     filterHasWarranty: 'گەرەنتی هەیە',
     filterHasDelivery: 'گەیاندن هەیە',
-    sortRecommended: 'پێشنیارکراوی AI',
+    sortRecommended: 'پێشنیارکراوی ژیری دەستکرد',
     sortLowToHigh: 'نرخ: کەم بۆ زۆر',
     sortHighToLow: 'نرخ: زۆر بۆ کەم',
     itemsCount: 'بەرهەم',
@@ -241,9 +244,9 @@ const translationsData = {
     resetFilters: 'گەڕاندنەوەی هەموو فلتەرەکان',
     noResults: 'هیچ بەرهەمێکی گونجاو نەدۆزرایەوە',
     aiUnderstood: 'سیستەمی زیرەک بەم شێوەیە لە داواکارییەکەت تێگەیشت:',
-    askAiAboutProduct: 'لە AI بپرسە دەربارەی ئەم بەرهەمە',
+    askAiAboutProduct: 'لە ژیری دەستکرد بپرسە دەربارەی ئەم بەرهەمە',
     askAiPlaceholder: 'دەربارەی گەرەنتی، گەیاندن یان تایبەتمەندییەکان بپرسە...',
-    askAiBtn: 'لە AI بپرسە',
+    askAiBtn: 'لە ژیری دەستکرد بپرسە',
     naturalPromptsLabel: 'داواکاری ئامادەکراو بە شێوازی قسەکردن:',
     // Why Bazary Gawra
     whyBazaryGawraBadge: 'ستانداردی بازاڕی گەورە',
@@ -281,7 +284,7 @@ const translationsData = {
     sellerReturnsLabel: 'گەڕاندنەوە:',
     sellerProductsCount: 'بەرهەم تۆمارکراوە',
     // AI Recommendations & Modal
-    aiMatchIndex: 'ئاستی گونجانی AI',
+    aiMatchIndex: 'ئاستی گونجانی ژیری دەستکرد',
     matchRationale: 'هۆکاری گونجاندن:',
     whyRecommended: 'بۆچی ئەمە پێشنیارکرا؟',
     modalBreakdownTitle: 'شیکاری وردی ژیری دەستکرد بۆ بەرهەم',
@@ -326,7 +329,7 @@ const translationsData = {
     navHome: 'الرئيسية',
     navCategories: 'التصنيفات',
     navProducts: 'المنتجات',
-    navScanner: 'ماسح AI',
+    navScanner: 'ماسح الذكاء الاصطناعي',
     navSellers: 'المتاجر المحلية',
     navCompare: 'المقارنة',
     categoriesTitle: 'تصفح حسب التصنيف',
@@ -334,7 +337,7 @@ const translationsData = {
     featuredTitle: 'منتجات محلية مميزة',
     featuredSubtitle: 'عروض مختارة بمعلومات ومواصفات واضحة وشفافة',
     aiRecommendationsTitle: 'ترشيحات الذكاء الاصطناعي',
-    aiRecommendationsBadge: 'مختارات AI لك',
+    aiRecommendationsBadge: 'مختارات ذكية لك',
     aiRecommendationsSubtitle: 'تطابق ذكي مبني على متطلباتك الطبيعية والتوفر المحلي',
     whyThisProduct: 'لماذا هذا المنتج؟',
     aiComparison: 'مقارنة الذكاء الاصطناعي',
@@ -433,7 +436,7 @@ const translationsData = {
     sellerReturnsLabel: 'الإرجاع:',
     sellerProductsCount: 'منتجات مسجلة',
     // AI Recommendations & Modal
-    aiMatchIndex: 'مؤشر تطابق AI',
+    aiMatchIndex: 'مؤشر التطابق الذكي',
     matchRationale: 'مبرر التطابق:',
     whyRecommended: 'لماذا تم ترشيح هذا المنتج؟',
     modalBreakdownTitle: 'تفاصيل مطابقة الذكاء الاصطناعي للمنتج',
@@ -479,24 +482,46 @@ const LanguageContext = createContext<LanguageContextType>({
   setLanguage: () => {},
   dir: 'rtl',
   t: (key: string) => key,
+  isKurdish: true,
+  isKu: true,
 });
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const pathname = usePathname();
   const [language, setLanguage] = useState<SupportedLanguage>('ku');
 
-  const dir: 'ltr' | 'rtl' = language === 'ckb' || language === 'ku' || language === 'ar' ? 'rtl' : 'ltr';
+  useEffect(() => {
+    if (!pathname) return;
+    const seg = pathname.split('/')[1];
+    if (seg === 'ku') {
+      setLanguage('ku');
+    } else if (seg === 'ar') {
+      setLanguage('ar');
+    } else if (seg === 'en') {
+      setLanguage('en');
+    }
+  }, [pathname]);
+
+  const isKurdish = language === 'ckb' || language === 'ku';
+  const isKu = isKurdish;
+  const dir: 'ltr' | 'rtl' = isKurdish || language === 'ar' ? 'rtl' : 'ltr';
 
   useEffect(() => {
     document.documentElement.dir = dir;
-    document.documentElement.lang = language === 'ckb' || language === 'ku' ? 'ku' : language;
-  }, [dir, language]);
+    document.documentElement.lang = isKurdish ? 'ku' : language;
+  }, [dir, isKurdish, language]);
 
   const t = (key: string): string => {
-    return translations[language]?.[key] || translations.en[key] || key;
+    const langKey = language === 'ku' ? 'ckb' : language;
+    return translations[langKey]?.[key] || translations[language]?.[key] || translations.ckb?.[key] || translations.en?.[key] || key;
+  };
+
+  const handleSetLanguage = (lang: SupportedLanguage) => {
+    setLanguage(lang === 'ckb' ? 'ku' : lang);
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, dir, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, dir, t, isKurdish, isKu }}>
       <div dir={dir} className={dir === 'rtl' ? 'font-kurdish' : ''}>
         {children}
       </div>

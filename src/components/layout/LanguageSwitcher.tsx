@@ -12,7 +12,7 @@ export const LanguageSwitcher: React.FC = () => {
   const pathname = usePathname();
 
   const handleSelectLanguage = (loc: Locale) => {
-    setLanguage(loc === 'ku' ? 'ckb' : loc);
+    setLanguage(loc === 'ku' ? 'ku' : loc);
 
     // If pathname has a locale prefix like /en/... or /ku/... or /ar/...
     const segments = pathname.split('/');
@@ -22,7 +22,7 @@ export const LanguageSwitcher: React.FC = () => {
     }
   };
 
-  const activeLocale = language === 'ckb' ? 'ku' : language;
+  const activeLocale = language === 'ckb' || language === 'ku' ? 'ku' : language;
 
   return (
     <div className="flex items-center bg-white border border-[#EAE7DF] rounded-lg p-1 shadow-2xs text-xs font-semibold">

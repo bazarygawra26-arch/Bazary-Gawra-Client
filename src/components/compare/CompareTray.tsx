@@ -8,8 +8,8 @@ import { ArrowLeftRight, X, ArrowRight, ArrowLeft } from 'lucide-react';
 
 export const CompareTray: React.FC = () => {
   const { comparedProducts, removeFromCompare, clearCompare } = useComparison();
-  const { language } = useLanguage();
-  const isRtl = language === 'ku' || language === 'ar';
+  const { language, isKu } = useLanguage();
+  const isRtl = isKu || language === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
 
   if (comparedProducts.length < 2) return null;
@@ -32,10 +32,14 @@ export const CompareTray: React.FC = () => {
           <div>
             <div className="text-xs font-bold text-neutral-900">
               {comparedProducts.length}{' '}
-              {language === 'ku' ? 'بەرهەم هەڵبژێردراوە' : 'items selected'}
+              {isKu ? 'کاڵا هەڵبژێردراوە' : language === 'ar' ? 'منتجات مختارة' : 'items selected'}
             </div>
             <div className="text-[11px] text-neutral-500">
-              {language === 'ku' ? 'ئامادەیە بۆ بەراوردکردن' : 'Ready for AI side-by-side comparison'}
+              {isKu
+                ? 'ئامادەیە بۆ بەراوردکردن بە ژیری دەستکرد'
+                : language === 'ar'
+                ? 'جاهز للمقارنة بالذكاء الاصطناعي'
+                : 'Ready for AI side-by-side comparison'}
             </div>
           </div>
 
@@ -47,11 +51,21 @@ export const CompareTray: React.FC = () => {
                 className="relative group w-8 h-8 rounded-lg overflow-hidden border border-[#EAE7DF] bg-neutral-100 shrink-0"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                <img
+                  src={p.image_url || '/images/logo.png'}
+                  alt={p.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (target.src !== '/images/logo.png') {
+                      target.src = '/images/logo.png';
+                    }
+                  }}
+                />
                 <button
                   onClick={() => removeFromCompare(p.id)}
                   className="absolute inset-0 bg-black/60 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
-                  title="Remove"
+                  title={isKu ? 'لابردن' : 'Remove'}
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -66,14 +80,14 @@ export const CompareTray: React.FC = () => {
             onClick={clearCompare}
             className="text-[11px] font-semibold text-neutral-500 hover:text-neutral-900 px-2 py-1.5 rounded-lg hover:bg-neutral-100 transition-colors"
           >
-            {language === 'ku' ? 'سڕینەوە' : 'Clear'}
+            {isKu ? 'سڕینەوە' : language === 'ar' ? 'مسح' : 'Clear'}
           </button>
 
           <Link
             href={compareUrl}
             className="px-4 py-2 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all hover:scale-102"
           >
-            <span>{language === 'ku' ? 'بەراوردکردن' : 'Compare Now'}</span>
+            <span>{isKu ? 'ئێستا بەراورد بکە' : language === 'ar' ? 'قارن الآن' : 'Compare Now'}</span>
             <ArrowIcon className="w-3.5 h-3.5" />
           </Link>
         </div>
