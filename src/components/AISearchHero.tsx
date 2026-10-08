@@ -144,7 +144,7 @@ export const AISearchHero: React.FC<AISearchHeroProps> = ({ onSearchSubmit, isSe
               {isSearching ? (
                 <>
                   <div className="w-4 h-4 border-2 border-neutral-900 border-t-transparent rounded-full animate-spin" />
-                  <span>Analyzing...</span>
+                  <span>{t('analyzingText')}</span>
                 </>
               ) : (
                 <>
@@ -159,7 +159,7 @@ export const AISearchHero: React.FC<AISearchHeroProps> = ({ onSearchSubmit, isSe
           <div className="mt-3 pt-3 border-t border-[#EAE7DF]/60 flex flex-wrap items-center gap-2 text-xs text-start">
             <span className="text-neutral-500 font-medium px-1 flex items-center gap-1">
               <SlidersHorizontal className="w-3 h-3 text-neutral-400" />
-              Try natural prompts:
+              {t('naturalPromptsLabel')}
             </span>
             {samplePrompts.map((p, idx) => {
               const text = language === 'ckb' ? p.ckb : language === 'ar' ? p.ar : p.en;
@@ -183,10 +183,10 @@ export const AISearchHero: React.FC<AISearchHeroProps> = ({ onSearchSubmit, isSe
             <div className="flex items-center justify-between pb-3 border-b border-[#EAE7DF]">
               <div className="flex items-center gap-2 text-neutral-900 font-bold text-sm">
                 <Sparkles className="w-4 h-4 text-[#8C5E00]" />
-                <span>AI understood your request as:</span>
+                <span>{t('aiUnderstood')}</span>
               </div>
               <span className="text-xs px-2 py-0.5 rounded-full bg-[#FFF5DD] text-[#8C5E00] font-semibold">
-                Natural Language Parsing
+                {t('naturalLanguageParsing')}
               </span>
             </div>
 
@@ -194,7 +194,7 @@ export const AISearchHero: React.FC<AISearchHeroProps> = ({ onSearchSubmit, isSe
               <div className="p-2 rounded-lg bg-[#FAF9F6] border border-[#EAE7DF]/80">
                 <div className="text-neutral-500 flex items-center gap-1 mb-1">
                   <Tag className="w-3 h-3 text-neutral-400" />
-                  Product Type
+                  {t('productTypeLabel')}
                 </div>
                 <div className="font-semibold text-neutral-900">{activeInterpretation.product_type}</div>
               </div>
@@ -202,7 +202,7 @@ export const AISearchHero: React.FC<AISearchHeroProps> = ({ onSearchSubmit, isSe
               <div className="p-2 rounded-lg bg-[#FAF9F6] border border-[#EAE7DF]/80">
                 <div className="text-neutral-500 flex items-center gap-1 mb-1">
                   <MapPin className="w-3 h-3 text-neutral-400" />
-                  Location
+                  {t('locationLabel')}
                 </div>
                 <div className="font-semibold text-neutral-900">{activeInterpretation.target_location}</div>
               </div>
@@ -210,19 +210,19 @@ export const AISearchHero: React.FC<AISearchHeroProps> = ({ onSearchSubmit, isSe
               <div className="p-2 rounded-lg bg-[#FAF9F6] border border-[#EAE7DF]/80">
                 <div className="text-neutral-500 flex items-center gap-1 mb-1">
                   <Tag className="w-3 h-3 text-neutral-400" />
-                  Max Budget
+                  {t('budgetLabel')}
                 </div>
                 <div className="font-semibold text-neutral-900">
-                  {activeInterpretation.budget_max ? `${activeInterpretation.budget_max.toLocaleString()} IQD` : 'Open'}
+                  {activeInterpretation.budget_max ? `${activeInterpretation.budget_max.toLocaleString()} ${t('priceIQD')}` : t('budgetOpen')}
                 </div>
               </div>
 
               <div className="p-2 rounded-lg bg-[#FAF9F6] border border-[#EAE7DF]/80">
                 <div className="text-neutral-500 flex items-center gap-1 mb-1">
                   <ShieldCheck className="w-3 h-3 text-[#657A52]" />
-                  Priority
+                  {t('priorityLabel')}
                 </div>
-                <div className="font-semibold text-[#657A52]">Warranty & Local Delivery</div>
+                <div className="font-semibold text-[#657A52]">{t('priorityValue')}</div>
               </div>
             </div>
 

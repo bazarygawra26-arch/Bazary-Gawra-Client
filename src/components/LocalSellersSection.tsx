@@ -29,7 +29,7 @@ export const LocalSellersSection: React.FC<LocalSellersSectionProps> = ({ seller
             </p>
           </div>
           <div className="text-xs text-neutral-400 italic">
-            * Informational local directory prototypes
+            {t('sellersSubtitleProto')}
           </div>
         </div>
 
@@ -65,7 +65,7 @@ export const LocalSellersSection: React.FC<LocalSellersSectionProps> = ({ seller
                   <div className="flex items-start gap-2">
                     <Truck className="w-3.5 h-3.5 text-[#657A52] shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-semibold text-neutral-800">Delivery: </span>
+                      <span className="font-semibold text-neutral-800">{t('sellerDeliveryLabel')} </span>
                       <span className="text-neutral-600">{seller.delivery_info}</span>
                     </div>
                   </div>
@@ -73,7 +73,7 @@ export const LocalSellersSection: React.FC<LocalSellersSectionProps> = ({ seller
                   <div className="flex items-start gap-2">
                     <ShieldCheck className="w-3.5 h-3.5 text-[#657A52] shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-semibold text-neutral-800">Warranty: </span>
+                      <span className="font-semibold text-neutral-800">{t('sellerWarrantyLabel')} </span>
                       <span className="text-neutral-600">{seller.warranty_support}</span>
                     </div>
                   </div>
@@ -81,7 +81,7 @@ export const LocalSellersSection: React.FC<LocalSellersSectionProps> = ({ seller
                   <div className="flex items-start gap-2">
                     <RotateCcw className="w-3.5 h-3.5 text-neutral-400 shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-semibold text-neutral-800">Returns: </span>
+                      <span className="font-semibold text-neutral-800">{t('sellerReturnsLabel')} </span>
                       <span className="text-neutral-600">{seller.return_window}</span>
                     </div>
                   </div>
@@ -91,7 +91,7 @@ export const LocalSellersSection: React.FC<LocalSellersSectionProps> = ({ seller
               {/* Bottom contact & item count info */}
               <div className="mt-4 pt-2 flex items-center justify-between text-xs text-neutral-500">
                 <span className="font-medium text-neutral-700">
-                  {seller.productCount} products listed
+                  {seller.productCount} {t('sellerProductsCount')}
                 </span>
                 <span className="flex items-center gap-1 text-neutral-400 font-mono text-[11px]">
                   <Phone className="w-3 h-3" />

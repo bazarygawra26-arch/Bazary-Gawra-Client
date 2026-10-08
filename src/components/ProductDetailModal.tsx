@@ -66,16 +66,42 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
       if (lower.includes('warranty') || qText.includes('گەرەنتی') || qText.includes('ضمان')) {
         answer =
           product.warranty && product.warranty !== 'Information unavailable'
-            ? `According to the seller's stated information, this product comes with: "${product.warranty}".`
+            ? language === 'ckb'
+              ? `بەپێی زانیاری دیاریکراوی فرۆشیار، ئەم کاڵایە ئەم گەرەنتییەی هەیە: "${product.warranty}".`
+              : language === 'ar'
+              ? `وفقاً لبيانات التاجر، يأتي هذا المنتج مع الضمان التالي: "${product.warranty}".`
+              : `According to the seller's stated information, this product comes with: "${product.warranty}".`
+            : language === 'ckb'
+            ? `کەلێنی زانیاری دۆزرایەوە: فرۆشیار مەرجی گەرەنتی دیاری نەکردووە بۆ ئەم بەرهەمە. پێشنیار دەکەین پێش کڕین لە فرۆشیار دڵنیابیتەوە.`
+            : language === 'ar'
+            ? `تم رصد فجوة معلومات: لم يحدد التاجر شروط الضمان لهذا المنتج. نوصي بالتأكد من البائع قبل الشراء.`
             : `Information gap detected: The seller has not provided warranty terms for this listing. We recommend confirming with the seller before purchasing.`;
       } else if (lower.includes('deliver') || qText.includes('گەیاندن') || qText.includes('توصيل')) {
         answer = product.delivery_info
-          ? `Delivery terms provided by seller: "${product.delivery_info}".`
+          ? language === 'ckb'
+            ? `مەرجی گەیاندنی فرۆشیار: "${product.delivery_info}".`
+            : language === 'ar'
+            ? `شروط التوصيل المحددة من البائع: "${product.delivery_info}".`
+            : `Delivery terms provided by seller: "${product.delivery_info}".`
+          : language === 'ckb'
+          ? `زانیاری گەیاندن لەلایەن فرۆشیارەوە لەم لیستەدا دیاری نەکراوە.`
+          : language === 'ar'
+          ? `تفاصيل التوصيل غير محددة صراحة في هذا الإعلان.`
           : `Delivery details are not explicitly stated in this merchant listing.`;
       } else if (lower.includes('power') || lower.includes('watt') || lower.includes('capacity') || qText.includes('وات') || qText.includes('قەبارە') || qText.includes('سعة')) {
-        answer = `Technical specifications on file: Capacity: ${product.capacity || 'Not provided'}, Power: ${product.power || 'Not provided'}.`;
+        answer =
+          language === 'ckb'
+            ? `تایبەتمەندییە تۆمارکراوەکان: قەبارە: ${product.capacity || 'دیاری نەکراوە'}، هێزی کارەبا: ${product.power || 'دیاری نەکراوە'}.`
+            : language === 'ar'
+            ? `المواصفات الفنية المسجلة: السعة: ${product.capacity || 'غير محددة'}، القدرة: ${product.power || 'غير محددة'}.`
+            : `Technical specifications on file: Capacity: ${product.capacity || 'Not provided'}, Power: ${product.power || 'Not provided'}.`;
       } else {
-        answer = `Based strictly on the verified merchant record: This is the ${product.name} offered by ${product.seller_name} located in ${product.location} for ${product.price.toLocaleString()} ${product.currency}. Missing attributes are flagged in the information transparency checklist.`;
+        answer =
+          language === 'ckb'
+            ? `لە سەر تۆماری پشتڕاستکراوی دووکانەکە: ئەمە ${displayName}یە لەلایەن ${product.seller_name} لە ${product.location} بە نرخی ${product.price.toLocaleString()} ${t('priceIQD')}. خاڵە نادیارەکان لە لیستی شەفافیەت نیشاندراون.`
+            : language === 'ar'
+            ? `بناءً على سجل التاجر المعتمد: هذا المنتج ${displayName} من متجر ${product.seller_name} في ${product.location} بسعر ${product.price.toLocaleString()} ${t('priceIQD')}. النقاط المفقودة موضحة في تدقيق الشفافية.`
+            : `Based strictly on the verified merchant record: This is the ${product.name} offered by ${product.seller_name} located in ${product.location} for ${product.price.toLocaleString()} ${product.currency}. Missing attributes are flagged in the information transparency checklist.`;
       }
 
       setChatLog((prev) => [...prev, { q: qText, a: answer }]);
@@ -115,11 +141,11 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                 />
               </div>
               <div className="flex items-center gap-2 text-xs text-neutral-500">
-                <span className="font-semibold text-neutral-800">Category:</span>
+                <span className="font-semibold text-neutral-800">{language === 'ckb' ? 'پۆل:' : language === 'ar' ? 'التصنيف:' : 'Category:'}</span>
                 <span>{product.category}</span>
                 <span>•</span>
-                <span className="font-semibold text-neutral-800">Origin:</span>
-                <span>{product.origin || 'Not provided'}</span>
+                <span className="font-semibold text-neutral-800">{language === 'ckb' ? 'دروستکراوی:' : language === 'ar' ? 'المنشأ:' : 'Origin:'}</span>
+                <span>{product.origin || (language === 'ckb' ? 'دیاری نەکراوە' : language === 'ar' ? 'غير محدد' : 'Not provided')}</span>
               </div>
             </div>
 
@@ -143,27 +169,27 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                   {product.price.toLocaleString()}
                 </span>
                 <span className="text-sm font-bold text-[#8C5E00] bg-[#FFF5DD] px-2 py-0.5 rounded">
-                  {product.currency}
+                  {t('priceIQD')}
                 </span>
               </div>
 
               {/* Key Specs Pills */}
               <div className="grid grid-cols-2 gap-2 text-xs pt-2">
                 <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
-                  <span className="text-neutral-400 block text-[11px]">Capacity</span>
-                  <span className="font-semibold text-neutral-800">{product.capacity || 'Not provided'}</span>
+                  <span className="text-neutral-400 block text-[11px]">{language === 'ckb' ? 'قەبارە' : language === 'ar' ? 'السعة' : 'Capacity'}</span>
+                  <span className="font-semibold text-neutral-800">{product.capacity || (language === 'ckb' ? 'دیاری نەکراوە' : 'Not provided')}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
-                  <span className="text-neutral-400 block text-[11px]">Power / Specs</span>
-                  <span className="font-semibold text-neutral-800">{product.power || 'Not provided'}</span>
+                  <span className="text-neutral-400 block text-[11px]">{language === 'ckb' ? 'هێز / تایبەتمەندی' : language === 'ar' ? 'القدرة / المواصفات' : 'Power / Specs'}</span>
+                  <span className="font-semibold text-neutral-800">{product.power || (language === 'ckb' ? 'دیاری نەکراوە' : 'Not provided')}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
-                  <span className="text-neutral-400 block text-[11px]">Warranty</span>
-                  <span className="font-semibold text-neutral-800">{product.warranty || 'Information unavailable'}</span>
+                  <span className="text-neutral-400 block text-[11px]">{language === 'ckb' ? 'گەرەنتی' : language === 'ar' ? 'الضمان' : 'Warranty'}</span>
+                  <span className="font-semibold text-neutral-800">{product.warranty && product.warranty !== 'Information unavailable' ? product.warranty : t('warrantyMissing')}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
-                  <span className="text-neutral-400 block text-[11px]">Return Policy</span>
-                  <span className="font-semibold text-neutral-800">{product.return_policy || 'Not provided'}</span>
+                  <span className="text-neutral-400 block text-[11px]">{language === 'ckb' ? 'مەرجی گەڕاندنەوە' : language === 'ar' ? 'سياسة الإرجاع' : 'Return Policy'}</span>
+                  <span className="font-semibold text-neutral-800">{product.return_policy && product.return_policy !== 'Not provided' ? product.return_policy : t('returnPolicyMissing')}</span>
                 </div>
               </div>
 
@@ -178,7 +204,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                   }`}
                 >
                   <ArrowLeftRight className="w-4 h-4" />
-                  <span>{compared ? 'In Comparison Matrix' : 'Add to Side-by-Side Compare'}</span>
+                  <span>{compared ? t('addedToCompare') : t('compareButton')}</span>
                 </button>
               </div>
             </div>
@@ -186,7 +212,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
           {/* Description */}
           <div className="space-y-2 pt-4 border-t border-[#EAE7DF]">
-            <h3 className="font-bold text-neutral-900 text-sm">Product Description</h3>
+            <h3 className="font-bold text-neutral-900 text-sm">{language === 'ckb' ? 'وەسفی بەرهەم' : language === 'ar' ? 'وصف المنتج' : 'Product Description'}</h3>
             <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
               {product.description}
             </p>
@@ -201,10 +227,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
           <div className="rounded-2xl border border-[#F4B942]/60 bg-gradient-to-br from-[#FFFBF0] to-[#FAF9F6] p-5">
             <div className="flex items-center gap-2 font-extrabold text-neutral-900 text-sm mb-1">
               <Sparkles className="w-4 h-4 text-[#8C5E00] fill-[#F4B942]" />
-              <span>Ask AI about this product</span>
+              <span>{t('askAiAboutProduct')}</span>
             </div>
             <p className="text-xs text-neutral-600 mb-4">
-              Ask in Kurdish, Arabic, or English. Bazary Gawra strictly checks confirmed merchant disclosures without fabricating details.
+              {language === 'ckb' ? 'بە کوردی، عەرەبی یان ئینگلیزی بپرسە. ژیری دەستکردی بازاڕی گەورە پشت بە زانیاری پشتڕاستکراوی فرۆشیار دەبەستێت.' : language === 'ar' ? 'اسأل بالكوردية أو العربية أو الإنجليزية. يتحقق بازاري گەورە من البيانات المؤكدة من البائع فقط.' : 'Ask in Kurdish, Arabic, or English. Bazary Gawra strictly checks confirmed merchant disclosures without fabricating details.'}
             </p>
 
             {/* Quick question chips */}
@@ -230,10 +256,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                   <div key={i} className="space-y-1.5 text-xs">
                     <div className="font-bold text-neutral-800 flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-[#8C5E00]" />
-                      <span>You: {item.q}</span>
+                      <span>{language === 'ckb' ? 'تۆ:' : language === 'ar' ? 'أنت:' : 'You:'} {item.q}</span>
                     </div>
                     <div className="p-2.5 rounded-lg bg-[#FAF9F6] text-neutral-700 border border-[#EAE7DF] leading-relaxed">
-                      🤖 <span className="font-medium text-neutral-900">AI Assistant:</span> {item.a}
+                      🤖 <span className="font-medium text-neutral-900">{language === 'ckb' ? 'یاریدەدەری زیرەک:' : language === 'ar' ? 'المساعد الذكي:' : 'AI Assistant:'}</span> {item.a}
                     </div>
                   </div>
                 ))}
@@ -252,7 +278,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                 type="text"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Ask about warranty, delivery time, or specs..."
+                placeholder={t('askAiPlaceholder')}
                 className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#EAE7DF] bg-white text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#F4B942]"
               />
               <button
@@ -261,7 +287,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                 className="px-4 py-2.5 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <Send className="w-3.5 h-3.5" />
-                <span>Ask AI</span>
+                <span>{t('askAiBtn')}</span>
               </button>
             </form>
           </div>

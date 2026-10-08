@@ -15,37 +15,37 @@ export const TrustSignals: React.FC<TrustSignalsProps> = ({ product }) => {
   const signals = [
     {
       id: 'location',
-      label: 'Seller location disclosed',
+      label: t('signalLocationLabel'),
       status: Boolean(product ? product.seller_location : true),
-      desc: product?.seller_location || 'Physical district in Sulaymaniyah / Erbil / Duhok',
+      desc: product?.seller_location || t('signalLocationDesc'),
       icon: <MapPin className="w-4 h-4" />,
     },
     {
       id: 'warranty',
-      label: 'Warranty coverage stated',
+      label: t('signalWarrantyLabel'),
       status: Boolean(product ? product.warranty && product.warranty !== 'Information unavailable' : true),
-      desc: product?.warranty || 'Documented warranty terms provided by seller',
+      desc: product?.warranty || t('signalWarrantyDesc'),
       icon: <ShieldCheck className="w-4 h-4" />,
     },
     {
       id: 'delivery',
-      label: 'Delivery options specified',
+      label: t('signalDeliveryLabel'),
       status: Boolean(product ? product.delivery_info : true),
-      desc: product?.delivery_info || 'Clear regional shipping costs and timelines',
+      desc: product?.delivery_info || t('signalDeliveryDesc'),
       icon: <Truck className="w-4 h-4" />,
     },
     {
       id: 'return_policy',
-      label: 'Return policy provided',
+      label: t('signalReturnLabel'),
       status: Boolean(product ? product.return_policy && product.return_policy !== 'Not provided' : true),
-      desc: product?.return_policy || 'Explicit replacement or refund timeframe',
+      desc: product?.return_policy || t('signalReturnDesc'),
       icon: <RotateCcw className="w-4 h-4" />,
     },
     {
       id: 'specifications',
-      label: 'Technical specifications provided',
+      label: t('signalSpecsLabel'),
       status: Boolean(product ? product.capacity || product.power : true),
-      desc: 'Capacity, wattage, or dimensions clearly detailed',
+      desc: t('signalSpecsDesc'),
       icon: <FileText className="w-4 h-4" />,
     },
   ];
@@ -60,17 +60,17 @@ export const TrustSignals: React.FC<TrustSignalsProps> = ({ product }) => {
           <div>
             <h3 className="font-bold text-neutral-900 text-sm">{t('trustTitle')}</h3>
             <p className="text-[11px] text-neutral-500">
-              Neutral audit of data disclosed by the merchant
+              {t('trustAuditSubtitle')}
             </p>
           </div>
         </div>
         <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded">
-          Transparency Audit
+          {t('trustAuditBadge')}
         </span>
       </div>
 
       <p className="text-xs text-neutral-600 mb-4 leading-relaxed">
-        Bazary Gawra does not endorse or certify sellers without physical inspection. Instead, we highlight available versus omitted information so you can make informed decisions.
+        {t('trustDisclaimer')}
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

@@ -126,10 +126,10 @@ export const ProductComparisonDrawer: React.FC = () => {
                     </div>
                     <div className="text-[11px] text-[#657A52] font-semibold uppercase">{p.category}</div>
                     <div className="font-bold text-neutral-900 text-xs sm:text-sm line-clamp-1 mb-1">
-                      {p.name}
+                      {language === 'ckb' && p.name_ckb ? p.name_ckb : language === 'ar' && p.name_ar ? p.name_ar : p.name}
                     </div>
                     <div className="font-black text-neutral-950 text-base">
-                      {p.price.toLocaleString()} <span className="text-xs text-[#8C5E00]">{p.currency}</span>
+                      {p.price.toLocaleString()} <span className="text-xs text-[#8C5E00]">{t('priceIQD')}</span>
                     </div>
                   </div>
                 ))}
@@ -138,13 +138,13 @@ export const ProductComparisonDrawer: React.FC = () => {
               {/* 3. Deep Specification Matrix Table */}
               <div className="rounded-xl border border-[#EAE7DF] overflow-hidden bg-white shadow-2xs text-xs">
                 <div className="bg-[#FAF9F6] px-4 py-2.5 border-b border-[#EAE7DF] font-bold text-neutral-800">
-                  Detailed Feature Breakdown
+                  {language === 'ckb' ? 'وردەکاری تەواوی تایبەتمەندییەکان' : language === 'ar' ? 'تفاصيل المواصفات الدقيقة' : 'Detailed Feature Breakdown'}
                 </div>
                 <div className="divide-y divide-[#EAE7DF]">
                   {/* Location */}
                   <div className="grid grid-cols-4 p-3 gap-2 items-center">
                     <span className="font-semibold text-neutral-500 flex items-center gap-1 col-span-1">
-                      <MapPin className="w-3.5 h-3.5" /> Location
+                      <MapPin className="w-3.5 h-3.5" /> {language === 'ckb' ? 'شوێن' : language === 'ar' ? 'الموقع' : 'Location'}
                     </span>
                     {comparedProducts.map((p) => (
                       <span key={p.id} className="text-neutral-800 font-medium truncate col-span-1">
@@ -156,7 +156,7 @@ export const ProductComparisonDrawer: React.FC = () => {
                   {/* Seller */}
                   <div className="grid grid-cols-4 p-3 gap-2 items-center">
                     <span className="font-semibold text-neutral-500 flex items-center gap-1 col-span-1">
-                      <Store className="w-3.5 h-3.5" /> Seller
+                      <Store className="w-3.5 h-3.5" /> {language === 'ckb' ? 'فرۆشیار' : language === 'ar' ? 'المتجر' : 'Seller'}
                     </span>
                     {comparedProducts.map((p) => (
                       <span key={p.id} className="text-neutral-800 font-medium truncate col-span-1">
@@ -168,7 +168,7 @@ export const ProductComparisonDrawer: React.FC = () => {
                   {/* Warranty */}
                   <div className="grid grid-cols-4 p-3 gap-2 items-center">
                     <span className="font-semibold text-neutral-500 flex items-center gap-1 col-span-1">
-                      <ShieldCheck className="w-3.5 h-3.5" /> Warranty
+                      <ShieldCheck className="w-3.5 h-3.5" /> {language === 'ckb' ? 'گەرەنتی' : language === 'ar' ? 'الضمان' : 'Warranty'}
                     </span>
                     {comparedProducts.map((p) => (
                       <span
@@ -179,7 +179,7 @@ export const ProductComparisonDrawer: React.FC = () => {
                             : 'text-amber-600 italic'
                         }`}
                       >
-                        {p.warranty || 'Not provided'}
+                        {p.warranty && p.warranty !== 'Information unavailable' ? p.warranty : t('warrantyMissing')}
                       </span>
                     ))}
                   </div>
@@ -187,11 +187,11 @@ export const ProductComparisonDrawer: React.FC = () => {
                   {/* Delivery */}
                   <div className="grid grid-cols-4 p-3 gap-2 items-center">
                     <span className="font-semibold text-neutral-500 flex items-center gap-1 col-span-1">
-                      <Truck className="w-3.5 h-3.5" /> Delivery
+                      <Truck className="w-3.5 h-3.5" /> {language === 'ckb' ? 'گەیاندن' : language === 'ar' ? 'التوصيل' : 'Delivery'}
                     </span>
                     {comparedProducts.map((p) => (
                       <span key={p.id} className="text-neutral-800 font-medium truncate col-span-1">
-                        {p.delivery_info || 'Not provided'}
+                        {p.delivery_info || t('deliveryMissing')}
                       </span>
                     ))}
                   </div>
@@ -199,7 +199,7 @@ export const ProductComparisonDrawer: React.FC = () => {
                   {/* Return Policy */}
                   <div className="grid grid-cols-4 p-3 gap-2 items-center">
                     <span className="font-semibold text-neutral-500 flex items-center gap-1 col-span-1">
-                      <RotateCcw className="w-3.5 h-3.5" /> Return Policy
+                      <RotateCcw className="w-3.5 h-3.5" /> {language === 'ckb' ? 'مەرجی گەڕاندنەوە' : language === 'ar' ? 'سياسة الإرجاع' : 'Return Policy'}
                     </span>
                     {comparedProducts.map((p) => (
                       <span
@@ -210,14 +210,14 @@ export const ProductComparisonDrawer: React.FC = () => {
                             : 'text-amber-600 italic'
                         }`}
                       >
-                        {p.return_policy || 'Not provided'}
+                        {p.return_policy && p.return_policy !== 'Not provided' ? p.return_policy : t('returnPolicyMissing')}
                       </span>
                     ))}
                   </div>
 
                   {/* Capacity & Power */}
                   <div className="grid grid-cols-4 p-3 gap-2 items-center">
-                    <span className="font-semibold text-neutral-500 col-span-1">Capacity / Power</span>
+                    <span className="font-semibold text-neutral-500 col-span-1">{language === 'ckb' ? 'قەبارە / هێز' : language === 'ar' ? 'السعة / القدرة' : 'Capacity / Power'}</span>
                     {comparedProducts.map((p) => (
                       <span key={p.id} className="text-neutral-800 font-medium truncate col-span-1">
                         {p.capacity || 'N/A'} {p.power ? `(${p.power})` : ''}
@@ -227,7 +227,7 @@ export const ProductComparisonDrawer: React.FC = () => {
 
                   {/* Origin */}
                   <div className="grid grid-cols-4 p-3 gap-2 items-center">
-                    <span className="font-semibold text-neutral-500 col-span-1">Origin / Build</span>
+                    <span className="font-semibold text-neutral-500 col-span-1">{language === 'ckb' ? 'دروستکراوی' : language === 'ar' ? 'بلد المنشأ' : 'Origin / Build'}</span>
                     {comparedProducts.map((p) => (
                       <span key={p.id} className="text-neutral-800 font-medium truncate col-span-1">
                         {p.origin || 'Not provided'}
@@ -244,26 +244,56 @@ export const ProductComparisonDrawer: React.FC = () => {
                   <span>{t('informationGaps')}</span>
                 </div>
                 <p className="text-xs text-amber-800 mb-3">
-                  Bazary Gawra automatically audits listing transparency so buyers understand what merchant commitments are missing before making a purchasing decision:
+                  {language === 'ckb'
+                    ? 'بازاڕی گەورە بە شێوەیەکی خۆکار پشکنین بۆ ڕوونی بەرهەمەکە دەکات تاوەکو کڕیار بزانێت چ بەڵێنێکی فرۆشیار نادیارە پێش بڕیاردانی کڕین:'
+                    : language === 'ar'
+                    ? 'يقوم بازاري گەورە بتدقيق شفافية الإعلان تلقائياً ليعلم المشتري ما ينقص من التزامات التاجر قبل الشراء:'
+                    : 'Bazary Gawra automatically audits listing transparency so buyers understand what merchant commitments are missing before making a purchasing decision:'}
                 </p>
 
                 <div className="space-y-2">
                   {comparedProducts.map((p) => {
                     const missing = [];
                     if (!p.warranty || p.warranty === 'Information unavailable')
-                      missing.push('Warranty duration and local repair terms not provided');
+                      missing.push(
+                        language === 'ckb'
+                          ? 'ماوەی گەرەنتی و مەرجی چاککردنەوە لەلایەن فرۆشیارەوە دیاری نەکراوە'
+                          : language === 'ar'
+                          ? 'مدة الضمان وشروط الصيانة المحلية غير مذكورة'
+                          : 'Warranty duration and local repair terms not provided'
+                      );
                     if (!p.return_policy || p.return_policy === 'Not provided')
-                      missing.push('Return / exchange policy not stated by seller');
+                      missing.push(
+                        language === 'ckb'
+                          ? 'مەرجی گەڕاندنەوە یان گۆڕینەوە لەلایەن فرۆشیارەوە دیاری نەکراوە'
+                          : language === 'ar'
+                          ? 'سياسة الإرجاع أو الاستبدال غير موضحة من قبل التاجر'
+                          : 'Return / exchange policy not stated by seller'
+                      );
                     if (!p.origin || p.origin === 'Not provided')
-                      missing.push('Manufacturer origin not verified');
+                      missing.push(
+                        language === 'ckb'
+                          ? 'وڵاتی دروستکەر پشتڕاست نەکراوەتەوە'
+                          : language === 'ar'
+                          ? 'بلد المنشأ والتصنيع غير مؤكد'
+                          : 'Manufacturer origin not verified'
+                      );
 
                     return (
                       <div key={p.id} className="p-2.5 rounded-lg bg-white border border-amber-200/80 text-xs">
-                        <span className="font-bold text-neutral-900 block mb-1">{p.name}:</span>
+                        <span className="font-bold text-neutral-900 block mb-1">
+                          {language === 'ckb' && p.name_ckb ? p.name_ckb : language === 'ar' && p.name_ar ? p.name_ar : p.name}:
+                        </span>
                         {missing.length === 0 ? (
                           <div className="flex items-center gap-1.5 text-emerald-700">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>All essential transparency criteria provided by seller</span>
+                            <span>
+                              {language === 'ckb'
+                                ? 'هەموو زانیارییە بنەڕەتییەکانی شەفافیەت لەلایەن فرۆشیارەوە دابینکراون'
+                                : language === 'ar'
+                                ? 'جميع معايير الشفافية الأساسية متوفرة من قبل التاجر'
+                                : 'All essential transparency criteria provided by seller'}
+                            </span>
                           </div>
                         ) : (
                           <ul className="space-y-1">

@@ -35,7 +35,7 @@ export const Footer: React.FC = () => {
           {/* Explore */}
           <div>
             <h4 className="font-bold text-neutral-900 text-xs uppercase tracking-wider mb-3">
-              Explore
+              {t('footerExplore')}
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
@@ -54,7 +54,7 @@ export const Footer: React.FC = () => {
                 </a>
               </li>
               <li>
-                <span className="text-neutral-400">Kurdistan Local Directory</span>
+                <span className="text-neutral-400">{t('footerDirectory')}</span>
               </li>
             </ul>
           </div>
@@ -62,27 +62,27 @@ export const Footer: React.FC = () => {
           {/* For Buyers */}
           <div>
             <h4 className="font-bold text-neutral-900 text-xs uppercase tracking-wider mb-3">
-              For Buyers
+              {t('footerForBuyers')}
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <a href="#" className="hover:text-neutral-900 hover:underline">
-                  AI Product Search
+                <a href="#scanner" className="hover:text-neutral-900 hover:underline">
+                  {t('footerAiSearch')}
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-neutral-900 hover:underline">
-                  Compare Products
+                <a href="#featured" className="hover:text-neutral-900 hover:underline">
+                  {t('footerCompareProducts')}
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-neutral-900 hover:underline">
-                  Information Gap Analysis
+                <a href="#featured" className="hover:text-neutral-900 hover:underline">
+                  {t('footerGapAnalysis')}
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-neutral-900 hover:underline">
-                  How It Works
+                <a href="#why-bazary" className="hover:text-neutral-900 hover:underline">
+                  {t('footerHowItWorks')}
                 </a>
               </li>
             </ul>
@@ -91,20 +91,20 @@ export const Footer: React.FC = () => {
           {/* For Sellers */}
           <div>
             <h4 className="font-bold text-neutral-900 text-xs uppercase tracking-wider mb-3">
-              For Sellers
+              {t('footerForSellers')}
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <span className="text-neutral-400">List Your Local Shop (Coming)</span>
+                <span className="text-neutral-400">{t('footerListShop')}</span>
               </li>
               <li>
-                <span className="text-neutral-400">Seller Verification Process</span>
+                <span className="text-neutral-400">{t('footerVerification')}</span>
               </li>
               <li>
-                <span className="text-neutral-400">AI Listing Assistant</span>
+                <span className="text-neutral-400">{t('footerListingAssistant')}</span>
               </li>
               <li>
-                <span className="text-neutral-400">Merchant Guidelines</span>
+                <span className="text-neutral-400">{t('footerGuidelines')}</span>
               </li>
             </ul>
           </div>
@@ -113,11 +113,11 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar: Language options & Copyright */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
           <div>
-            © {new Date().getFullYear()} BAZARY GAWRA Prototype. Built for Hackathon. All rights reserved.
+            © {new Date().getFullYear()} {t('footerCopyright')}
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="text-neutral-400 font-medium">Languages:</span>
+            <span className="text-neutral-400 font-medium">{t('footerLanguages')}</span>
             <button
               onClick={() => setLanguage('ckb')}
               className={`hover:text-neutral-900 ${language === 'ckb' ? 'font-bold text-[#8C5E00]' : ''}`}

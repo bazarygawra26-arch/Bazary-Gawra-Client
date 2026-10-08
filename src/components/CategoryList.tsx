@@ -59,7 +59,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({
               onClick={() => onSelectCategory(null)}
               className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-[#EAE7DF] bg-white text-neutral-700 hover:bg-neutral-50 self-start sm:self-auto"
             >
-              ✕ Clear Filter ({selectedCategory})
+              ✕ {t('clearFilter')} ({selectedCategory})
             </button>
           )}
         </div>
@@ -98,7 +98,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({
 
                   {/* Item count tag */}
                   <div className="absolute bottom-2.5 end-2.5 px-2 py-0.5 rounded-md bg-black/50 backdrop-blur-xs text-[11px] font-medium text-white/90">
-                    {cat.itemCount} items
+                    {cat.itemCount} {t('itemsCount')}
                   </div>
                 </div>
 

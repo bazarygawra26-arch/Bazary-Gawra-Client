@@ -10,27 +10,27 @@ export const WhyBazaryGawra: React.FC = () => {
   const pillars = [
     {
       icon: <Sparkles className="w-6 h-6 text-neutral-950" />,
-      title: 'Conversational Kurdish AI',
-      desc: 'Type naturally in Kurdish Sorani, Arabic, or English. Bazary Gawra extracts product types, city locations, and price limits effortlessly.',
-      badge: 'Multilingual NLP',
+      title: t('pillar1Title'),
+      desc: t('pillar1Desc'),
+      badge: t('pillar1Badge'),
     },
     {
       icon: <FileSearch className="w-6 h-6 text-neutral-950" />,
-      title: 'Information Gap Analysis',
-      desc: 'We highlight what vendors state and what is omitted — missing warranties, return policies, or specifications are flagged clearly.',
-      badge: 'Transparency',
+      title: t('pillar2Title'),
+      desc: t('pillar2Desc'),
+      badge: t('pillar2Badge'),
     },
     {
       icon: <MapPin className="w-6 h-6 text-neutral-950" />,
-      title: 'Hyper-Local Kurdistan Focus',
-      desc: 'Accurate IQD pricing and neighborhood inventory across Sulaymaniyah (Salim St, Mawlawi), Erbil (Gulan, Ankawa), and Duhok.',
-      badge: 'Regional Stores',
+      title: t('pillar3Title'),
+      desc: t('pillar3Desc'),
+      badge: t('pillar3Badge'),
     },
     {
       icon: <Eye className="w-6 h-6 text-neutral-950" />,
-      title: 'Unbiased Comparisons',
-      desc: 'No fake reviews or inflated 5-star ratings. Products are compared based on verifiable technical specs and seller commitments.',
-      badge: 'Zero Fake Reviews',
+      title: t('pillar4Title'),
+      desc: t('pillar4Desc'),
+      badge: t('pillar4Badge'),
     },
   ];
 
@@ -40,13 +40,13 @@ export const WhyBazaryGawra: React.FC = () => {
         <div className="text-center max-w-2xl mx-auto mb-12">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F2F5EF] text-[#657A52] text-xs font-bold mb-3">
             <Zap className="w-3.5 h-3.5" />
-            <span>The Bazary Gawra Standard</span>
+            <span>{t('whyBazaryGawraBadge')}</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight">
             {t('whyBazaryGawraTitle')}
           </h2>
           <p className="text-neutral-600 mt-2 text-sm sm:text-base">
-            Making local product discovery simpler, clearer, and more informed with artificial intelligence.
+            {t('whyBazaryGawraSubtitle')}
           </p>
         </div>
 

@@ -98,10 +98,10 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#657A52] mb-1.5">
                 <ShoppingBag className="w-4 h-4" />
-                <span>Local Discovery</span>
+                <span>{language === 'ckb' ? 'دۆزینەوەی ناوخۆیی' : language === 'ar' ? 'اكتشاف محلي' : 'Local Discovery'}</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
-                {selectedCategory ? `${selectedCategory} Products` : t('featuredTitle')}
+                {selectedCategory ? selectedCategory : t('featuredTitle')}
               </h2>
               <p className="text-sm text-neutral-600 mt-1">
                 {t('featuredSubtitle')}
@@ -109,7 +109,11 @@ export default function Home() {
             </div>
 
             <div className="text-xs text-neutral-500 font-medium">
-              Showing {displayedProducts.length} local items
+              {language === 'ckb'
+                ? `نیشاندانی ${displayedProducts.length} کاڵای ناوخۆیی`
+                : language === 'ar'
+                ? `عرض ${displayedProducts.length} منتج محلي`
+                : `Showing ${displayedProducts.length} local items`}
             </div>
           </div>
 

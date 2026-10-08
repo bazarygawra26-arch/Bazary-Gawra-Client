@@ -57,7 +57,7 @@ export const AIRecommendations: React.FC<AIRecommendationsProps> = ({ products, 
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#8C5E00] bg-[#FFF5DD] px-2.5 py-1 rounded-full">
                     <Sparkles className="w-3 h-3 text-[#F4B942] fill-[#F4B942]" />
-                    AI Match Index {prod.ai_match?.score ?? 92}%
+                    {t('aiMatchIndex')} {prod.ai_match?.score ?? 92}%
                   </span>
                   <span className="text-xs text-neutral-400 font-medium">
                     {prod.location.split('(')[0]}
@@ -89,7 +89,7 @@ export const AIRecommendations: React.FC<AIRecommendationsProps> = ({ products, 
                 {/* Match Reason Summary */}
                 <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF] text-xs text-neutral-700 mb-4">
                   <div className="font-semibold text-neutral-900 mb-1 flex items-center gap-1">
-                    <span>💡 Match Rationale:</span>
+                    <span>💡 {t('matchRationale')}</span>
                   </div>
                   <p className="text-neutral-600 leading-relaxed text-[12px]">
                     {prod.ai_match?.match_reason}
@@ -130,7 +130,7 @@ export const AIRecommendations: React.FC<AIRecommendationsProps> = ({ products, 
                     onClick={() => addToCompare(prod)}
                     className="py-2 px-3 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF] hover:bg-neutral-100 text-neutral-800 text-xs font-semibold transition-colors"
                   >
-                    + Compare
+                    + {t('compareButton')}
                   </button>
                 </div>
               </div>
@@ -149,10 +149,10 @@ export const AIRecommendations: React.FC<AIRecommendationsProps> = ({ products, 
                   </div>
                   <div>
                     <h3 className="font-bold text-neutral-900 text-base">
-                      AI Product Match Breakdown
+                      {t('modalBreakdownTitle')}
                     </h3>
                     <p className="text-xs text-neutral-500">
-                      Objective criteria analysis based on stated seller data
+                      {t('modalBreakdownSub')}
                     </p>
                   </div>
                 </div>
@@ -170,14 +170,14 @@ export const AIRecommendations: React.FC<AIRecommendationsProps> = ({ products, 
                     {selectedAIProduct.name}
                   </div>
                   <div className="text-neutral-500">
-                    Seller: {selectedAIProduct.seller_name} • Location: {selectedAIProduct.location}
+                    {t('navSellers')}: {selectedAIProduct.seller_name} • {t('locationLabel')}: {selectedAIProduct.location}
                   </div>
                 </div>
 
                 <div className="p-3 rounded-xl bg-[#FFFBF0] border border-[#F4B942]/40 text-neutral-800">
                   <div className="font-bold text-[#8C5E00] mb-1 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Why was this recommended?</span>
+                    <span>{t('whyRecommended')}</span>
                   </div>
                   <p className="text-neutral-700 leading-relaxed text-xs">
                     {selectedAIProduct.ai_match?.match_reason}
@@ -185,7 +185,7 @@ export const AIRecommendations: React.FC<AIRecommendationsProps> = ({ products, 
                 </div>
 
                 <div>
-                  <span className="font-bold text-neutral-900 block mb-2">Available Criteria Verified:</span>
+                  <span className="font-bold text-neutral-900 block mb-2">{t('criteriaVerified')}</span>
                   <div className="space-y-1.5">
                     {selectedAIProduct.ai_match?.highlights.map((h, i) => (
                       <div key={i} className="flex items-center gap-2 text-neutral-700">
@@ -198,7 +198,7 @@ export const AIRecommendations: React.FC<AIRecommendationsProps> = ({ products, 
 
                 {selectedAIProduct.ai_match?.cautions.length ? (
                   <div>
-                    <span className="font-bold text-neutral-900 block mb-2">Noticeable Considerations:</span>
+                    <span className="font-bold text-neutral-900 block mb-2">{t('noticeableConsiderations')}</span>
                     <div className="space-y-1.5">
                       {selectedAIProduct.ai_match.cautions.map((c, i) => (
                         <div key={i} className="flex items-center gap-2 text-amber-700">
@@ -211,7 +211,7 @@ export const AIRecommendations: React.FC<AIRecommendationsProps> = ({ products, 
                 ) : null}
 
                 <div className="p-2.5 rounded-lg bg-neutral-50 text-[11px] text-neutral-500 border border-[#EAE7DF]">
-                  * Bazary Gawra AI matches products based on explicit specifications and merchant location. It does not provide subjective guarantees.
+                  {t('aiMatchNotice')}
                 </div>
               </div>
 
@@ -220,7 +220,7 @@ export const AIRecommendations: React.FC<AIRecommendationsProps> = ({ products, 
                   onClick={() => setSelectedAIProduct(null)}
                   className="px-4 py-2 rounded-xl bg-neutral-900 text-white font-semibold text-xs hover:bg-neutral-800"
                 >
-                  Close Explanation
+                  {t('closeExplanation')}
                 </button>
               </div>
             </div>

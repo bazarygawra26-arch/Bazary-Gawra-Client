@@ -136,10 +136,10 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
               onChange={(e) => setSelectedLocation(e.target.value)}
               className="px-2.5 py-1.5 rounded-lg border border-[#EAE7DF] bg-[#FAF9F6] text-neutral-800 font-medium focus:outline-none focus:border-[#F4B942]"
             >
-              <option value="all">All Kurdistan Cities</option>
-              <option value="sulaymaniyah">Sulaymaniyah</option>
-              <option value="erbil">Erbil</option>
-              <option value="duhok">Duhok</option>
+              <option value="all">{t('filterAllCities')}</option>
+              <option value="sulaymaniyah">{language === 'ckb' ? 'سلێمانی' : language === 'ar' ? 'السليمانية' : 'Sulaymaniyah'}</option>
+              <option value="erbil">{language === 'ckb' ? 'هەولێر' : language === 'ar' ? 'أربيل' : 'Erbil'}</option>
+              <option value="duhok">{language === 'ckb' ? 'دهۆک' : language === 'ar' ? 'دهوك' : 'Duhok'}</option>
             </select>
 
             {/* Warranty toggle */}
@@ -152,7 +152,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
               }`}
             >
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Has Warranty</span>
+              <span>{t('filterHasWarranty')}</span>
             </button>
 
             {/* Delivery toggle */}
@@ -165,7 +165,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
               }`}
             >
               <Truck className="w-3.5 h-3.5" />
-              <span>Has Delivery</span>
+              <span>{t('filterHasDelivery')}</span>
             </button>
           </div>
 
@@ -178,9 +178,9 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
               onChange={(e) => setSortBy(e.target.value as any)}
               className="px-2.5 py-1.5 rounded-lg border border-[#EAE7DF] bg-[#FAF9F6] text-neutral-800 font-semibold focus:outline-none focus:border-[#F4B942]"
             >
-              <option value="recommended">AI Recommended</option>
-              <option value="low-to-high">Price: Low to High</option>
-              <option value="high-to-low">Price: High to Low</option>
+              <option value="recommended">{t('sortRecommended')}</option>
+              <option value="low-to-high">{t('sortLowToHigh')}</option>
+              <option value="high-to-low">{t('sortHighToLow')}</option>
             </select>
           </div>
         </div>
@@ -188,7 +188,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
         {/* Product Grid */}
         {filteredProducts.length === 0 ? (
           <div className="p-12 text-center bg-white rounded-2xl border border-[#EAE7DF]">
-            <h3 className="font-bold text-neutral-900 text-lg mb-1">No matching products found</h3>
+            <h3 className="font-bold text-neutral-900 text-lg mb-1">{t('noResults')}</h3>
             <p className="text-xs text-neutral-500 mb-4">
               Try adjusting your filters or search with a broader query term.
             </p>
@@ -196,7 +196,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
               onClick={onClearSearch}
               className="px-4 py-2 rounded-xl bg-[#F4B942] text-neutral-950 font-bold text-xs"
             >
-              Reset All Filters
+              {t('resetFilters')}
             </button>
           </div>
         ) : (

@@ -184,14 +184,14 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
         <div className="text-center max-w-3xl mx-auto mb-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFF5DD] border border-[#F4B942]/60 text-[#8C5E00] text-xs font-bold mb-3 shadow-2xs">
             <Sparkles className="w-3.5 h-3.5 fill-[#F4B942] text-[#F4B942]" />
-            <span>AI Product Scanner • Multimodal Vision</span>
+            <span>{t('scannerTitle')}</span>
           </div>
 
           <h2 className="text-2xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight">
-            Have a product image?
+            {t('scannerHeadline')}
           </h2>
           <p className="text-sm sm:text-base text-neutral-600 mt-2">
-            Upload a photo and let AI help you understand visible attributes, audit information gaps, and find matching local products.
+            {t('scannerSubtitle')}
           </p>
         </div>
 
@@ -206,7 +206,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                   : 'text-neutral-500 hover:text-neutral-900'
               }`}
             >
-              🔍 Buyer Product Discovery
+              {t('scannerBuyerTab')}
             </button>
             <button
               onClick={() => setActiveTab('seller')}
@@ -216,7 +216,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                   : 'text-neutral-500 hover:text-neutral-900'
               }`}
             >
-              🏪 Seller Listing Assistant
+              {t('scannerSellerTab')}
             </button>
           </div>
         </div>
@@ -236,15 +236,15 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                   <Upload className="w-8 h-8 text-[#8C5E00]" />
                 </div>
                 <h3 className="font-extrabold text-neutral-900 text-base sm:text-lg mb-1">
-                  Upload Product Image
+                  {t('scannerUploadBox')}
                 </h3>
                 <p className="text-xs sm:text-sm text-neutral-500 max-w-sm mx-auto mb-4">
-                  Drag and drop a product photo here, or click to browse files (JPEG, PNG, WebP)
+                  {t('scannerDragDrop')}
                 </p>
 
                 <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 font-bold text-xs sm:text-sm shadow-2xs">
                   <ImageIcon className="w-4 h-4" />
-                  <span>Choose Photo File</span>
+                  <span>{t('scannerChooseFile')}</span>
                 </div>
 
                 <input
@@ -261,9 +261,9 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                 <div className="flex items-center justify-between mb-3 text-xs">
                   <span className="font-bold text-neutral-700 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-[#8C5E00]" />
-                    <span>Try with 1-click sample products:</span>
+                    <span>{t('scannerTrySamples')}</span>
                   </span>
-                  <span className="text-neutral-400">Pre-loaded hackathon tests</span>
+                  <span className="text-neutral-400">⚡ 1-Click</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -332,12 +332,12 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                       {isAnalyzing ? (
                         <>
                           <div className="w-4 h-4 border-2 border-neutral-950 border-t-transparent rounded-full animate-spin" />
-                          <span>Gemini Vision Inspecting Photo...</span>
+                          <span>{t('scannerAnalyzing')}</span>
                         </>
                       ) : (
                         <>
                           <Sparkles className="w-4 h-4 fill-neutral-950" />
-                          <span>✨ Analyze with AI</span>
+                          <span>{t('scannerAnalyzeBtn')}</span>
                         </>
                       )}
                     </button>
@@ -347,7 +347,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                       disabled={isAnalyzing}
                       className="px-4 py-3 rounded-xl border border-[#EAE7DF] hover:bg-white text-neutral-700 text-xs font-semibold"
                     >
-                      Change Photo
+                      {t('scannerChangePhoto')}
                     </button>
                   </div>
                 </div>
@@ -370,7 +370,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2 font-extrabold text-neutral-900 text-sm">
                     <Sparkles className="w-4 h-4 text-[#8C5E00] fill-[#F4B942]" />
-                    <span>AI Product Inspection Summary</span>
+                    <span>{t('scannerSummaryTitle')}</span>
                   </div>
                   <span className="text-[11px] font-semibold bg-[#FFF5DD] text-[#8C5E00] px-2.5 py-0.5 rounded-full">
                     Strict Non-Hallucination Policy
@@ -384,7 +384,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
               {/* 2. Visible Attributes Grid */}
               <div className="rounded-2xl border border-[#EAE7DF] bg-white p-5 shadow-2xs">
                 <h4 className="font-extrabold text-neutral-900 text-xs uppercase tracking-wider text-neutral-400 mb-4">
-                  Visible Attributes Identified in Image
+                  {t('scannerAttributesTitle')}
                 </h4>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-4">
@@ -426,7 +426,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                 <div className="flex items-center gap-2 mb-3 pb-3 border-b border-[#EAE7DF]">
                   <ShieldAlert className="w-4 h-4 text-[#8C5E00]" />
                   <h4 className="font-extrabold text-neutral-900 text-sm">
-                    AI Information Check (Transparency Audit)
+                    {t('scannerInfoCheckTitle')}
                   </h4>
                 </div>
 
@@ -434,7 +434,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                   {/* Available Signals */}
                   <div className="p-3.5 rounded-xl bg-[#F2F5EF] border border-[#E2E8DC] space-y-2">
                     <span className="font-bold text-[#657A52] block">
-                      Available Information (Visible in photo):
+                      {t('scannerAvailableTitle')}
                     </span>
                     {analysisResult.available_signals.map((sig, idx) => (
                       <div key={idx} className="flex items-center gap-2 text-neutral-800">
@@ -447,7 +447,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                   {/* Missing Signals */}
                   <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 space-y-2">
                     <span className="font-bold text-amber-900 block">
-                      Missing Information (Omitted / Not in image):
+                      {t('scannerMissingTitle')}
                     </span>
                     {analysisResult.missing_signals.map((sig, idx) => (
                       <div key={idx} className="flex items-center gap-2 text-amber-800">
@@ -466,7 +466,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#EAE7DF]">
                     <div>
                       <h4 className="font-extrabold text-neutral-900 text-base">
-                        Similar Local Products in Kurdistan
+                        {t('scannerSimilarTitle')}
                       </h4>
                       <p className="text-xs text-neutral-500">
                         Products matching &ldquo;{analysisResult.suggested_search_query}&rdquo; in local Sulaymaniyah, Erbil & Duhok shops
@@ -494,7 +494,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                   <div className="flex items-center justify-between pb-3 border-b border-[#F4B942]/40">
                     <div className="flex items-center gap-2 font-extrabold text-neutral-900 text-sm">
                       <Store className="w-4 h-4 text-[#8C5E00]" />
-                      <span>Seller Draft Listing Generator</span>
+                      <span>{t('scannerDraftTitle')}</span>
                     </div>
                     <span className="text-[11px] font-bold bg-[#FFF5DD] text-[#8C5E00] px-2.5 py-0.5 rounded-full">
                       Auto-Populated from Image
@@ -538,7 +538,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                     <div className="space-y-3 bg-white p-4 rounded-xl border border-amber-200">
                       <span className="font-bold text-amber-900 block text-xs flex items-center gap-1.5">
                         <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                        <span>2. Missing Information Required from Seller:</span>
+                        <span>{t('scannerMissingSellerNotice')}</span>
                       </span>
                       <p className="text-[11px] text-neutral-500">
                         Bazary Gawra rules prohibit AI from guessing prices or warranties. Seller must input verified data:
@@ -559,7 +559,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                         onClick={() => alert('Draft listing preserved. In production, this saves directly to merchant Supabase listings table.')}
                         className="w-full mt-2 py-2.5 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 font-bold text-xs transition-colors shadow-2xs cursor-pointer"
                       >
-                        Complete Listing Details (Seller Prototype)
+                        {t('scannerCompleteListing')}
                       </button>
                     </div>
                   </div>
