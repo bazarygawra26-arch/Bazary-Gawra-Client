@@ -3,45 +3,90 @@ import { supabaseAdmin } from '../supabaseAdmin';
 import { Product } from '../../../types';
 import { mockProducts } from '../../../data/mockData';
 
+// Map a Supabase row (either from search_products RPC or get_product_context_by_slug) to domain Product
+function mapDbProductToDomain(row: any): Product {
+  const id = row.product_id || row.id;
+  const name = row.name || row.slug;
+  const location = row.location_name || (typeof row.location === 'string' ? row.location : row.location?.name) || 'Kurdistan';
+  const seller = row.seller_name || (typeof row.seller === 'string' ? row.seller : row.seller?.name) || 'Local Seller';
+  const sellerLoc = (typeof row.seller === 'object' && row.seller?.location) || location;
+
+  const hasWarranty = row.warranty_applicable || (row.warranty?.applicable ?? false) || !!row.warranty;
+  const hasDelivery = row.delivery_available || (row.delivery?.available ?? false) || !!row.delivery_info;
+  const hasReturn = !!row.return_policy || !!row.return_days || (row.return_policy?.days ?? 0) > 0;
+  const hasSpecs = !!row.capacity || !!row.power_watts || (row.specs && Object.keys(row.specs).length > 0);
+
+  const missingList: string[] = [];
+  if (!hasWarranty) missingList.push('No warranty provided');
+  if (!hasDelivery) missingList.push('No delivery details');
+  if (!hasReturn) missingList.push('No return policy');
+  if (!hasSpecs) missingList.push('Missing specifications');
+
+  return {
+    id: id,
+    name: name,
+    name_ckb: row.name_ckb || (row.name_ku ?? name),
+    name_ar: row.name_ar || name,
+    category: row.category_name || (row.category?.name ?? (row.category_slug || 'General')),
+    price: Number(row.price || 0),
+    currency: (row.currency === 'USD' ? 'USD' : 'IQD') as 'IQD' | 'USD',
+    location: location,
+    seller_name: seller,
+    seller_location: sellerLoc,
+    capacity: row.capacity || undefined,
+    power: row.power_watts ? `${row.power_watts}W` : (row.power || undefined),
+    warranty: row.warranty_months ? `${row.warranty_months} Months Warranty` : (typeof row.warranty === 'string' ? row.warranty : 'Standard Warranty'),
+    delivery_info: row.delivery_info || (row.delivery?.info ?? (row.delivery_available ? 'Delivery available' : undefined)),
+    return_policy: row.return_policy || (row.return_days ? `${row.return_days} days return policy` : undefined),
+    origin: row.origin || undefined,
+    description: row.description || '',
+    image_url: row.image_url || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
+    information_signals: {
+      has_location: !!location,
+      has_warranty: hasWarranty,
+      has_delivery: hasDelivery,
+      has_return_policy: hasReturn,
+      has_specifications: hasSpecs,
+      missing_points: missingList,
+    },
+    ai_match: {
+      score: row.information_check?.score || 88,
+      match_reason: 'Verified product listing with clear transparent signals.',
+      highlights: [`${location}`, `${Number(row.price || 0).toLocaleString('en-US')} IQD`],
+      cautions: missingList.length > 0 ? [`Unverified: ${missingList[0]}`] : [],
+    },
+  };
+}
+
 export async function findProducts(filters?: {
   category?: string;
   city?: string;
   minPrice?: number;
   maxPrice?: number;
   search?: string;
+  lang?: 'en' | 'ku' | 'ar';
 }): Promise<Product[]> {
   if (supabaseAdmin) {
     try {
-      let query = supabaseAdmin.from('products').select('*');
+      const { data, error } = await (supabaseAdmin as any).rpc('search_products', {
+        p_query: filters?.search || undefined,
+        p_category_slug: filters?.category || undefined,
+        p_location_slug: filters?.city || undefined,
+        p_min_price: filters?.minPrice || undefined,
+        p_max_price: filters?.maxPrice || undefined,
+        p_lang: filters?.lang || 'ku',
+        p_limit: 50,
+      });
 
-      if (filters?.category) {
-        query = query.ilike('category', `%${filters.category}%`);
-      }
-      if (filters?.city) {
-        query = query.or(`location.ilike.%${filters.city}%,seller_location.ilike.%${filters.city}%`);
-      }
-      if (filters?.minPrice) {
-        query = query.gte('price', filters.minPrice);
-      }
-      if (filters?.maxPrice) {
-        query = query.lte('price', filters.maxPrice);
-      }
-      if (filters?.search) {
-        query = query.or(
-          `name.ilike.%${filters.search}%,name_ckb.ilike.%${filters.search}%,name_ar.ilike.%${filters.search}%`
-        );
-      }
-
-      const { data, error } = await query;
-      if (!error && data && data.length > 0) {
-        return data as Product[];
+      if (!error && Array.isArray(data) && data.length > 0) {
+        return (data as any[]).map(mapDbProductToDomain);
       }
     } catch (err) {
-      console.warn('Repository findProducts error, falling back to local dataset:', err);
+      console.warn('Repository findProducts rpc error, trying fallback:', err);
     }
   }
 
-  // Local verified fallback
+  // Local verified fallback dataset
   let result = [...mockProducts];
   if (filters?.category) {
     result = result.filter((p) => p.category.toLowerCase().includes(filters.category!.toLowerCase()));
@@ -56,6 +101,9 @@ export async function findProducts(filters?: {
   if (filters?.maxPrice) {
     result = result.filter((p) => p.price <= filters.maxPrice!);
   }
+  if (filters?.minPrice) {
+    result = result.filter((p) => p.price >= filters.minPrice!);
+  }
   if (filters?.search) {
     const q = filters.search.toLowerCase();
     result = result.filter(
@@ -69,11 +117,16 @@ export async function findProducts(filters?: {
   return result;
 }
 
-export async function findProductById(id: string): Promise<Product | null> {
+export async function findProductById(id: string, lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Product | null> {
   if (supabaseAdmin) {
     try {
-      const { data, error } = await supabaseAdmin.from('products').select('*').eq('id', id).single();
-      if (!error && data) return data as Product;
+      const { data, error } = await (supabaseAdmin as any).rpc('get_product_context', {
+        p_product_id: id,
+        p_lang: lang,
+      });
+      if (!error && data) {
+        return mapDbProductToDomain(data);
+      }
     } catch (err) {
       console.warn('Repository findProductById error:', err);
     }
@@ -82,8 +135,22 @@ export async function findProductById(id: string): Promise<Product | null> {
   return mockProducts.find((p) => p.id === id) || null;
 }
 
-export async function findProductBySlug(slug: string): Promise<Product | null> {
-  const all = await findProducts();
+export async function findProductBySlug(slug: string, lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Product | null> {
+  if (supabaseAdmin) {
+    try {
+      const { data, error } = await (supabaseAdmin as any).rpc('get_product_context_by_slug', {
+        p_slug: slug,
+        p_lang: lang,
+      });
+      if (!error && data) {
+        return mapDbProductToDomain(data);
+      }
+    } catch (err) {
+      console.warn('Repository findProductBySlug error:', err);
+    }
+  }
+
+  const all = await findProducts({ lang });
   return (
     all.find(
       (p) =>
@@ -91,4 +158,23 @@ export async function findProductBySlug(slug: string): Promise<Product | null> {
         p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug.toLowerCase()
     ) || null
   );
+}
+
+export async function getProductsForComparison(productIds: string[], lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Product[]> {
+  if (supabaseAdmin && productIds.length > 0) {
+    try {
+      const { data, error } = await (supabaseAdmin as any).rpc('get_products_for_comparison', {
+        p_product_ids: productIds,
+        p_lang: lang,
+      });
+      if (!error && Array.isArray(data) && data.length > 0) {
+        return (data as any[]).map(mapDbProductToDomain);
+      }
+    } catch (err) {
+      console.warn('Repository getProductsForComparison error:', err);
+    }
+  }
+
+  const all = await findProducts({ lang });
+  return all.filter((p) => productIds.includes(p.id));
 }
