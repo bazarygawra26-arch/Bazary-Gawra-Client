@@ -135,6 +135,40 @@ export interface AIComparisonResult {
   }[];
 }
 
+export interface StructuredAiSearchRequest {
+  product: string;
+  category: string;
+  location: string;
+  max_price: number | null;
+  min_price: number | null;
+  currency: string;
+  preferences: string[];
+  language: string;
+}
+
+export interface DetailedInformationGap {
+  productId: string;
+  productName: string;
+  available: string[];
+  missing: string[];
+  seller_questions: string[];
+}
+
+export interface AiSearchComprehensiveResult {
+  request: StructuredAiSearchRequest;
+  interpretation: AISearchInterpretation;
+  products: Product[];
+  comparison?: {
+    summary: string;
+    differences: string[];
+    matrix: { feature: string; values: Record<string, string> }[];
+  } | null;
+  information_gaps: DetailedInformationGap[];
+  recommendation: string;
+  seller_questions: string[];
+  language: string;
+}
+
 export interface AIProductScanResult {
   product_type: string;
   suggested_category: string;

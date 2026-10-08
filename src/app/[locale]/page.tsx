@@ -15,7 +15,7 @@ import { ProductDetailModal } from '../../components/ProductDetailModal';
 import { CompareTray } from '../../components/compare/CompareTray';
 import { KilimDivider } from '../../components/ui/KilimDivider';
 import { KurdishPatternBg } from '../../components/ui/KurdishPatternBg';
-import { Product, Category, Seller, AISearchInterpretation } from '../../types';
+import { Product, Category, Seller, AISearchInterpretation, AiSearchComprehensiveResult } from '../../types';
 import { Sparkles, ShoppingBag, Loader2 } from 'lucide-react';
 
 export default function LocaleHomePage() {
@@ -28,6 +28,7 @@ export default function LocaleHomePage() {
   const [activeQuery, setActiveQuery] = useState('');
   const [activeInterpretation, setActiveInterpretation] = useState<AISearchInterpretation | null>(null);
   const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [aiSearchResult, setAiSearchResult] = useState<AiSearchComprehensiveResult | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProductForModal, setSelectedProductForModal] = useState<Product | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -90,6 +91,7 @@ export default function LocaleHomePage() {
       if (res.ok) {
         const data = await res.json();
         setSearchResults(data.products || []);
+        setAiSearchResult(data);
         if (data.interpretation) {
           setActiveInterpretation(data.interpretation);
         }
@@ -107,6 +109,7 @@ export default function LocaleHomePage() {
     setActiveQuery('');
     setActiveInterpretation(null);
     setSearchResults([]);
+    setAiSearchResult(null);
   };
 
   const displayedProducts = selectedCategory
@@ -163,6 +166,7 @@ export default function LocaleHomePage() {
             products={searchResults.length > 0 ? searchResults : products}
             activeQuery={activeQuery}
             interpretation={activeInterpretation}
+            aiResult={aiSearchResult}
             onClearSearch={handleClearSearch}
             onViewProduct={(p) => setSelectedProductForModal(p)}
           />
