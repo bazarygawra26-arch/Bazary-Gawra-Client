@@ -13,7 +13,6 @@ import { SearchResultsView } from '../../components/SearchResultsView';
 import { ProductComparisonDrawer } from '../../components/ProductComparisonDrawer';
 import { ProductDetailModal } from '../../components/ProductDetailModal';
 import { CompareTray } from '../../components/compare/CompareTray';
-import { KilimDivider } from '../../components/ui/KilimDivider';
 import { KurdishPatternBg } from '../../components/ui/KurdishPatternBg';
 import { Product, Category, Seller, AISearchInterpretation, AiSearchComprehensiveResult } from '../../types';
 import { Sparkles, ShoppingBag, Loader2 } from 'lucide-react';
@@ -156,9 +155,6 @@ export default function LocaleHomePage() {
         </div>
       </section>
 
-      {/* Thin repeating Kilim divider between hero and content */}
-      <KilimDivider />
-
       {/* 3. Search Results (if active query) */}
       {activeQuery && (
         <div id="search-results-section">
@@ -170,39 +166,29 @@ export default function LocaleHomePage() {
             onClearSearch={handleClearSearch}
             onViewProduct={(p) => setSelectedProductForModal(p)}
           />
-          <KilimDivider />
         </div>
       )}
 
       {/* 4. Category Circles (scrollable on mobile, zero clothing) */}
       {categories.length > 0 && (
-        <>
-          <CategoryList
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onSelectCategory={(cat) => setSelectedCategory(cat)}
-          />
-          <KilimDivider />
-        </>
+        <CategoryList
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onSelectCategory={(cat) => setSelectedCategory(cat)}
+        />
       )}
 
       {/* 5. "AI Picks" Product Row */}
       {products.length > 0 && (
-        <>
-          <AIRecommendation
-            products={products}
-            onViewProduct={(p) => setSelectedProductForModal(p)}
-          />
-          <KilimDivider />
-        </>
+        <AIRecommendation
+          products={products}
+          onViewProduct={(p) => setSelectedProductForModal(p)}
+        />
       )}
 
       {/* 6. "Local shops" Row with Seller Cards */}
       {sellers.length > 0 && (
-        <>
-          <LocalSellersSection sellers={sellers} />
-          <KilimDivider />
-        </>
+        <LocalSellersSection sellers={sellers} />
       )}
 
       {/* 7. Three-step "How the AI helps" strip */}

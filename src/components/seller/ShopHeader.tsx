@@ -3,7 +3,6 @@
 import React from 'react';
 import { SellerProfile } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
-import { KilimDivider } from '../ui/KilimDivider';
 import {
   Store,
   MapPin,
@@ -31,9 +30,6 @@ export const ShopHeader: React.FC<ShopHeaderProps> = ({ seller }) => {
 
   return (
     <div className="bg-white rounded-2xl border border-[#EAE7DF] shadow-sm overflow-hidden mb-8">
-      {/* Authentic Kilim Pattern Top Edge */}
-      <KilimDivider variant="banner" />
-
       {/* Shop Banner Background */}
       <div className="bg-gradient-to-r from-[#FAF9F6] via-[#FFFDF7] to-[#FAF9F6] px-6 sm:px-8 pt-8 pb-6 border-b border-[#EAE7DF]">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">

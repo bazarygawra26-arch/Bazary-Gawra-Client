@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Header } from '../../../components/layout/Header';
 import { Footer } from '../../../components/layout/Footer';
 import { SellerCard } from '../../../components/seller/SellerCard';
-import { KilimDivider } from '../../../components/ui/KilimDivider';
 import { useLanguage } from '../../../context/LanguageContext';
 import { Seller } from '../../../types';
 import { Store, MapPin, Loader2, Sparkles } from 'lucide-react';
@@ -63,8 +62,6 @@ export default function SellersIndexPage() {
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
         {/* Page Hero Header */}
         <div className="bg-white rounded-2xl border border-[#EAE7DF] p-6 sm:p-8 relative overflow-hidden shadow-2xs">
-          <KilimDivider variant="banner" className="mb-6 -mt-6 sm:-mt-8 -mx-6 sm:-mx-8 w-[calc(100%+3rem)] sm:w-[calc(100%+4rem)]" />
-
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FFF5DD] text-[#8C5E00] text-xs font-bold mb-2">
