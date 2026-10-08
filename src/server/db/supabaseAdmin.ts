@@ -4,21 +4,22 @@ import { Database } from '../../types/database';
 import { env } from '../../config/env';
 
 export function getSupabaseAdmin() {
-  const rawUrl = (env.SUPABASE_URL || 'https://ydspdazwbansgdtjhvrp.supabase.co').trim();
-  const rawKey = (env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY || '').trim();
+  const url = env.SUPABASE_URL;
+  const key = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
 
-  if (!rawKey || !rawUrl.startsWith('http')) {
+  if (!url || !key) {
     return null;
   }
 
   try {
-    return createClient<Database>(rawUrl, rawKey, {
+    return createClient<Database>(url, key, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
       },
     });
-  } catch {
+  } catch (err) {
+    console.error('Failed to create Supabase admin client:', err);
     return null;
   }
 }

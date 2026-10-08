@@ -9,6 +9,7 @@ export async function processAiSearch(
   query: string,
   language: string = 'ku'
 ): Promise<{ interpretation: AISearchInterpretation; products: Product[] }> {
+  const startTime = Date.now();
   const prompt = buildSearchPrompt(query, language);
   const parsed = await generateJson<any>(prompt);
 
@@ -32,9 +33,12 @@ export async function processAiSearch(
     search: interpretation.product_type,
     city: interpretation.target_location !== 'Kurdistan Region' ? interpretation.target_location : undefined,
     maxPrice: interpretation.budget_max || undefined,
+    lang: language === 'ar' ? 'ar' : language === 'en' ? 'en' : 'ku',
   });
 
-  // Log query asynchronously
+  const latencyMs = Date.now() - startTime;
+
+  // Persist search query, extracted interpretation, and product matches to Supabase ai_requests for training dataset
   await logSearchQuery({
     query_text: query,
     detected_language: interpretation.detected_language,
@@ -42,6 +46,9 @@ export async function processAiSearch(
     parsed_location: interpretation.target_location,
     parsed_budget: interpretation.budget_max || null,
     results_count: products.length,
+    product_ids: products.map((p) => p.id),
+    full_interpretation: interpretation,
+    latency_ms: latencyMs,
   });
 
   return { interpretation, products };
