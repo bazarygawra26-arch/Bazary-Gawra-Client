@@ -1,0 +1,272 @@
+'use client';
+
+import React, { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
+import { useComparison } from '../context/ComparisonContext';
+import { Product } from '../types';
+import {
+  X,
+  Sparkles,
+  MapPin,
+  Store,
+  ShieldCheck,
+  Truck,
+  RotateCcw,
+  Zap,
+  Info,
+  ArrowLeftRight,
+  Send,
+  MessageSquare,
+  AlertTriangle,
+} from 'lucide-react';
+import { TrustSignals } from './TrustSignals';
+
+interface ProductDetailModalProps {
+  product: Product | null;
+  onClose: () => void;
+}
+
+export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClose }) => {
+  const { language, t } = useLanguage();
+  const { addToCompare, removeFromCompare, isCompared } = useComparison();
+  const [question, setQuestion] = useState('');
+  const [chatLog, setChatLog] = useState<{ q: string; a: string }[]>([]);
+  const [isAsking, setIsAsking] = useState(false);
+
+  if (!product) return null;
+
+  const compared = isCompared(product.id);
+
+  const sampleQuestions = [
+    {
+      en: 'What is the exact warranty on this item?',
+      ckb: 'ئەم ئامێرە گەرەنتییەکەی چۆنە؟',
+      ar: 'ما هو الضمان الدقيق لهذا الجهاز؟',
+    },
+    {
+      en: 'Can this be delivered same-day to Sulaymaniyah?',
+      ckb: 'ئایا ئەمڕۆ دەگات لە سلێمانی؟',
+      ar: 'هل يمكن التوصيل بنفس اليوم في السليمانية؟',
+    },
+    {
+      en: 'What is the power wattage and capacity?',
+      ckb: 'توانای کارەبا و قەبارەکەی چەندە؟',
+      ar: 'ما هي قدرة الواط والسعة؟',
+    },
+  ];
+
+  const handleAskQuestion = (qText: string) => {
+    if (!qText.trim()) return;
+    setIsAsking(true);
+
+    setTimeout(() => {
+      let answer = '';
+      const lower = qText.toLowerCase();
+
+      if (lower.includes('warranty') || qText.includes('گەرەنتی') || qText.includes('ضمان')) {
+        answer =
+          product.warranty && product.warranty !== 'Information unavailable'
+            ? `According to the seller's stated information, this product comes with: "${product.warranty}".`
+            : `Information gap detected: The seller has not provided warranty terms for this listing. We recommend confirming with the seller before purchasing.`;
+      } else if (lower.includes('deliver') || qText.includes('گەیاندن') || qText.includes('توصيل')) {
+        answer = product.delivery_info
+          ? `Delivery terms provided by seller: "${product.delivery_info}".`
+          : `Delivery details are not explicitly stated in this merchant listing.`;
+      } else if (lower.includes('power') || lower.includes('watt') || lower.includes('capacity') || qText.includes('وات') || qText.includes('قەبارە') || qText.includes('سعة')) {
+        answer = `Technical specifications on file: Capacity: ${product.capacity || 'Not provided'}, Power: ${product.power || 'Not provided'}.`;
+      } else {
+        answer = `Based strictly on the verified merchant record: This is the ${product.name} offered by ${product.seller_name} located in ${product.location} for ${product.price.toLocaleString()} ${product.currency}. Missing attributes are flagged in the information transparency checklist.`;
+      }
+
+      setChatLog((prev) => [...prev, { q: qText, a: answer }]);
+      setQuestion('');
+      setIsAsking(false);
+    }, 400);
+  };
+
+  const displayName =
+    language === 'ckb' && product.name_ckb
+      ? product.name_ckb
+      : language === 'ar' && product.name_ar
+      ? product.name_ar
+      : product.name;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
+      <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-y-auto border border-[#EAE7DF] shadow-2xl relative text-start">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 end-4 z-20 w-9 h-9 rounded-full bg-white/90 backdrop-blur-xs border border-[#EAE7DF] flex items-center justify-center text-neutral-500 hover:text-neutral-900 transition-colors shadow-2xs"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="p-5 sm:p-8 space-y-8">
+          {/* Main Top Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            {/* Gallery Image Left */}
+            <div className="space-y-3">
+              <div className="w-full aspect-4/3 rounded-2xl overflow-hidden bg-neutral-100 border border-[#EAE7DF]">
+                <img
+                  src={product.image_url}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex items-center gap-2 text-xs text-neutral-500">
+                <span className="font-semibold text-neutral-800">Category:</span>
+                <span>{product.category}</span>
+                <span>•</span>
+                <span className="font-semibold text-neutral-800">Origin:</span>
+                <span>{product.origin || 'Not provided'}</span>
+              </div>
+            </div>
+
+            {/* Product Meta Right */}
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#FAF9F6] border border-[#EAE7DF] text-neutral-700 text-xs font-semibold">
+                <Store className="w-3.5 h-3.5 text-neutral-500" />
+                <span>{product.seller_name}</span>
+                <span className="text-neutral-300">|</span>
+                <MapPin className="w-3 h-3 text-[#657A52]" />
+                <span>{product.location}</span>
+              </div>
+
+              <h2 className="text-xl sm:text-2xl font-extrabold text-neutral-900 leading-tight">
+                {displayName}
+              </h2>
+
+              {/* Price */}
+              <div className="flex items-baseline gap-2 pt-1">
+                <span className="text-3xl font-black text-neutral-950 tracking-tight">
+                  {product.price.toLocaleString()}
+                </span>
+                <span className="text-sm font-bold text-[#8C5E00] bg-[#FFF5DD] px-2 py-0.5 rounded">
+                  {product.currency}
+                </span>
+              </div>
+
+              {/* Key Specs Pills */}
+              <div className="grid grid-cols-2 gap-2 text-xs pt-2">
+                <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
+                  <span className="text-neutral-400 block text-[11px]">Capacity</span>
+                  <span className="font-semibold text-neutral-800">{product.capacity || 'Not provided'}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
+                  <span className="text-neutral-400 block text-[11px]">Power / Specs</span>
+                  <span className="font-semibold text-neutral-800">{product.power || 'Not provided'}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
+                  <span className="text-neutral-400 block text-[11px]">Warranty</span>
+                  <span className="font-semibold text-neutral-800">{product.warranty || 'Information unavailable'}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
+                  <span className="text-neutral-400 block text-[11px]">Return Policy</span>
+                  <span className="font-semibold text-neutral-800">{product.return_policy || 'Not provided'}</span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="pt-3 flex items-center gap-3">
+                <button
+                  onClick={() => (compared ? removeFromCompare(product.id) : addToCompare(product))}
+                  className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold border transition-colors flex items-center justify-center gap-2 ${
+                    compared
+                      ? 'bg-[#657A52] border-[#657A52] text-white'
+                      : 'bg-white border-[#EAE7DF] text-neutral-800 hover:bg-neutral-50'
+                  }`}
+                >
+                  <ArrowLeftRight className="w-4 h-4" />
+                  <span>{compared ? 'In Comparison Matrix' : 'Add to Side-by-Side Compare'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="space-y-2 pt-4 border-t border-[#EAE7DF]">
+            <h3 className="font-bold text-neutral-900 text-sm">Product Description</h3>
+            <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
+              {product.description}
+            </p>
+          </div>
+
+          {/* Neutral Trust Signals Component */}
+          <div>
+            <TrustSignals product={product} />
+          </div>
+
+          {/* Section 14: AI Product Assistant */}
+          <div className="rounded-2xl border border-[#F4B942]/60 bg-gradient-to-br from-[#FFFBF0] to-[#FAF9F6] p-5">
+            <div className="flex items-center gap-2 font-extrabold text-neutral-900 text-sm mb-1">
+              <Sparkles className="w-4 h-4 text-[#8C5E00] fill-[#F4B942]" />
+              <span>Ask AI about this product</span>
+            </div>
+            <p className="text-xs text-neutral-600 mb-4">
+              Ask in Kurdish, Arabic, or English. Bazary Gawra strictly checks confirmed merchant disclosures without fabricating details.
+            </p>
+
+            {/* Quick question chips */}
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {sampleQuestions.map((sq, idx) => {
+                const text = language === 'ckb' ? sq.ckb : language === 'ar' ? sq.ar : sq.en;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleAskQuestion(text)}
+                    className="text-xs px-2.5 py-1 rounded-lg bg-white border border-[#EAE7DF] text-neutral-700 hover:border-[#F4B942] hover:bg-amber-50/50 transition-all"
+                  >
+                    💬 {text}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Chat conversation display */}
+            {chatLog.length > 0 && (
+              <div className="space-y-3 mb-4 max-h-56 overflow-y-auto p-3 rounded-xl bg-white border border-[#EAE7DF]">
+                {chatLog.map((item, i) => (
+                  <div key={i} className="space-y-1.5 text-xs">
+                    <div className="font-bold text-neutral-800 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#8C5E00]" />
+                      <span>You: {item.q}</span>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-[#FAF9F6] text-neutral-700 border border-[#EAE7DF] leading-relaxed">
+                      🤖 <span className="font-medium text-neutral-900">AI Assistant:</span> {item.a}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Input Bar */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAskQuestion(question);
+              }}
+              className="flex items-center gap-2"
+            >
+              <input
+                type="text"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="Ask about warranty, delivery time, or specs..."
+                className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#EAE7DF] bg-white text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#F4B942]"
+              />
+              <button
+                type="submit"
+                disabled={isAsking || !question.trim()}
+                className="px-4 py-2.5 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>Ask AI</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
