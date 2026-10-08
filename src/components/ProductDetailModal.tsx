@@ -20,6 +20,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { TrustSignals } from './TrustSignals';
+import { localizeProduct } from '../lib/i18nData';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -35,7 +36,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
   if (!product) return null;
 
-  const compared = isCompared(product.id);
+  const lp = localizeProduct(product, language);
+  const compared = isCompared(lp.id);
 
   const sampleQuestions = [
     {
@@ -110,12 +112,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
     }, 400);
   };
 
-  const displayName =
-    language === 'ckb' && product.name_ckb
-      ? product.name_ckb
-      : language === 'ar' && product.name_ar
-      ? product.name_ar
-      : product.name;
+  const displayName = lp.name;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
@@ -142,10 +139,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               </div>
               <div className="flex items-center gap-2 text-xs text-neutral-500">
                 <span className="font-semibold text-neutral-800">{language === 'ckb' ? 'پۆل:' : language === 'ar' ? 'التصنيف:' : 'Category:'}</span>
-                <span>{product.category}</span>
+                <span>{lp.category}</span>
                 <span>•</span>
                 <span className="font-semibold text-neutral-800">{language === 'ckb' ? 'دروستکراوی:' : language === 'ar' ? 'المنشأ:' : 'Origin:'}</span>
-                <span>{product.origin || (language === 'ckb' ? 'دیاری نەکراوە' : language === 'ar' ? 'غير محدد' : 'Not provided')}</span>
+                <span>{lp.origin || (language === 'ckb' ? 'دیاری نەکراوە' : language === 'ar' ? 'غير محدد' : 'Not provided')}</span>
               </div>
             </div>
 
@@ -153,10 +150,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
             <div className="space-y-4">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#FAF9F6] border border-[#EAE7DF] text-neutral-700 text-xs font-semibold">
                 <Store className="w-3.5 h-3.5 text-neutral-500" />
-                <span>{product.seller_name}</span>
+                <span>{lp.seller_name}</span>
                 <span className="text-neutral-300">|</span>
                 <MapPin className="w-3 h-3 text-[#657A52]" />
-                <span>{product.location}</span>
+                <span>{lp.location}</span>
               </div>
 
               <h2 className="text-xl sm:text-2xl font-extrabold text-neutral-900 leading-tight">
@@ -166,7 +163,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               {/* Price */}
               <div className="flex items-baseline gap-2 pt-1">
                 <span className="text-3xl font-black text-neutral-950 tracking-tight">
-                  {product.price.toLocaleString()}
+                  {lp.price.toLocaleString()}
                 </span>
                 <span className="text-sm font-bold text-[#8C5E00] bg-[#FFF5DD] px-2 py-0.5 rounded">
                   {t('priceIQD')}
@@ -177,19 +174,19 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               <div className="grid grid-cols-2 gap-2 text-xs pt-2">
                 <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
                   <span className="text-neutral-400 block text-[11px]">{language === 'ckb' ? 'قەبارە' : language === 'ar' ? 'السعة' : 'Capacity'}</span>
-                  <span className="font-semibold text-neutral-800">{product.capacity || (language === 'ckb' ? 'دیاری نەکراوە' : 'Not provided')}</span>
+                  <span className="font-semibold text-neutral-800">{lp.capacity || (language === 'ckb' ? 'دیاری نەکراوە' : language === 'ar' ? 'غير محدد' : 'Not provided')}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
                   <span className="text-neutral-400 block text-[11px]">{language === 'ckb' ? 'هێز / تایبەتمەندی' : language === 'ar' ? 'القدرة / المواصفات' : 'Power / Specs'}</span>
-                  <span className="font-semibold text-neutral-800">{product.power || (language === 'ckb' ? 'دیاری نەکراوە' : 'Not provided')}</span>
+                  <span className="font-semibold text-neutral-800">{lp.power || (language === 'ckb' ? 'دیاری نەکراوە' : language === 'ar' ? 'غير محدد' : 'Not provided')}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
                   <span className="text-neutral-400 block text-[11px]">{language === 'ckb' ? 'گەرەنتی' : language === 'ar' ? 'الضمان' : 'Warranty'}</span>
-                  <span className="font-semibold text-neutral-800">{product.warranty && product.warranty !== 'Information unavailable' ? product.warranty : t('warrantyMissing')}</span>
+                  <span className="font-semibold text-neutral-800">{lp.warranty || t('warrantyMissing')}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
                   <span className="text-neutral-400 block text-[11px]">{language === 'ckb' ? 'مەرجی گەڕاندنەوە' : language === 'ar' ? 'سياسة الإرجاع' : 'Return Policy'}</span>
-                  <span className="font-semibold text-neutral-800">{product.return_policy && product.return_policy !== 'Not provided' ? product.return_policy : t('returnPolicyMissing')}</span>
+                  <span className="font-semibold text-neutral-800">{lp.return_policy || t('returnPolicyMissing')}</span>
                 </div>
               </div>
 

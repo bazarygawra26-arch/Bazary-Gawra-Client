@@ -4,7 +4,7 @@ import { Product } from '../../../types';
 import { mockProducts } from '../../../data/mockData';
 
 // Map a Supabase row (either from search_products RPC or get_product_context_by_slug) to domain Product
-function mapDbProductToDomain(row: any): Product {
+function mapDbProductToDomain(row: any, lang: 'en' | 'ku' | 'ar' = 'ku'): Product {
   const id = row.product_id || row.id;
   const slug = row.slug || id;
   const name = row.name || row.slug;
@@ -23,10 +23,33 @@ function mapDbProductToDomain(row: any): Product {
   const hasSpecs = !!row.capacity || !!row.power_watts || (row.specs && Object.keys(row.specs).length > 0);
 
   const missingList: string[] = [];
-  if (!hasWarranty) missingList.push('No warranty provided');
-  if (!hasDelivery) missingList.push('No delivery details');
-  if (!hasReturn) missingList.push('No return policy');
-  if (!hasSpecs) missingList.push('Missing specifications');
+  if (!hasWarranty) missingList.push(lang === 'ku' ? 'گەرەنتی دیاری نەکراوە' : lang === 'ar' ? 'الضمان غير محدد' : 'No warranty provided');
+  if (!hasDelivery) missingList.push(lang === 'ku' ? 'زانیاری گەیاندن دیاری نەکراوە' : lang === 'ar' ? 'تفاصيل التوصيل غير محددة' : 'No delivery details');
+  if (!hasReturn) missingList.push(lang === 'ku' ? 'مەرجی گەڕاندنەوە دیاری نەکراوە' : lang === 'ar' ? 'سياسة الإرجاع غير محددة' : 'No return policy');
+  if (!hasSpecs) missingList.push(lang === 'ku' ? 'تایبەتمەندی تەکنیکی ناتەواوە' : lang === 'ar' ? 'المواصفات الفنية ناقصة' : 'Missing specifications');
+
+  let defaultWarranty = lang === 'ku' ? 'گەرەنتی ستانداردی ناوخۆیی' : lang === 'ar' ? 'ضمان قياسي محلي' : 'Standard Warranty';
+  let warrantyText = typeof row.warranty === 'string' ? row.warranty : defaultWarranty;
+  if (row.warranty_months) {
+    if (lang === 'ku') warrantyText = `${row.warranty_months} مانگ گەرەنتی فەرمی ناوخۆیی`;
+    else if (lang === 'ar') warrantyText = `${row.warranty_months} شهراً ضمان رسمي محلي`;
+    else warrantyText = `${row.warranty_months} Months Official Warranty`;
+  }
+
+  let deliveryText = row.delivery_info || (row.delivery?.info ?? undefined);
+  if (!deliveryText && (row.delivery_available || row.delivery?.available)) {
+    if (lang === 'ku') deliveryText = 'گەیاندنی خێرا بەردەستە بۆ هەموو شارەکان';
+    else if (lang === 'ar') deliveryText = 'توصيل سريع متوفر لكافة المدن';
+    else deliveryText = 'Local delivery available';
+  }
+
+  let returnText = row.return_policy;
+  if (!returnText && (row.return_days || row.return_policy?.days)) {
+    const days = row.return_days || row.return_policy?.days;
+    if (lang === 'ku') returnText = `ماوەی ${days} ڕۆژ بۆ گەڕاندنەوە یان گۆڕین`;
+    else if (lang === 'ar') returnText = `فترة استرجاع أو استبدال ${days} أيام`;
+    else returnText = `${days} days return / exchange policy`;
+  }
 
   return {
     id: id,
@@ -49,9 +72,9 @@ function mapDbProductToDomain(row: any): Product {
     brand: row.brand || undefined,
     capacity: row.capacity || undefined,
     power: row.power_watts ? `${row.power_watts}W` : (row.power || undefined),
-    warranty: row.warranty_months ? `${row.warranty_months} Months Warranty` : (typeof row.warranty === 'string' ? row.warranty : 'Standard Warranty'),
-    delivery_info: row.delivery_info || (row.delivery?.info ?? (row.delivery_available ? 'Delivery available' : undefined)),
-    return_policy: row.return_policy || (row.return_days ? `${row.return_days} days return policy` : undefined),
+    warranty: warrantyText,
+    delivery_info: deliveryText,
+    return_policy: returnText,
     origin: row.origin || undefined,
     description: row.description || '',
     image_url: row.image_url || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
@@ -65,9 +88,9 @@ function mapDbProductToDomain(row: any): Product {
     },
     ai_match: {
       score: row.information_check?.score || 88,
-      match_reason: 'Verified product listing with clear transparent signals.',
+      match_reason: lang === 'ku' ? 'لیستی پشتڕاستکراوی بەرهەم بە زانیاری و بەڵێنی ڕوون.' : lang === 'ar' ? 'منتج معتمد مع إشارات شفافية واضحة.' : 'Verified product listing with clear transparent signals.',
       highlights: [`${location}`, `${Number(row.price || 0).toLocaleString('en-US')} IQD`],
-      cautions: missingList.length > 0 ? [`Unverified: ${missingList[0]}`] : [],
+      cautions: missingList.length > 0 ? [`${missingList[0]}`] : [],
     },
   };
 }
@@ -80,6 +103,8 @@ export async function findProducts(filters?: {
   search?: string;
   lang?: 'en' | 'ku' | 'ar';
 }): Promise<Product[]> {
+  const activeLang = filters?.lang || 'ku';
+
   if (supabaseAdmin) {
     try {
       const { data, error } = await (supabaseAdmin as any).rpc('search_products', {
@@ -88,12 +113,12 @@ export async function findProducts(filters?: {
         p_location_slug: filters?.city || undefined,
         p_min_price: filters?.minPrice || undefined,
         p_max_price: filters?.maxPrice || undefined,
-        p_lang: filters?.lang || 'ku',
+        p_lang: activeLang,
         p_limit: 50,
       });
 
       if (!error && Array.isArray(data)) {
-        return (data as any[]).map(mapDbProductToDomain);
+        return (data as any[]).map((row) => mapDbProductToDomain(row, activeLang));
       }
     } catch (err) {
       console.warn('Repository findProducts rpc error, trying fallback:', err);
@@ -139,7 +164,7 @@ export async function findProductById(id: string, lang: 'en' | 'ku' | 'ar' = 'ku
         p_lang: lang,
       });
       if (!error && data) {
-        const prod = mapDbProductToDomain(data);
+        const prod = mapDbProductToDomain(data, lang);
         await enrichProductWithSellerSlug(prod);
         return prod;
       }
@@ -159,7 +184,7 @@ export async function findProductBySlug(slug: string, lang: 'en' | 'ku' | 'ar' =
         p_lang: lang,
       });
       if (!error && data) {
-        const prod = mapDbProductToDomain(data);
+        const prod = mapDbProductToDomain(data, lang);
         await enrichProductWithSellerSlug(prod);
         return prod;
       }
@@ -212,7 +237,7 @@ export async function getProductsForComparison(productIds: string[], lang: 'en' 
         p_lang: lang,
       });
       if (!error && Array.isArray(data) && data.length > 0) {
-        return (data as any[]).map(mapDbProductToDomain);
+        return (data as any[]).map((row) => mapDbProductToDomain(row, lang));
       }
     } catch (err) {
       console.warn('Repository getProductsForComparison error:', err);

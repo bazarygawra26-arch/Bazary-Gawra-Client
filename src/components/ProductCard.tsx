@@ -17,6 +17,7 @@ import {
   Eye,
   Sparkles,
 } from 'lucide-react';
+import { localizeProduct } from '../lib/i18nData';
 
 interface ProductCardProps {
   product: Product;
@@ -28,22 +29,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct
   const { addToCompare, removeFromCompare, isCompared } = useComparison();
   const [isFavorited, setIsFavorited] = useState(false);
 
-  const compared = isCompared(product.id);
-
-  const displayName =
-    language === 'ckb' && product.name_ckb
-      ? product.name_ckb
-      : language === 'ar' && product.name_ar
-      ? product.name_ar
-      : product.name;
+  const lp = localizeProduct(product, language);
+  const compared = isCompared(lp.id);
+  const displayName = lp.name;
 
   return (
     <div className="group flex flex-col bg-white rounded-2xl border border-[#EAE7DF] overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-[#D8D4C8] relative">
       {/* Product Image Area */}
       <div className="relative aspect-4/3 w-full bg-neutral-100 overflow-hidden">
         <img
-          src={product.image_url}
-          alt={product.name}
+          src={lp.image_url}
+          alt={lp.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
         />
@@ -51,7 +47,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct
         {/* Category Pill Tag */}
         <div className="absolute top-3 start-3">
           <span className="px-2.5 py-1 rounded-md bg-white/95 backdrop-blur-xs text-[11px] font-semibold text-neutral-800 shadow-2xs border border-[#EAE7DF]">
-            {product.category}
+            {lp.category}
           </span>
         </div>
 
@@ -71,7 +67,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct
         <div className="absolute bottom-3 start-3">
           <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-black/60 backdrop-blur-xs text-white text-[11px] font-medium">
             <MapPin className="w-3 h-3 text-[#F4B942]" />
-            <span className="truncate max-w-[160px]">{product.location}</span>
+            <span className="truncate max-w-[160px]">{lp.location}</span>
           </div>
         </div>
       </div>
@@ -82,7 +78,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct
           {/* Seller / Store info */}
           <div className="flex items-center gap-1.5 text-xs text-neutral-500 mb-1.5">
             <Store className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-            <span className="font-medium text-neutral-700 truncate">{product.seller_name}</span>
+            <span className="font-medium text-neutral-700 truncate">{lp.seller_name}</span>
           </div>
 
           {/* Title */}
@@ -96,10 +92,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct
           {/* Price Hierarchy */}
           <div className="flex items-baseline gap-1.5 mb-3">
             <span className="text-xl sm:text-2xl font-black text-neutral-950 tracking-tight">
-              {product.price.toLocaleString()}
+              {lp.price.toLocaleString()}
             </span>
             <span className="text-xs font-bold text-[#8C5E00] bg-[#FFF5DD] px-1.5 py-0.5 rounded">
-              {product.currency}
+              {lp.currency}
             </span>
           </div>
 
@@ -107,10 +103,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct
           <div className="space-y-1.5 pt-2 border-t border-[#EAE7DF] text-xs">
             {/* Warranty Signal */}
             <div className="flex items-center gap-1.5">
-              {product.warranty && product.warranty !== 'Information unavailable' ? (
+              {lp.warranty && lp.warranty !== 'Information unavailable' && !lp.warranty.includes('دیاری نەکراوە') && !lp.warranty.includes('غير محدد') ? (
                 <>
                   <ShieldCheck className="w-3.5 h-3.5 text-[#657A52] shrink-0" />
-                  <span className="text-neutral-700 truncate font-medium">{product.warranty}</span>
+                  <span className="text-neutral-700 truncate font-medium">{lp.warranty}</span>
                 </>
               ) : (
                 <>
@@ -122,10 +118,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct
 
             {/* Delivery Signal */}
             <div className="flex items-center gap-1.5">
-              {product.delivery_info ? (
+              {lp.delivery_info && !lp.delivery_info.includes('دیاری نەکراوە') && !lp.delivery_info.includes('غير محدد') ? (
                 <>
                   <Truck className="w-3.5 h-3.5 text-[#657A52] shrink-0" />
-                  <span className="text-neutral-700 truncate font-medium">{product.delivery_info}</span>
+                  <span className="text-neutral-700 truncate font-medium">{lp.delivery_info}</span>
                 </>
               ) : (
                 <>
