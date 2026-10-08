@@ -2,17 +2,20 @@ import { createClient } from '@supabase/supabase-js';
 import { Product, Seller, Category } from '../types';
 import { mockProducts, mockSellers, mockCategories } from '../data/mockData';
 
-const supabaseUrl =
+const supabaseUrl = (
   process.env.NEXT_PUBLIC_SUPABASE_URL ||
   process.env.SUPABASE_URL ||
-  'https://ydspdazwbansgdtjhvrp.supabase.co';
+  ''
+).trim().replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
 
-const supabaseAnonKey =
+const supabaseAnonKey = (
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   process.env.SUPABASE_ANON_KEY ||
-  '';
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  ''
+).trim();
 
-export const supabase = supabaseAnonKey
+export const supabase = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 

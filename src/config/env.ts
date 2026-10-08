@@ -10,7 +10,7 @@ function resolveSupabaseUrl(): string {
       return c.trim().replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
     }
   }
-  return 'https://ydspdazwbansgdtjhvrp.supabase.co';
+  return '';
 }
 
 function resolveSecretKey(): string {
