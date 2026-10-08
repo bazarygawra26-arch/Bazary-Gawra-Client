@@ -7,9 +7,12 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    let product = await findProductById(slug);
+    const { searchParams } = new URL(req.url);
+    const lang = (searchParams.get('lang') || 'ku') as 'en' | 'ku' | 'ar';
+
+    let product = await findProductById(slug, lang);
     if (!product) {
-      product = await findProductBySlug(slug);
+      product = await findProductBySlug(slug, lang);
     }
 
     if (!product) {

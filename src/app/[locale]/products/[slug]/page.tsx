@@ -1,16 +1,16 @@
 'use client';
 
-import React, { use } from 'react';
+import React, { use, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Header } from '../../../../components/layout/Header';
 import { Footer } from '../../../../components/layout/Footer';
 import { Gallery } from '../../../../components/product/Gallery';
 import { TrustSignals } from '../../../../components/product/TrustSignals';
 import { AIAssistant } from '../../../../components/ai/AIAssistant';
-import { mockProducts } from '../../../../data/mockData';
 import { useLanguage } from '../../../../context/LanguageContext';
 import { useComparison } from '../../../../context/ComparisonContext';
-import { ArrowLeft, ArrowLeftRight, Store, MapPin } from 'lucide-react';
+import { ArrowLeft, ArrowLeftRight, Store, MapPin, Loader2 } from 'lucide-react';
+import { Product } from '../../../../types';
 
 export default function SingleProductPage({
   params,
@@ -20,13 +20,62 @@ export default function SingleProductPage({
   const { slug } = use(params);
   const { language, t } = useLanguage();
   const { addToCompare, removeFromCompare, isCompared } = useComparison();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const product =
-    mockProducts.find(
-      (p) =>
-        p.id === slug ||
-        p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug.toLowerCase()
-    ) || mockProducts[0];
+  useEffect(() => {
+    let isMounted = true;
+    async function loadProductDetail() {
+      try {
+        setIsLoading(true);
+        const langParam = language === 'ckb' ? 'ku' : language;
+        const res = await fetch(`/api/products/${slug}?lang=${langParam}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data) {
+            setProduct(data);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load product from Supabase:', err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+
+    loadProductDetail();
+    return () => {
+      isMounted = false;
+    };
+  }, [slug, language]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#FAF9F6] text-neutral-900">
+        <Header />
+        <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 flex flex-col items-center justify-center gap-3 text-neutral-400">
+          <Loader2 className="w-8 h-8 animate-spin text-[#F4B942]" />
+          <p className="text-sm font-medium">Loading live product details from Supabase...</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#FAF9F6] text-neutral-900">
+        <Header />
+        <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+          <h2 className="text-xl font-bold text-neutral-800">Product Not Found</h2>
+          <Link href="/products" className="text-sm text-[#F4B942] underline mt-2 inline-block">
+            Back to Catalog
+          </Link>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   const compared = isCompared(product.id);
   const displayName =
@@ -61,57 +110,39 @@ export default function SingleProductPage({
               <span>{product.location}</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 leading-tight">
+            <h1 className="text-3xl font-extrabold text-neutral-900 tracking-tight leading-snug">
               {displayName}
             </h1>
 
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-black text-neutral-950 tracking-tight">
-                {product.price.toLocaleString()}
-              </span>
-              <span className="text-sm font-bold text-[#8C5E00] bg-[#FFF5DD] px-2 py-0.5 rounded">
-                {product.currency}
-              </span>
+            <div className="text-3xl font-black text-neutral-900">
+              {product.price.toLocaleString()} <span className="text-base font-bold text-neutral-500">{product.currency}</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="p-3 rounded-xl bg-white border border-[#EAE7DF]">
-                <span className="text-neutral-400 block text-[11px]">Capacity</span>
-                <span className="font-semibold text-neutral-800">{product.capacity || 'Not provided'}</span>
-              </div>
-              <div className="p-3 rounded-xl bg-white border border-[#EAE7DF]">
-                <span className="text-neutral-400 block text-[11px]">Power</span>
-                <span className="font-semibold text-neutral-800">{product.power || 'Not provided'}</span>
-              </div>
-            </div>
-
-            <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed border-t border-[#EAE7DF] pt-4">
+            <p className="text-sm text-neutral-600 leading-relaxed">
               {product.description}
             </p>
 
-            <button
-              onClick={() => (compared ? removeFromCompare(product.id) : addToCompare(product))}
-              className={`w-full py-3 rounded-xl text-xs font-bold border transition-colors flex items-center justify-center gap-2 ${
-                compared
-                  ? 'bg-[#657A52] border-[#657A52] text-white'
-                  : 'bg-white border-[#EAE7DF] text-neutral-800 hover:bg-neutral-50'
-              }`}
-            >
-              <ArrowLeftRight className="w-4 h-4" />
-              <span>{compared ? t('addedToCompare') : t('compareButton')}</span>
-            </button>
+            <div className="pt-3 flex gap-3">
+              <button
+                onClick={() => (compared ? removeFromCompare(product.id) : addToCompare(product))}
+                className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  compared
+                    ? 'bg-neutral-900 text-white'
+                    : 'bg-white border-2 border-[#F4B942] text-[#8C5E00] hover:bg-[#FFF5DD]/40'
+                }`}
+              >
+                <ArrowLeftRight className="w-4 h-4" />
+                <span>{compared ? t('compareAdded') : `+ ${t('compareButton')}`}</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Trust Signals Section */}
-        <div>
-          <TrustSignals product={product} />
-        </div>
+        {/* Information & Trust Signals */}
+        <TrustSignals product={product} />
 
-        {/* AI Assistant Section */}
-        <div>
-          <AIAssistant product={product} />
-        </div>
+        {/* Floating / Embedded AI Product Assistant */}
+        <AIAssistant product={product} />
       </main>
       <Footer />
     </div>

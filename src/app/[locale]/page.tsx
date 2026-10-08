@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Header } from '../../components/layout/Header';
 import { Footer } from '../../components/layout/Footer';
@@ -14,39 +14,103 @@ import { WhyBazaryGawra } from '../../components/WhyBazaryGawra';
 import { SearchResultsView } from '../../components/SearchResultsView';
 import { ProductComparisonDrawer } from '../../components/ProductComparisonDrawer';
 import { ProductDetailModal } from '../../components/ProductDetailModal';
-import { mockCategories, mockProducts, mockSellers } from '../../data/mockData';
-import { Product, AISearchInterpretation } from '../../types';
-import { ShoppingBag, Sparkles } from 'lucide-react';
+import { Product, Category, Seller, AISearchInterpretation } from '../../types';
+import { ShoppingBag, Sparkles, Loader2 } from 'lucide-react';
 
 export default function LocaleHomePage() {
   const { language, t } = useLanguage();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [sellers, setSellers] = useState<Seller[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [activeQuery, setActiveQuery] = useState('');
   const [activeInterpretation, setActiveInterpretation] = useState<AISearchInterpretation | null>(null);
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProductForModal, setSelectedProductForModal] = useState<Product | null>(null);
   const [isSearching, setIsSearching] = useState(false);
 
-  const handleSearchSubmit = (query: string, interpretation?: AISearchInterpretation) => {
-    setIsSearching(true);
-    setTimeout(() => {
-      setActiveQuery(query);
-      if (interpretation) {
-        setActiveInterpretation(interpretation);
+  // Fetch dynamic data from Supabase DB on mount or language switch
+  useEffect(() => {
+    let isMounted = true;
+    async function loadDynamicDbData() {
+      try {
+        setIsLoading(true);
+        const langParam = language === 'ckb' ? 'ku' : language;
+
+        const [prodRes, catRes, sellerRes] = await Promise.all([
+          fetch(`/api/products?lang=${langParam}`),
+          fetch(`/api/categories?lang=${langParam}`),
+          fetch(`/api/sellers?lang=${langParam}`),
+        ]);
+
+        if (prodRes.ok && catRes.ok && sellerRes.ok) {
+          const [prodsData, catsData, sellersData] = await Promise.all([
+            prodRes.json(),
+            catRes.json(),
+            sellerRes.json(),
+          ]);
+
+          if (isMounted) {
+            setProducts(Array.isArray(prodsData) ? prodsData : prodsData.Products || []);
+            setCategories(Array.isArray(catsData) ? catsData : []);
+            setSellers(Array.isArray(sellersData) ? sellersData : []);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load dynamic Supabase data:', err);
+      } finally {
+        if (isMounted) setIsLoading(false);
       }
+    }
+
+    loadDynamicDbData();
+    return () => {
+      isMounted = false;
+    };
+  }, [language]);
+
+  const handleSearchSubmit = async (query: string, interpretation?: AISearchInterpretation) => {
+    setIsSearching(true);
+    setActiveQuery(query);
+    if (interpretation) {
+      setActiveInterpretation(interpretation);
+    }
+
+    try {
+      const langParam = language === 'ckb' ? 'ku' : language;
+      const res = await fetch('/api/ai/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, language: langParam }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setSearchResults(data.products || []);
+        if (data.interpretation) {
+          setActiveInterpretation(data.interpretation);
+        }
+      }
+    } catch (err) {
+      console.error('Search error:', err);
+    } finally {
       setIsSearching(false);
       const el = document.getElementById('search-results-section');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }, 300);
+    }
   };
 
   const handleClearSearch = () => {
     setActiveQuery('');
     setActiveInterpretation(null);
+    setSearchResults([]);
   };
 
   const displayedProducts = selectedCategory
-    ? mockProducts.filter((p) => p.category.toLowerCase().includes(selectedCategory.toLowerCase()))
-    : mockProducts;
+    ? products.filter((p) => p.category.toLowerCase().includes(selectedCategory.toLowerCase()))
+    : products;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF9F6] text-neutral-900 selection:bg-[#F4B942]/30 selection:text-neutral-900">
@@ -79,7 +143,7 @@ export default function LocaleHomePage() {
       {activeQuery && (
         <div id="search-results-section">
           <SearchResultsView
-            products={mockProducts}
+            products={searchResults.length > 0 ? searchResults : products}
             activeQuery={activeQuery}
             interpretation={activeInterpretation}
             onClearSearch={handleClearSearch}
@@ -89,31 +153,37 @@ export default function LocaleHomePage() {
       )}
 
       {/* 4. Browse by Category */}
-      <CategoryList
-        categories={mockCategories}
-        selectedCategory={selectedCategory}
-        onSelectCategory={(cat) => setSelectedCategory(cat)}
-      />
+      {categories.length > 0 && (
+        <CategoryList
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onSelectCategory={(cat) => setSelectedCategory(cat)}
+        />
+      )}
 
       {/* 5. AI Recommendations */}
-      <AIRecommendation
-        products={mockProducts}
-        onViewProduct={(p) => setSelectedProductForModal(p)}
-      />
+      {products.length > 0 && (
+        <AIRecommendation
+          products={products}
+          onViewProduct={(p) => setSelectedProductForModal(p)}
+        />
+      )}
 
       {/* 6. AI Multimodal Product Scanner */}
       <section id="scanner">
         <Scanner onViewProduct={(p) => setSelectedProductForModal(p)} />
       </section>
 
-      {/* 7. Featured Local Products */}
+      {/* 7. Featured Local Products (Loaded Dynamically from Supabase) */}
       <section id="featured" className="py-14 bg-white border-b border-[#EAE7DF]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
             <div>
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#657A52] mb-1.5">
                 <ShoppingBag className="w-4 h-4" />
-                <span>{language === 'ckb' ? 'دۆزینەوەی ناوخۆیی' : language === 'ar' ? 'اكتشاف محلي' : 'Local Discovery'}</span>
+                <span>
+                  {language === 'ckb' ? 'دۆزینەوەی ناوخۆیی' : language === 'ar' ? 'اكتشاف محلي' : 'Local Discovery'}
+                </span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
                 {selectedCategory ? selectedCategory : t('featuredTitle')}
@@ -125,22 +195,29 @@ export default function LocaleHomePage() {
 
             <div className="text-xs text-neutral-500 font-medium">
               {language === 'ckb'
-                ? `نیشاندانی ${displayedProducts.length} کاڵای ناوخۆیی`
+                ? `نیشاندانی ${displayedProducts.length} کاڵای ناوخۆیی لە بنکەدراوە`
                 : language === 'ar'
-                ? `عرض ${displayedProducts.length} منتج محلي`
-                : `Showing ${displayedProducts.length} local items`}
+                ? `عرض ${displayedProducts.length} منتج محلي من قاعدة البيانات`
+                : `Showing ${displayedProducts.length} live database items`}
             </div>
           </div>
 
-          <ProductGrid
-            products={displayedProducts}
-            onViewProduct={(p) => setSelectedProductForModal(p)}
-          />
+          {isLoading ? (
+            <div className="py-20 flex flex-col items-center justify-center gap-3 text-neutral-400">
+              <Loader2 className="w-8 h-8 animate-spin text-[#F4B942]" />
+              <p className="text-sm font-medium">Loading live products from Supabase...</p>
+            </div>
+          ) : (
+            <ProductGrid
+              products={displayedProducts}
+              onViewProduct={(p) => setSelectedProductForModal(p)}
+            />
+          )}
         </div>
       </section>
 
-      {/* 8. Local Sellers Directory */}
-      <LocalSellersSection sellers={mockSellers} />
+      {/* 8. Local Sellers Directory (Loaded Dynamically from Supabase) */}
+      {sellers.length > 0 && <LocalSellersSection sellers={sellers} />}
 
       {/* 9. Why Bazary Gawra */}
       <WhyBazaryGawra />
