@@ -5,6 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useComparison } from '../context/ComparisonContext';
 import { Product } from '../types';
 import { ProductCard } from './ProductCard';
+import { localizeAnalysisResult, AIImageAnalysisData } from '../lib/i18nData';
 import {
   Sparkles,
   Upload,
@@ -23,27 +24,6 @@ import {
   FileText,
 } from 'lucide-react';
 
-interface AIImageAnalysisResult {
-  category: string;
-  product_type: string;
-  brand_name: string;
-  model_number: string;
-  visible_capacity: string;
-  visible_power: string;
-  visible_features: string[];
-  visible_labels_text: string;
-  available_signals: string[];
-  missing_signals: string[];
-  summary: string;
-  suggested_search_query: string;
-  draft_listing: {
-    suggested_title: string;
-    category: string;
-    visible_specs: string;
-    missing_required_fields: string[];
-  };
-}
-
 interface AIProductScannerProps {
   onViewProduct?: (product: Product) => void;
 }
@@ -53,33 +33,60 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
   const { addToCompare } = useComparison();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const isKurdish = language === 'ckb' || language === 'ku';
+  const isArabic = language === 'ar';
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string>('image/jpeg');
   const [sampleType, setSampleType] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AIImageAnalysisResult | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<AIImageAnalysisData | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   const [activeTab, setActiveTab] = useState<'buyer' | 'seller'>('buyer');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Pre-configured demo samples for 1-click test
+  // Pre-configured multilingual demo samples for 1-click test
   const demoSamples = [
     {
       id: 'airfryer',
-      label: 'Ninja DualZone Air Fryer',
-      category: 'Kitchen Appliance',
+      label: isKurdish
+        ? 'قلاێنەری هەوایی نینجا دوو سەبەتە'
+        : isArabic
+        ? 'قلاية نينجا الهوائية بسلتين'
+        : 'Ninja DualZone Air Fryer',
+      category: isKurdish
+        ? 'ئامێری چێشتخانە'
+        : isArabic
+        ? 'أجهزة المطبخ'
+        : 'Kitchen Appliance',
       url: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&w=600&q=80',
     },
     {
       id: 'coffee',
-      label: 'DeLonghi Espresso Machine',
-      category: 'Coffee & Espresso',
+      label: isKurdish
+        ? 'ئامێری قاوەی دیلۆنگی ئێسپرێسۆ'
+        : isArabic
+        ? 'ماكينة قهوة ديلونجي ديديكا'
+        : 'DeLonghi Espresso Machine',
+      category: isKurdish
+        ? 'قاوە و قاوەساز'
+        : isArabic
+        ? 'القهوة والإسبريسو'
+        : 'Coffee & Espresso',
       url: 'https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&fit=crop&w=600&q=80',
     },
     {
       id: 'honey',
-      label: 'Penjwen Mountain Honey Jar',
-      category: 'Local Honey & Food',
+      label: isKurdish
+        ? 'شوشەی هەنگوینی شاخی پێنجوێن ١ کگم'
+        : isArabic
+        ? 'عسل جبال بنجوين 1 كغم'
+        : 'Penjwen Mountain Honey Jar',
+      category: isKurdish
+        ? 'هەنگوین و بەرهەمی خۆماڵی'
+        : isArabic
+        ? 'عسل وأغذية محلية'
+        : 'Local Honey & Food',
       url: 'https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=600&q=80',
     },
   ];
@@ -97,7 +104,13 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setErrorMsg('Please select a valid image file (JPEG, PNG, WebP).');
+      setErrorMsg(
+        isKurdish
+          ? 'تکایە پەڕگەیەکی وێنەی دروست هەڵبژێرە (JPEG, PNG, WebP).'
+          : isArabic
+          ? 'يرجى اختيار ملف صورة صالح (JPEG, PNG, WebP).'
+          : 'Please select a valid image file (JPEG, PNG, WebP).'
+      );
       return;
     }
 
@@ -120,7 +133,13 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setErrorMsg('Please drop a valid image file.');
+      setErrorMsg(
+        isKurdish
+          ? 'تکایە وێنەیەکی دروست لێرە دابنێ.'
+          : isArabic
+          ? 'يرجى إفلات ملف صورة صالح.'
+          : 'Please drop a valid image file.'
+      );
       return;
     }
 
@@ -159,23 +178,40 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
           imageBase64: imagePreview.startsWith('data:') ? imagePreview : undefined,
           mimeType,
           sampleType,
+          language,
         }),
       });
 
       const data = await response.json();
       if (data.success && data.analysis) {
-        setAnalysisResult(data.analysis);
+        setAnalysisResult(localizeAnalysisResult(data.analysis, language));
         setSimilarProducts(data.similar_products || []);
       } else {
-        setErrorMsg(data.error || 'Failed to analyze product image.');
+        setErrorMsg(
+          data.error ||
+            (isKurdish
+              ? 'پشکنینی وێنەکە سەرکەوتوو نەبوو.'
+              : isArabic
+              ? 'فشل تحليل صورة المنتج.'
+              : 'Failed to analyze product image.')
+        );
       }
     } catch (err: any) {
       console.error('Analysis error:', err);
-      setErrorMsg('An error occurred during AI image analysis. Please try again.');
+      setErrorMsg(
+        isKurdish
+          ? 'هەڵەیەک ڕوویدا لە کاتی شیکردنەوەی وێنەکەدا. تکایە دووبارە هەوڵبدەرەوە.'
+          : isArabic
+          ? 'حدث خطأ أثناء فحص الصورة. يرجى المحاولة مرة أخرى.'
+          : 'An error occurred during AI image analysis. Please try again.'
+      );
     } finally {
       setIsAnalyzing(false);
     }
   };
+
+  // Dynamically localized display result
+  const displayResult = analysisResult ? localizeAnalysisResult(analysisResult, language) : null;
 
   return (
     <section id="scanner" className="py-14 bg-gradient-to-b from-white via-[#FAF9F6] to-[#FAF9F6] border-b border-[#EAE7DF]">
@@ -263,7 +299,9 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                     <Sparkles className="w-3.5 h-3.5 text-[#8C5E00]" />
                     <span>{t('scannerTrySamples')}</span>
                   </span>
-                  <span className="text-neutral-400">⚡ 1-Click</span>
+                  <span className="text-neutral-400 font-medium">
+                    {isKurdish ? '⚡ بە یەک کلیک' : isArabic ? '⚡ بنقرة واحدة' : '⚡ 1-Click'}
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -304,7 +342,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                   <button
                     onClick={handleClearImage}
                     className="absolute top-2 end-2 p-1.5 rounded-full bg-white/90 text-neutral-500 hover:text-red-600 shadow-2xs transition-colors"
-                    title="Remove image"
+                    title={isKurdish ? 'سڕینەوەی وێنە' : isArabic ? 'حذف الصورة' : 'Remove image'}
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -313,13 +351,21 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                 <div className="flex-1 text-start space-y-3 w-full">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#657A52] bg-[#F2F5EF] px-2 py-0.5 rounded">
-                      Photo Loaded
+                      {isKurdish ? 'وێنەکە بارکرا' : isArabic ? 'تم تحميل الصورة' : 'Photo Loaded'}
                     </span>
                     <h3 className="font-extrabold text-neutral-900 text-base sm:text-lg mt-1">
-                      Ready for Multimodal Image Inspection
+                      {isKurdish
+                        ? 'ئامادەیە بۆ پشکنینی فرەلایەنی بەرهەمەکە'
+                        : isArabic
+                        ? 'جاهز لفحص الصورة المتعدد الوسائط'
+                        : 'Ready for Multimodal Image Inspection'}
                     </h3>
                     <p className="text-xs text-neutral-500 leading-relaxed">
-                      Gemini will inspect only visible physical markings, capacity labels, and build features without fabricating unknown prices or warranties.
+                      {isKurdish
+                        ? 'ژیری دەستکرد پشکنین بۆ نیشانە فیزیاییەکان، قەبارە و تایبەتمەندییە دیارەکان دەکات بەبێ هەڵبەستنی نرخ یان گەرەنتی نادیار.'
+                        : isArabic
+                        ? 'سيقوم الذكاء الاصطناعي بفحص العلامات المادية وملصقات السعة وميزات التصميم المرئية دون اختلاق أسعار أو ضمانات مجهولة.'
+                        : 'Gemini will inspect only visible physical markings, capacity labels, and build features without fabricating unknown prices or warranties.'}
                     </p>
                   </div>
 
@@ -363,7 +409,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
           )}
 
           {/* Analysis Results View */}
-          {analysisResult && (
+          {displayResult && (
             <div className="mt-8 pt-8 border-t border-[#EAE7DF] text-start space-y-6 animate-fadeIn">
               {/* 1. Concise AI Product Summary */}
               <div className="p-5 rounded-2xl bg-gradient-to-br from-[#FFFBF0] to-[#FAF9F6] border border-[#F4B942]/70 shadow-2xs">
@@ -373,46 +419,64 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                     <span>{t('scannerSummaryTitle')}</span>
                   </div>
                   <span className="text-[11px] font-semibold bg-[#FFF5DD] text-[#8C5E00] px-2.5 py-0.5 rounded-full">
-                    Strict Non-Hallucination Policy
+                    {isKurdish
+                      ? 'یاسای توندی ڕێگری لە زانیاری هەڵبەستراو'
+                      : isArabic
+                      ? 'سياسة صارمة لمنع التخمين أو التزييف'
+                      : 'Strict Non-Hallucination Policy'}
                   </span>
                 </div>
                 <p className="text-sm text-neutral-800 leading-relaxed font-medium">
-                  {analysisResult.summary}
+                  {displayResult.summary}
                 </p>
               </div>
 
               {/* 2. Visible Attributes Grid */}
               <div className="rounded-2xl border border-[#EAE7DF] bg-white p-5 shadow-2xs">
-                <h4 className="font-extrabold text-neutral-900 text-xs uppercase tracking-wider text-neutral-400 mb-4">
+                <h4 className="font-extrabold text-neutral-900 text-xs uppercase tracking-wider mb-4">
                   {t('scannerAttributesTitle')}
                 </h4>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-4">
                   <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
-                    <span className="text-neutral-500 block text-[11px] mb-0.5">Product Category</span>
-                    <span className="font-bold text-neutral-900">{analysisResult.category}</span>
+                    <span className="text-neutral-500 block text-[11px] mb-0.5">
+                      {isKurdish ? 'پۆلی بەرهەم' : isArabic ? 'فئة المنتج' : 'Product Category'}
+                    </span>
+                    <span className="font-bold text-neutral-900">{displayResult.category}</span>
                   </div>
 
                   <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
-                    <span className="text-neutral-500 block text-[11px] mb-0.5">Product Type</span>
-                    <span className="font-bold text-neutral-900">{analysisResult.product_type}</span>
+                    <span className="text-neutral-500 block text-[11px] mb-0.5">
+                      {isKurdish ? 'جۆری بەرهەم' : isArabic ? 'نوع المنتج' : 'Product Type'}
+                    </span>
+                    <span className="font-bold text-neutral-900">{displayResult.product_type}</span>
                   </div>
 
                   <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
-                    <span className="text-neutral-500 block text-[11px] mb-0.5">Visible Brand</span>
-                    <span className="font-bold text-neutral-900">{analysisResult.brand_name}</span>
+                    <span className="text-neutral-500 block text-[11px] mb-0.5">
+                      {isKurdish ? 'براندی دیار' : isArabic ? 'العلامة التجارية المرئية' : 'Visible Brand'}
+                    </span>
+                    <span className="font-bold text-neutral-900">{displayResult.brand_name}</span>
                   </div>
 
                   <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF]">
-                    <span className="text-neutral-500 block text-[11px] mb-0.5">Visible Capacity</span>
-                    <span className="font-bold text-neutral-900">{analysisResult.visible_capacity}</span>
+                    <span className="text-neutral-500 block text-[11px] mb-0.5">
+                      {isKurdish ? 'قەبارەی دیار' : isArabic ? 'السعة المرئية' : 'Visible Capacity'}
+                    </span>
+                    <span className="font-bold text-neutral-900">{displayResult.visible_capacity}</span>
                   </div>
                 </div>
 
                 {/* Visible features checklist */}
                 <div className="space-y-1.5 pt-2 border-t border-[#EAE7DF] text-xs">
-                  <span className="font-bold text-neutral-800 block mb-1">Visible Physical Features:</span>
-                  {analysisResult.visible_features.map((feat, i) => (
+                  <span className="font-bold text-neutral-800 block mb-1">
+                    {isKurdish
+                      ? 'تایبەتمەندییە فیزیاییە دیارەکان:'
+                      : isArabic
+                      ? 'الميزات المادية المرئية:'
+                      : 'Visible Physical Features:'}
+                  </span>
+                  {displayResult.visible_features.map((feat, i) => (
                     <div key={i} className="flex items-center gap-2 text-neutral-700">
                       <CheckCircle2 className="w-3.5 h-3.5 text-[#657A52] shrink-0" />
                       <span>{feat}</span>
@@ -436,7 +500,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                     <span className="font-bold text-[#657A52] block">
                       {t('scannerAvailableTitle')}
                     </span>
-                    {analysisResult.available_signals.map((sig, idx) => (
+                    {displayResult.available_signals.map((sig, idx) => (
                       <div key={idx} className="flex items-center gap-2 text-neutral-800">
                         <CheckCircle2 className="w-3.5 h-3.5 text-[#657A52] shrink-0" />
                         <span>{sig}</span>
@@ -449,7 +513,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                     <span className="font-bold text-amber-900 block">
                       {t('scannerMissingTitle')}
                     </span>
-                    {analysisResult.missing_signals.map((sig, idx) => (
+                    {displayResult.missing_signals.map((sig, idx) => (
                       <div key={idx} className="flex items-center gap-2 text-amber-800">
                         <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                         <span>{sig}</span>
@@ -469,12 +533,21 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                         {t('scannerSimilarTitle')}
                       </h4>
                       <p className="text-xs text-neutral-500">
-                        Products matching &ldquo;{analysisResult.suggested_search_query}&rdquo; in local Sulaymaniyah, Erbil & Duhok shops
+                        {isKurdish
+                          ? 'بەرهەمە هاوشێوەکان لە دوکانەکانی سلێمانی، هەولێر و دهۆک'
+                          : isArabic
+                          ? 'المنتجات المطابقة في متاجر السليمانية وأربيل ودهوك المحلية'
+                          : `Products matching "${displayResult.suggested_search_query}" in local Sulaymaniyah, Erbil & Duhok shops`}
                       </p>
                     </div>
 
                     <span className="text-xs font-bold text-[#8C5E00] bg-[#FFF5DD] px-3 py-1 rounded-full self-start sm:self-auto">
-                      {similarProducts.length} Local Matches Found
+                      {similarProducts.length}{' '}
+                      {isKurdish
+                        ? 'بەرهەمی هاوشێوەی ناوخۆیی دۆزرایەوە'
+                        : isArabic
+                        ? 'منتجات محلية مطابقة'
+                        : 'Local Matches Found'}
                     </span>
                   </div>
 
@@ -497,39 +570,53 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                       <span>{t('scannerDraftTitle')}</span>
                     </div>
                     <span className="text-[11px] font-bold bg-[#FFF5DD] text-[#8C5E00] px-2.5 py-0.5 rounded-full">
-                      Auto-Populated from Image
+                      {isKurdish
+                        ? 'خۆکارانە لە وێنەکەوە پڕکراوەتەوە'
+                        : isArabic
+                        ? 'مملوء تلقائياً من الصورة'
+                        : 'Auto-Populated from Image'}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-3 bg-white p-4 rounded-xl border border-[#EAE7DF]">
                       <span className="font-bold text-neutral-900 block text-xs">
-                        1. Attributes Extracted from Photo:
+                        {isKurdish
+                          ? '١. تایبەتمەندییە دەرکێشراوەکان لە وێنەکە:'
+                          : isArabic
+                          ? '١. المواصفات المستخرجة من الصورة:'
+                          : '1. Attributes Extracted from Photo:'}
                       </span>
                       <div>
-                        <label className="text-[11px] text-neutral-400 block">Proposed Title</label>
+                        <label className="text-[11px] text-neutral-400 block">
+                          {isKurdish ? 'ناونیشانی پێشنیازکراو' : isArabic ? 'العنوان المقترح' : 'Proposed Title'}
+                        </label>
                         <input
                           type="text"
                           readOnly
-                          value={analysisResult.draft_listing.suggested_title}
+                          value={displayResult.draft_listing.suggested_title}
                           className="w-full mt-1 px-3 py-2 rounded-lg bg-neutral-50 border border-[#EAE7DF] font-semibold text-neutral-800"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] text-neutral-400 block">Category</label>
+                        <label className="text-[11px] text-neutral-400 block">
+                          {isKurdish ? 'پۆل' : isArabic ? 'الفئة' : 'Category'}
+                        </label>
                         <input
                           type="text"
                           readOnly
-                          value={analysisResult.draft_listing.category}
+                          value={displayResult.draft_listing.category}
                           className="w-full mt-1 px-3 py-2 rounded-lg bg-neutral-50 border border-[#EAE7DF] text-neutral-700"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] text-neutral-400 block">Visible Specs</label>
+                        <label className="text-[11px] text-neutral-400 block">
+                          {isKurdish ? 'تایبەتمەندییە دیارەکان' : isArabic ? 'المواصفات المرئية' : 'Visible Specs'}
+                        </label>
                         <input
                           type="text"
                           readOnly
-                          value={analysisResult.draft_listing.visible_specs}
+                          value={displayResult.draft_listing.visible_specs}
                           className="w-full mt-1 px-3 py-2 rounded-lg bg-neutral-50 border border-[#EAE7DF] text-neutral-700"
                         />
                       </div>
@@ -541,22 +628,34 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
                         <span>{t('scannerMissingSellerNotice')}</span>
                       </span>
                       <p className="text-[11px] text-neutral-500">
-                        Bazary Gawra rules prohibit AI from guessing prices or warranties. Seller must input verified data:
+                        {isKurdish
+                          ? 'یاساکانی بازاڕی گەورە ڕێگری دەکەن لە خەمڵاندنی نرخ یان گەرەنتی لەلایەن AI. فرۆشیار دەبێت زانیاری دروست بنووسێت:'
+                          : isArabic
+                          ? 'قواعد بازاري كورة تمنع الذكاء الاصطناعي من تخمين الأسعار أو الضمان. يجب على البائع إدخال البيانات المؤكدة:'
+                          : 'Bazary Gawra rules prohibit AI from guessing prices or warranties. Seller must input verified data:'}
                       </p>
 
                       <div className="space-y-2">
-                        {analysisResult.draft_listing.missing_required_fields.map((field, idx) => (
+                        {displayResult.draft_listing.missing_required_fields.map((field, idx) => (
                           <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-amber-50/50 border border-amber-100">
                             <span className="font-medium text-neutral-800">{field}</span>
                             <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
-                              Required
+                              {isKurdish ? 'پێویستە' : isArabic ? 'مطلوب' : 'Required'}
                             </span>
                           </div>
                         ))}
                       </div>
 
                       <button
-                        onClick={() => alert('Draft listing preserved. In production, this saves directly to merchant Supabase listings table.')}
+                        onClick={() =>
+                          alert(
+                            isKurdish
+                              ? 'ڕەشنووسی بەرهەمەکە تۆمارکرا. لە سیستەمی کۆتاییدا ڕاستەوخۆ دەچێتە خشتەی بەرهەمەکانی سوپابەیس.'
+                              : isArabic
+                              ? 'تم حفظ مسودة المنتج. في النسخة النهائية يتم حفظها في قاعدة بيانات سوبابيز.'
+                              : 'Draft listing preserved. In production, this saves directly to merchant Supabase listings table.'
+                          )
+                        }
                         className="w-full mt-2 py-2.5 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 font-bold text-xs transition-colors shadow-2xs cursor-pointer"
                       >
                         {t('scannerCompleteListing')}

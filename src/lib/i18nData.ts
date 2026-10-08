@@ -563,3 +563,246 @@ export function localizeProduct<T extends {
     origin: localizeOrigin(prod.origin, lang),
   };
 }
+
+// 9. AI Vision Scanner Result Localizer
+export interface AIImageAnalysisData {
+  category: string;
+  product_type: string;
+  brand_name: string;
+  model_number: string;
+  visible_capacity: string;
+  visible_power: string;
+  visible_features: string[];
+  visible_labels_text: string;
+  available_signals: string[];
+  missing_signals: string[];
+  summary: string;
+  suggested_search_query: string;
+  draft_listing: {
+    suggested_title: string;
+    category: string;
+    visible_specs: string;
+    missing_required_fields: string[];
+  };
+}
+
+export function localizeAnalysisResult(data: AIImageAnalysisData, lang: string): AIImageAnalysisData {
+  const l = normalizeLang(lang);
+  if (l === 'en') return data;
+
+  const isCkb = l === 'ckb';
+
+  // Helper for single phrase translation
+  const translatePhrase = (str: string): string => {
+    if (!str) return str;
+    const lower = str.toLowerCase();
+
+    // Missing signals
+    if (lower.includes('price not provided') || lower.includes('not in image')) {
+      return isCkb ? 'نرخ دیاری نەکراوە (لە وێنەکەدا نییە)' : 'السعر غير محدد (غير موجود في الصورة)';
+    }
+    if (lower.includes('warranty terms not visible') || lower.includes('warranty coverage')) {
+      return isCkb ? 'مەرجەکانی گەرەنتی دیار نین' : 'شروط الضمان غير مرئية';
+    }
+    if (lower.includes('seller and shop') || lower.includes('seller identity') || lower.includes('seller shop address')) {
+      return isCkb ? 'ناوی فرۆشیار و شوناسی دوکان نادیارە' : 'اسم البائع وهوية المتجر غير محددة';
+    }
+    if (lower.includes('delivery information') || lower.includes('delivery terms not stated')) {
+      return isCkb ? 'زانیاری و تێچووی گەیاندن دابین نەکراوە' : 'معلومات وشروط التوصيل غير متوفرة';
+    }
+    if (lower.includes('return policy not stated') || lower.includes('return policy')) {
+      return isCkb ? 'یاسای گەڕاندنەوە دیاری نەکراوە' : 'سياسة الإرجاع غير مذكورة';
+    }
+    if (lower.includes('purity guarantee') || lower.includes('laboratory certificate')) {
+      return isCkb ? 'بڕوانامەی دڵنیایی پاکی و گەرەنتی دابین نەکراوە' : 'شهادة فحص النقاء والضمان غير متوفرة';
+    }
+
+    // Available signals
+    if (lower.includes('product category identified: kitchen') || lower.includes('kitchen appliances')) {
+      return isCkb ? 'پۆلی بەرهەم دیاریکرا: ئامێرەکانی چێشتخانە' : 'تم تحديد فئة المنتج: أجهزة المطبخ';
+    }
+    if (lower.includes('product category identified: coffee') || lower.includes('coffee & espresso')) {
+      return isCkb ? 'پۆلی بەرهەم دیاریکرا: قاوە و ئێسپرێسۆ' : 'تم تحديد فئة المنتج: القهوة والإسبريسو';
+    }
+    if (lower.includes('product category identified: local') || lower.includes('honey')) {
+      return isCkb ? 'پۆلی بەرهەم دیاریکرا: خۆراکی خۆماڵی و هەنگوین' : 'تم تحديد فئة المنتج: عسل وأغذية محلية';
+    }
+    if (lower.includes('dual basket form factor') || lower.includes('dual basket')) {
+      return isCkb ? 'شێوەی دوو سەبەتەی سەربەخۆ لە وێنەکەدا دیارە' : 'تصميم السلتين المستقلتين مرئي بوضوح';
+    }
+    if (lower.includes('digital control interface verified') || lower.includes('digital touch')) {
+      return isCkb ? 'شاشەی کۆنترۆڵی دیجیتاڵی پشتڕاستکرایەوە' : 'واجهة التحكم الرقمية مؤكدة';
+    }
+    if (lower.includes('stainless steel body') || lower.includes('stainless steel')) {
+      return isCkb ? 'پێکهاتەی جەستەی ستیلی دژە ژەنگ دیارە' : 'هيكل الستانلس ستيل مرئي بوضوح';
+    }
+    if (lower.includes('portafilter')) {
+      return isCkb ? 'دەسکی پۆرتافیلتەری دەستی بەستراوەتەوە' : 'ملحق فلتر القهوة اليدوي موجود';
+    }
+    if (lower.includes('net weight') || lower.includes('1kg')) {
+      return isCkb ? 'کێشی تۆمارکراو دیارە (١ کگم)' : 'علامة الوزن الصافي مرئية (1 كغم)';
+    }
+    if (lower.includes('natural harvest') || lower.includes('certification badge')) {
+      return isCkb ? 'نیشانەی بڕوانامەی سروشتیبوون لەسەر لێبڵەکە دیارە' : 'شارة الاعتماد الطبيعي مرئية على الملصق';
+    }
+
+    // Features
+    if (lower.includes('two independent cooking baskets')) {
+      return isCkb ? 'دوو سەبەتەی سەربەخۆی لێنانی خواردن' : 'سلتان مستقلتان لطهي الطعام';
+    }
+    if (lower.includes('digital touch panel')) {
+      return isCkb ? 'شاشەی دەستلێدانی دیجیتاڵی' : 'لوحة لمس رقمية ذكية';
+    }
+    if (lower.includes('cool-touch front handles')) {
+      return isCkb ? 'دەسکی ساردی پێشەوە بۆ بەکارهێنانی پارێزراو' : 'مقابض أمامية باردة الملمس';
+    }
+    if (lower.includes('steam frother wand')) {
+      return isCkb ? 'لوولەی هەڵمی کەفکردنی شیر' : 'عصا بخار مدمجة لرغوة الحليب';
+    }
+    if (lower.includes('slim 15cm metallic body')) {
+      return isCkb ? 'دیزاینی باریکی کانزایی ١٥ سانتیمەتری' : 'هيكل معدني أنيق ونحيف بعرض 15 سم';
+    }
+    if (lower.includes('heavy clear glass jar')) {
+      return isCkb ? 'شوشەی ئەستووری ڕوون بە سەرقاپی پێچدراوی کانزایی' : 'وعاء زجاجي شفاف وسميك بغطاء معدني محكم';
+    }
+    if (lower.includes('golden natural amber honey')) {
+      return isCkb ? 'ڕەنگی زەردباوی ئەنبەریی سروشتیی هەنگوین' : 'لون عسلي كهرماني طبيعي وجذاب';
+    }
+    if (lower.includes('kurdish harvest label')) {
+      return isCkb ? 'لێبڵی فەرمیی بەروبوومی کوردستان' : 'ملصق إنتاج محلي كوردستاني';
+    }
+
+    // Missing required fields
+    if (lower.includes('price (iqd)')) {
+      return isCkb ? 'نرخ (دیناری عێراقی)' : 'السعر (دينار عراقي)';
+    }
+    if (lower.includes('seller name & physical location') || lower.includes('seller name')) {
+      return isCkb ? 'ناوی فرۆشیار و ناونیشانی فیزیکی' : 'اسم البائع والموقع الجغرافي';
+    }
+    if (lower.includes('warranty duration')) {
+      return isCkb ? 'ماوەی گەرەنتی' : 'مدة الضمان';
+    }
+    if (lower.includes('delivery terms')) {
+      return isCkb ? 'مەرجەکانی گەیاندن' : 'شروط التوصيل';
+    }
+    if (lower.includes('return policy')) {
+      return isCkb ? 'یاسای گەڕاندنەوە' : 'سياسة الإرجاع';
+    }
+    if (lower.includes('laboratory certificate')) {
+      return isCkb ? 'بڕوانامەی پشکنینی تاقیگە' : 'شهادة الفحص المخبري';
+    }
+
+    // Not visible values
+    if (lower === 'not visible' || lower === 'not provided') {
+      return isCkb ? 'لە وێنەکەدا دیار نییە' : 'غير مرئي في الصورة';
+    }
+
+    return str;
+  };
+
+  // Localize Product Type
+  let localizedProductType = data.product_type;
+  if (data.product_type) {
+    const ptLower = data.product_type.toLowerCase();
+    if (ptLower.includes('air fryer') || ptLower.includes('dual basket')) {
+      localizedProductType = isCkb ? 'قلاێنەری هەوایی دوو سەبەتە' : 'قلاية هوائية بسلتين';
+    } else if (ptLower.includes('espresso') || ptLower.includes('coffee')) {
+      localizedProductType = isCkb ? 'ئامێری دەستیی قاوەی ئێسپرێسۆ' : 'ماكينة إسبريسو يدوية';
+    } else if (ptLower.includes('honey')) {
+      localizedProductType = isCkb ? 'شوشەی هەنگوینی کێوی شاخ' : 'وعاء عسل جبلي بري';
+    }
+  }
+
+  // Localize Brand
+  let localizedBrand = data.brand_name;
+  if (data.brand_name) {
+    const bLower = data.brand_name.toLowerCase();
+    if (bLower.includes('ninja')) {
+      localizedBrand = isCkb ? 'نینجا فودی (Ninja Foodi - لۆگۆی دیارە)' : 'نينجا فودي (علامة مرئية)';
+    } else if (bLower.includes('delonghi')) {
+      localizedBrand = isCkb ? 'دیلۆنگی (DeLonghi - لۆگۆی دیارە)' : 'ديلونجي (علامة مرئية)';
+    } else if (bLower.includes('penjwen')) {
+      localizedBrand = isCkb ? 'بەروبوومی شاخی پێنجوێن' : 'محصول جبال بنجوين';
+    } else if (bLower === 'not visible' || bLower === 'not provided') {
+      localizedBrand = isCkb ? 'لە وێنەکەدا دیار نییە' : 'غير مرئي في الصورة';
+    }
+  }
+
+  // Localize Capacity
+  let localizedCapacity = data.visible_capacity;
+  if (data.visible_capacity) {
+    const cLower = data.visible_capacity.toLowerCase();
+    if (cLower.includes('9.5l') || cLower.includes('dual basket')) {
+      localizedCapacity = isCkb ? 'دوو سەبەتە (نزیکەی ٩.٥ لیتر قەبارەی خەمڵێنراو)' : 'سلتان (حوالي 9.5 لتر سعة تقديرية)';
+    } else if (cLower.includes('1.1l')) {
+      localizedCapacity = isCkb ? 'نیشانەی تانکی ئاوی ١.١ لیتر' : 'علامة خزان ماء سعة 1.1 لتر';
+    } else if (cLower.includes('1kg') || cLower.includes('1000g')) {
+      localizedCapacity = isCkb ? '١ کگم (شوشەی ١٠٠٠ گرام)' : '1 كغم (وعاء زجاجي 1000 غرام)';
+    } else if (cLower === 'not visible' || cLower === 'not provided') {
+      localizedCapacity = isCkb ? 'لە وێنەکەدا دیار نییە' : 'غير مرئي في الصورة';
+    }
+  }
+
+  // Localize Summary
+  let localizedSummary = data.summary;
+  if (data.summary) {
+    const sLower = data.summary.toLowerCase();
+    if (sLower.includes('air fryer') || sLower.includes('dual basket')) {
+      localizedSummary = isCkb
+        ? 'ژیری دەستکرد ئەمەی وەک قلاێنەری هەوایی دوو سەبەتەی چێشتخانە لەگەڵ شاشەی دیجیتاڵی ناساند. نرخ، گەرەنتی، شوێنی فرۆشیار، و مەرجەکانی گەیاندن لە وێنەکەدا دیار نین.'
+        : 'حدد الذكاء الاصطناعي هذا كقلاية هوائية للمطبخ بسلتين مع شاشة تحكم رقمية. السعر والضمان وموقع البائع وشروط التوصيل غير مرئية في الصورة.';
+    } else if (sLower.includes('espresso') || sLower.includes('delonghi')) {
+      localizedSummary = isCkb
+        ? 'ژیری دەستکرد ئەمەی وەک ئامێری باریکی دەستیی ئێسپرێسۆی ستیل ناساند. نرخ، ماوەی گەرەنتی، شوناسی فرۆشیار، و زانیاری گەیاندن لە وێنەکەدا دیار نین.'
+        : 'حدد الذكاء الاصطناعي هذا كآلة إسبريسو يدوية نحيفة من الستانلس ستيل. السعر والضمان وهوية البائع ومعلومات التوصيل غير مرئية في الصورة.';
+    } else if (sLower.includes('honey')) {
+      localizedSummary = isCkb
+        ? 'ژیری دەستکرد ئەمەی وەک شوشەی ١ کیلۆگرامی هەنگوینی کێوی شاخ بە لێبڵی کوردی/عەرەبی ناساند. نرخ، پەیوەندی فرۆشیار، و بژاردەکانی گەیاندن لە وێنەکەدا دیار نین.'
+        : 'حدد الذكاء الاصطناعي هذا كوعاء زجاجي بوزن 1 كغم من عسل الجبال البري بملصق عربي/كردي. السعر ومعلومات البائع وخيارات التوصيل غير مرئية في الصورة.';
+    }
+  }
+
+  // Localize Draft Title & Specs
+  let draftTitle = data.draft_listing?.suggested_title || '';
+  if (draftTitle) {
+    const dtLower = draftTitle.toLowerCase();
+    if (dtLower.includes('ninja')) {
+      draftTitle = isCkb ? 'قلاێنەری هەوایی نینجا دوو سەبەتە (لە وێنەوە دەرهێنراوە)' : 'قلاية هوائية نينجا بسلتين (معبأة مسبقاً من الصورة)';
+    } else if (dtLower.includes('delonghi') || dtLower.includes('dedica')) {
+      draftTitle = isCkb ? 'ئامێری قاوەی ئێسپرێسۆی دیلۆنگی دێدیکا (لە وێنەوە دەرهێنراوە)' : 'ماكينة قهوة ديلونجي ديديكا (معبأة مسبقاً من الصورة)';
+    } else if (dtLower.includes('honey')) {
+      draftTitle = isCkb ? 'هەنگوینی کێوی شاخی پێنجوێن ١ کگم (لە وێنەوە دەرهێنراوە)' : 'عسل جبال بري 1 كغم (معبأ مسبقاً من الصورة)';
+    }
+  }
+
+  let draftSpecs = data.draft_listing?.visible_specs || '';
+  if (draftSpecs) {
+    const dsLower = draftSpecs.toLowerCase();
+    if (dsLower.includes('dual independent') || dsLower.includes('touch interface')) {
+      draftSpecs = isCkb ? 'دوو سەبەتەی سەربەخۆ لەگەڵ شاشەی دیجیتاڵی دەستلێدان' : 'سلتان مستقلتان مع واجهة لمس رقمية';
+    } else if (dsLower.includes('slim stainless steel') || dsLower.includes('steam wand')) {
+      draftSpecs = isCkb ? 'ئامێری ستیلی باریکی دەستی ئێسپرێسۆ لەگەڵ لوولەی هەڵم' : 'ماكينة إسبريسو يدوية نحيفة من الستانلس ستيل مع عصا بخار';
+    } else if (dsLower.includes('1000g') || dsLower.includes('wild mountain')) {
+      draftSpecs = isCkb ? '١٠٠٠ گرام شوشەی هەنگوینی کێوی سروشتیی شاخ' : 'وعاء زجاجي 1000 غرام عسل جبلي بري طبيعي';
+    }
+  }
+
+  return {
+    ...data,
+    category: localizeCategory(data.category, lang),
+    product_type: localizedProductType,
+    brand_name: localizedBrand,
+    visible_capacity: localizedCapacity,
+    visible_features: (data.visible_features || []).map(translatePhrase),
+    available_signals: (data.available_signals || []).map(translatePhrase),
+    missing_signals: (data.missing_signals || []).map(translatePhrase),
+    summary: localizedSummary,
+    draft_listing: {
+      ...data.draft_listing,
+      suggested_title: draftTitle,
+      category: localizeCategory(data.draft_listing?.category, lang),
+      visible_specs: draftSpecs,
+      missing_required_fields: (data.draft_listing?.missing_required_fields || []).map(translatePhrase),
+    },
+  };
+}
