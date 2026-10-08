@@ -6,10 +6,16 @@ import { mockProducts } from '../../../data/mockData';
 // Map a Supabase row (either from search_products RPC or get_product_context_by_slug) to domain Product
 function mapDbProductToDomain(row: any): Product {
   const id = row.product_id || row.id;
+  const slug = row.slug || id;
   const name = row.name || row.slug;
   const location = row.location_name || (typeof row.location === 'string' ? row.location : row.location?.name) || 'Kurdistan';
   const seller = row.seller_name || (typeof row.seller === 'string' ? row.seller : row.seller?.name) || 'Local Seller';
   const sellerLoc = (typeof row.seller === 'object' && row.seller?.location) || location;
+  const sellerId = row.seller_id || (typeof row.seller === 'object' ? row.seller?.id : undefined);
+  const sellerSlug = row.seller_slug || (typeof row.seller === 'object' ? row.seller?.slug : undefined);
+  const sellerPhone = row.seller_phone || (typeof row.seller === 'object' ? row.seller?.phone : undefined);
+  const sellerWhatsapp = row.seller_whatsapp || (typeof row.seller === 'object' ? row.seller?.whatsapp : undefined);
+  const sellerVerification = row.seller_verification || (typeof row.seller === 'object' ? row.seller?.verification_status : undefined);
 
   const hasWarranty = row.warranty_applicable || (row.warranty?.applicable ?? false) || !!row.warranty;
   const hasDelivery = row.delivery_available || (row.delivery?.available ?? false) || !!row.delivery_info;
@@ -24,6 +30,7 @@ function mapDbProductToDomain(row: any): Product {
 
   return {
     id: id,
+    slug: slug,
     name: name,
     name_ckb: row.name_ckb || (row.name_ku ?? name),
     name_ar: row.name_ar || name,
@@ -33,6 +40,13 @@ function mapDbProductToDomain(row: any): Product {
     location: location,
     seller_name: seller,
     seller_location: sellerLoc,
+    seller_id: sellerId,
+    seller_slug: sellerSlug,
+    seller_phone: sellerPhone,
+    seller_whatsapp: sellerWhatsapp,
+    seller_verification: sellerVerification,
+    is_demo: row.is_demo ?? false,
+    brand: row.brand || undefined,
     capacity: row.capacity || undefined,
     power: row.power_watts ? `${row.power_watts}W` : (row.power || undefined),
     warranty: row.warranty_months ? `${row.warranty_months} Months Warranty` : (typeof row.warranty === 'string' ? row.warranty : 'Standard Warranty'),
@@ -125,7 +139,9 @@ export async function findProductById(id: string, lang: 'en' | 'ku' | 'ar' = 'ku
         p_lang: lang,
       });
       if (!error && data) {
-        return mapDbProductToDomain(data);
+        const prod = mapDbProductToDomain(data);
+        await enrichProductWithSellerSlug(prod);
+        return prod;
       }
     } catch (err) {
       console.warn('Repository findProductById error:', err);
@@ -143,7 +159,9 @@ export async function findProductBySlug(slug: string, lang: 'en' | 'ku' | 'ar' =
         p_lang: lang,
       });
       if (!error && data) {
-        return mapDbProductToDomain(data);
+        const prod = mapDbProductToDomain(data);
+        await enrichProductWithSellerSlug(prod);
+        return prod;
       }
     } catch (err) {
       console.warn('Repository findProductBySlug error:', err);
@@ -151,13 +169,39 @@ export async function findProductBySlug(slug: string, lang: 'en' | 'ku' | 'ar' =
   }
 
   const all = await findProducts({ lang });
-  return (
+  const matched = (
     all.find(
       (p) =>
         p.id === slug ||
+        p.slug === slug ||
         p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug.toLowerCase()
     ) || null
   );
+  if (matched) {
+    await enrichProductWithSellerSlug(matched);
+  }
+  return matched;
+}
+
+async function enrichProductWithSellerSlug(prod: Product) {
+  if (!prod.seller_slug && prod.seller_id && supabaseAdmin) {
+    try {
+      const { data } = await supabaseAdmin
+        .from('sellers')
+        .select('slug, phone, whatsapp, verification_status')
+        .eq('id', prod.seller_id)
+        .maybeSingle();
+      if (data) {
+        const d = data as any;
+        prod.seller_slug = d.slug;
+        prod.seller_phone = d.phone || prod.seller_phone;
+        prod.seller_whatsapp = d.whatsapp || prod.seller_whatsapp;
+        prod.seller_verification = d.verification_status as any;
+      }
+    } catch (err) {
+      // quiet fallback
+    }
+  }
 }
 
 export async function getProductsForComparison(productIds: string[], lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Product[]> {

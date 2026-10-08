@@ -227,7 +227,7 @@ export const AISearchHero: React.FC<AISearchHeroProps> = ({ onSearchSubmit, isSe
             </div>
 
             <p className="text-xs text-neutral-600 bg-[#FAF9F6] p-2.5 rounded-lg border border-[#EAE7DF]/60">
-              💡 {activeInterpretation.explanation[language] || activeInterpretation.explanation.en}
+              💡 {activeInterpretation.explanation[language === 'ku' ? 'ckb' : (language as 'en' | 'ckb' | 'ar')] || activeInterpretation.explanation.en}
             </p>
           </div>
         )}

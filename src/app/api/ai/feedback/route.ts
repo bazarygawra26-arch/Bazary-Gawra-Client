@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       comment,
     });
 
-    return NextResponse.json({ success: true, message: 'Feedback logged for RLHF model training' });
+    return NextResponse.json({ success: true, message: 'AI feedback logging for quality review' });
   } catch (error: any) {
     return NextResponse.json(
       { error: error?.message || 'Failed to log feedback' },

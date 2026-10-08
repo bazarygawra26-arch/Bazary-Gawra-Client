@@ -157,7 +157,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct
             </button>
           ) : (
             <Link
-              href={`/products/${product.id}`}
+              href={`/products/${product.slug || product.id}`}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 transition-colors shadow-2xs"
             >
               <Eye className="w-3.5 h-3.5" />

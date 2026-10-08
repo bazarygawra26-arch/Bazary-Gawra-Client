@@ -30,6 +30,7 @@ function resolveSecretKey(): string {
 
 export const env = {
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+  GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
   SUPABASE_URL: resolveSupabaseUrl(),
   SUPABASE_ANON_KEY:
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||

@@ -1,5 +1,5 @@
 export type SupportedLocale = 'en' | 'ku' | 'ar';
-export type SupportedLanguage = 'en' | 'ckb' | 'ar';
+export type SupportedLanguage = 'en' | 'ckb' | 'ku' | 'ar';
 
 export interface Product {
   id: string;
@@ -21,6 +21,14 @@ export interface Product {
   description: string;
   image_url: string;
   created_at?: string;
+  slug?: string;
+  seller_id?: string;
+  seller_slug?: string;
+  seller_phone?: string;
+  seller_whatsapp?: string;
+  seller_verification?: 'unverified' | 'pending' | 'verified';
+  is_demo?: boolean;
+  brand?: string;
   information_signals?: {
     has_location: boolean;
     has_warranty: boolean;
@@ -50,6 +58,7 @@ export interface Category {
 
 export interface Seller {
   id: string;
+  slug?: string;
   name: string;
   location: string;
   productCount: number;
@@ -57,8 +66,42 @@ export interface Seller {
   warranty_support?: string;
   return_window?: string;
   phone_placeholder?: string;
+  phone?: string;
+  whatsapp?: string;
+  logo_url?: string;
+  verification_status?: 'unverified' | 'pending' | 'verified';
+  is_demo?: boolean;
   avatar_bg?: string;
   established_since?: string;
+  description?: string;
+}
+
+export interface SellerCategoryStat {
+  slug: string;
+  name: string;
+  count: number;
+}
+
+export interface SellerInfoSummary {
+  with_warranty: number;
+  with_delivery_info: number;
+  with_return_policy: number;
+}
+
+export interface SellerProfile {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string;
+  location: string;
+  phone?: string;
+  whatsapp?: string;
+  logo_url?: string;
+  verification_status: 'unverified' | 'pending' | 'verified';
+  is_demo: boolean;
+  product_count: number;
+  categories: SellerCategoryStat[];
+  info_summary: SellerInfoSummary;
 }
 
 export interface AISearchInterpretation {

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useLanguage } from '../context/LanguageContext';
 import { useComparison } from '../context/ComparisonContext';
 import { Product } from '../types';
@@ -150,13 +151,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct
             <span>{compared ? t('addedToCompare') : t('compareButton')}</span>
           </button>
 
-          <button
-            onClick={() => onViewProduct && onViewProduct(product)}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 transition-colors shadow-2xs"
-          >
-            <Eye className="w-3.5 h-3.5" />
-            <span>{t('viewProduct')}</span>
-          </button>
+          {onViewProduct ? (
+            <button
+              onClick={() => onViewProduct(product)}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 transition-colors shadow-2xs"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>{t('viewProduct')}</span>
+            </button>
+          ) : (
+            <Link
+              href={`/products/${product.slug || product.id}`}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 transition-colors shadow-2xs"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>{t('viewProduct')}</span>
+            </Link>
+          )}
         </div>
       </div>
     </div>

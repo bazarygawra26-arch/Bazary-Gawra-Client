@@ -10,7 +10,7 @@ interface LanguageContextType {
   t: (key: string) => string;
 }
 
-const translations: Record<SupportedLanguage, Record<string, string>> = {
+const translationsData = {
   en: {
     siteTitle: 'BAZARY GAWRA',
     siteTagline: 'AI-Powered Local Product Discovery for Kurdistan',
@@ -469,21 +469,26 @@ const translations: Record<SupportedLanguage, Record<string, string>> = {
   },
 };
 
+const translations: Record<SupportedLanguage, Record<string, string>> = {
+  ...translationsData,
+  ku: translationsData.ckb,
+};
+
 const LanguageContext = createContext<LanguageContextType>({
-  language: 'en',
+  language: 'ku',
   setLanguage: () => {},
-  dir: 'ltr',
+  dir: 'rtl',
   t: (key: string) => key,
 });
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<SupportedLanguage>('en');
+  const [language, setLanguage] = useState<SupportedLanguage>('ku');
 
-  const dir: 'ltr' | 'rtl' = language === 'ckb' || language === 'ar' ? 'rtl' : 'ltr';
+  const dir: 'ltr' | 'rtl' = language === 'ckb' || language === 'ku' || language === 'ar' ? 'rtl' : 'ltr';
 
   useEffect(() => {
     document.documentElement.dir = dir;
-    document.documentElement.lang = language === 'ckb' ? 'ku' : language;
+    document.documentElement.lang = language === 'ckb' || language === 'ku' ? 'ku' : language;
   }, [dir, language]);
 
   const t = (key: string): string => {

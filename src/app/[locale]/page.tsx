@@ -6,16 +6,17 @@ import { Header } from '../../components/layout/Header';
 import { Footer } from '../../components/layout/Footer';
 import { AISearchBox } from '../../components/ai/AISearchBox';
 import { AIRecommendation } from '../../components/ai/AIRecommendation';
-import { Scanner } from '../../components/ai/Scanner';
-import { ProductGrid } from '../../components/product/ProductGrid';
 import { CategoryList } from '../../components/CategoryList';
 import { LocalSellersSection } from '../../components/LocalSellersSection';
 import { WhyBazaryGawra } from '../../components/WhyBazaryGawra';
 import { SearchResultsView } from '../../components/SearchResultsView';
 import { ProductComparisonDrawer } from '../../components/ProductComparisonDrawer';
 import { ProductDetailModal } from '../../components/ProductDetailModal';
+import { CompareTray } from '../../components/compare/CompareTray';
+import { KilimDivider } from '../../components/ui/KilimDivider';
+import { KurdishPatternBg } from '../../components/ui/KurdishPatternBg';
 import { Product, Category, Seller, AISearchInterpretation } from '../../types';
-import { ShoppingBag, Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, ShoppingBag, Loader2 } from 'lucide-react';
 
 export default function LocaleHomePage() {
   const { language, t } = useLanguage();
@@ -112,34 +113,50 @@ export default function LocaleHomePage() {
     ? products.filter((p) => p.category.toLowerCase().includes(selectedCategory.toLowerCase()))
     : products;
 
+  // Hospitality Greeting
+  const greeting =
+    language === 'ku'
+      ? 'بەخێربێیت بۆ بازاڕی گەورە'
+      : language === 'ar'
+      ? 'أهلاً وسهلاً بك في بازاري كورة'
+      : 'Welcome to Bazary Gawra';
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF9F6] text-neutral-900 selection:bg-[#F4B942]/30 selection:text-neutral-900">
-      {/* 1. Header */}
+      {/* 1. Header with logo, language switcher, small search icon. No account icon */}
       <Header />
 
-      {/* 2. Hero with AI Search Box */}
-      <section className="relative overflow-hidden pt-12 pb-16 lg:pt-20 lg:pb-24 border-b border-[#EAE7DF] bg-gradient-to-b from-[#FAF9F6] via-[#FAF9F6] to-[#FFFBF0]/50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFF5DD] border border-[#F4B942]/70 text-[#8C5E00] text-xs sm:text-sm font-bold shadow-2xs mb-6">
+      {/* 2. Hero with Faint Kurdish Pattern (4% opacity) & One Large AI Box */}
+      <section className="relative overflow-hidden pt-12 pb-16 lg:pt-18 lg:pb-22 border-b border-[#EAE7DF] bg-gradient-to-b from-[#FAF9F6] via-[#FAF9F6] to-[#FFFBF0]/60">
+        {/* Faint Kurdish rug geometric pattern (4% opacity) behind hero, never behind text */}
+        <KurdishPatternBg opacity={0.04} />
+
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          {/* Kurdish Warm Hospitality Greeting */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFF5DD] border border-[#F4B942]/50 text-[#8C5E00] text-xs sm:text-sm font-bold shadow-2xs mb-5">
             <Sparkles className="w-4 h-4 fill-[#F4B942] text-[#F4B942]" />
-            <span>{t('heroBadge')}</span>
+            <span>{greeting}</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-neutral-900 tracking-tight leading-[1.15] mb-4">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-neutral-900 tracking-tight leading-[1.15] mb-4">
             {t('heroHeadline')}
           </h1>
 
-          <p className="text-neutral-600 text-base sm:text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
+          <p className="text-neutral-600 text-sm sm:text-base max-w-2xl mx-auto mb-8 leading-relaxed">
             {t('heroSubheadline')}
           </p>
 
+          {/* Large AI Search Box with 3 tappable prompt chips and camera button inside */}
           <div className="max-w-3xl mx-auto">
             <AISearchBox onSearchSubmit={handleSearchSubmit} isSearching={isSearching} />
           </div>
         </div>
       </section>
 
-      {/* 3. Search Results */}
+      {/* Thin repeating Kilim divider between hero and content */}
+      <KilimDivider />
+
+      {/* 3. Search Results (if active query) */}
       {activeQuery && (
         <div id="search-results-section">
           <SearchResultsView
@@ -149,81 +166,49 @@ export default function LocaleHomePage() {
             onClearSearch={handleClearSearch}
             onViewProduct={(p) => setSelectedProductForModal(p)}
           />
+          <KilimDivider />
         </div>
       )}
 
-      {/* 4. Browse by Category */}
+      {/* 4. Category Circles (scrollable on mobile, zero clothing) */}
       {categories.length > 0 && (
-        <CategoryList
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onSelectCategory={(cat) => setSelectedCategory(cat)}
-        />
+        <>
+          <CategoryList
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onSelectCategory={(cat) => setSelectedCategory(cat)}
+          />
+          <KilimDivider />
+        </>
       )}
 
-      {/* 5. AI Recommendations */}
+      {/* 5. "AI Picks" Product Row */}
       {products.length > 0 && (
-        <AIRecommendation
-          products={products}
-          onViewProduct={(p) => setSelectedProductForModal(p)}
-        />
+        <>
+          <AIRecommendation
+            products={products}
+            onViewProduct={(p) => setSelectedProductForModal(p)}
+          />
+          <KilimDivider />
+        </>
       )}
 
-      {/* 6. AI Multimodal Product Scanner */}
-      <section id="scanner">
-        <Scanner onViewProduct={(p) => setSelectedProductForModal(p)} />
-      </section>
+      {/* 6. "Local shops" Row with Seller Cards */}
+      {sellers.length > 0 && (
+        <>
+          <LocalSellersSection sellers={sellers} />
+          <KilimDivider />
+        </>
+      )}
 
-      {/* 7. Featured Local Products (Loaded Dynamically from Supabase) */}
-      <section id="featured" className="py-14 bg-white border-b border-[#EAE7DF]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#657A52] mb-1.5">
-                <ShoppingBag className="w-4 h-4" />
-                <span>
-                  {language === 'ckb' ? 'دۆزینەوەی ناوخۆیی' : language === 'ar' ? 'اكتشاف محلي' : 'Local Discovery'}
-                </span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
-                {selectedCategory ? selectedCategory : t('featuredTitle')}
-              </h2>
-              <p className="text-sm text-neutral-600 mt-1">
-                {t('featuredSubtitle')}
-              </p>
-            </div>
-
-            <div className="text-xs text-neutral-500 font-medium">
-              {language === 'ckb'
-                ? `نیشاندانی ${displayedProducts.length} کاڵای ناوخۆیی لە بنکەدراوە`
-                : language === 'ar'
-                ? `عرض ${displayedProducts.length} منتج محلي من قاعدة البيانات`
-                : `Showing ${displayedProducts.length} live database items`}
-            </div>
-          </div>
-
-          {isLoading ? (
-            <div className="py-20 flex flex-col items-center justify-center gap-3 text-neutral-400">
-              <Loader2 className="w-8 h-8 animate-spin text-[#F4B942]" />
-              <p className="text-sm font-medium">Loading live products from Supabase...</p>
-            </div>
-          ) : (
-            <ProductGrid
-              products={displayedProducts}
-              onViewProduct={(p) => setSelectedProductForModal(p)}
-            />
-          )}
-        </div>
-      </section>
-
-      {/* 8. Local Sellers Directory (Loaded Dynamically from Supabase) */}
-      {sellers.length > 0 && <LocalSellersSection sellers={sellers} />}
-
-      {/* 9. Why Bazary Gawra */}
+      {/* 7. Three-step "How the AI helps" strip */}
       <WhyBazaryGawra />
 
-      {/* 10. Footer */}
+      {/* Footer */}
       <Footer />
+
+      {/* Global Bottom Compare Tray (appears when 2+ items selected) */}
+      <CompareTray />
 
       {/* Overlays */}
       <ProductComparisonDrawer />

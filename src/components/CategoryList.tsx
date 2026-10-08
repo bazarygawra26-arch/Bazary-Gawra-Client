@@ -10,7 +10,6 @@ import {
   Sparkles,
   HeartHandshake,
   Laptop,
-  Shirt,
   Layers,
 } from 'lucide-react';
 
@@ -27,7 +26,6 @@ const iconMap: Record<string, React.ReactNode> = {
   Sparkles: <Sparkles className="w-5 h-5" />,
   HeartHandshake: <HeartHandshake className="w-5 h-5" />,
   Laptop: <Laptop className="w-5 h-5" />,
-  Shirt: <Shirt className="w-5 h-5" />,
 };
 
 export const CategoryList: React.FC<CategoryListProps> = ({
@@ -37,81 +35,93 @@ export const CategoryList: React.FC<CategoryListProps> = ({
 }) => {
   const { language, t } = useLanguage();
 
+  // Strict Rule: NO clothing category anywhere
+  const validCategories = categories.filter(
+    (c) =>
+      c.slug !== 'clothing' &&
+      !c.name.toLowerCase().includes('cloth') &&
+      !c.name.toLowerCase().includes('fashion')
+  );
+
   return (
-    <section id="categories" className="py-12 border-b border-[#EAE7DF] bg-[#FAF9F6]">
+    <section id="categories" className="py-8 sm:py-12 border-b border-[#EAE7DF] bg-[#FAF9F6]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#657A52] mb-1.5">
-              <Layers className="w-4 h-4" />
+            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#657A52] mb-1">
+              <Layers className="w-3.5 h-3.5" />
               <span>{t('navCategories')}</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-neutral-900 tracking-tight">
               {t('categoriesTitle')}
             </h2>
-            <p className="text-sm text-neutral-600 mt-1">
-              {t('categoriesSubtitle')}
-            </p>
           </div>
 
           {selectedCategory && (
             <button
               onClick={() => onSelectCategory(null)}
-              className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-[#EAE7DF] bg-white text-neutral-700 hover:bg-neutral-50 self-start sm:self-auto"
+              className="text-xs font-bold px-3 py-1.5 rounded-full border border-[#EAE7DF] bg-white text-neutral-700 hover:bg-neutral-50 shadow-2xs"
             >
-              ✕ {t('clearFilter')} ({selectedCategory})
+              ✕ {t('clearFilter')}
             </button>
           )}
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
-          {categories.map((cat) => {
+        {/* Category Circles (Scrollable on mobile, flex-wrap on desktop) */}
+        <div className="flex items-center gap-4 sm:gap-6 overflow-x-auto pb-4 pt-1 px-1 scrollbar-none sm:flex-wrap sm:justify-start">
+          {validCategories.map((cat) => {
             const isSelected = selectedCategory === cat.name;
             const displayName =
-              language === 'ckb' ? cat.name_ckb : language === 'ar' ? cat.name_ar : cat.name;
+              language === 'ckb' || language === 'ku'
+                ? cat.name_ckb
+                : language === 'ar'
+                ? cat.name_ar
+                : cat.name;
 
             return (
-              <div
+              <button
                 key={cat.id}
                 onClick={() => onSelectCategory(isSelected ? null : cat.name)}
-                className={`group relative overflow-hidden rounded-2xl bg-white border cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${
-                  isSelected
-                    ? 'border-[#F4B942] ring-2 ring-[#F4B942]/30 shadow-sm'
-                    : 'border-[#EAE7DF] hover:border-[#D8D4C8]'
-                }`}
+                className="group flex flex-col items-center gap-2 shrink-0 transition-transform hover:scale-105 cursor-pointer focus:outline-none"
               >
-                {/* Image backdrop with soft gradient overlay */}
-                <div className="h-28 sm:h-32 w-full overflow-hidden relative bg-neutral-100">
-                  <img
-                    src={cat.image}
-                    alt={cat.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                {/* Circle Avatar */}
+                <div
+                  className={`w-18 h-18 sm:w-20 sm:h-20 rounded-full p-1 border-2 transition-all overflow-hidden ${
+                    isSelected
+                      ? 'border-[#F4B942] ring-4 ring-[#F4B942]/20 shadow-md'
+                      : 'border-[#EAE7DF] group-hover:border-[#F4B942]'
+                  } bg-white shadow-2xs flex items-center justify-center relative`}
+                >
+                  {cat.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={cat.image}
+                      alt={cat.name}
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-full bg-[#FAF9F6] flex items-center justify-center text-[#657A52]">
+                      {iconMap[cat.iconName] || <Sparkles className="w-6 h-6 text-[#8C5E00]" />}
+                    </div>
+                  )}
 
-                  {/* Icon badge */}
-                  <div className="absolute top-2.5 start-2.5 w-8 h-8 rounded-lg bg-white/90 backdrop-blur-xs flex items-center justify-center text-neutral-900 shadow-2xs">
-                    {iconMap[cat.iconName] || <Sparkles className="w-4 h-4 text-[#8C5E00]" />}
-                  </div>
-
-                  {/* Item count tag */}
-                  <div className="absolute bottom-2.5 end-2.5 px-2 py-0.5 rounded-md bg-black/50 backdrop-blur-xs text-[11px] font-medium text-white/90">
-                    {cat.itemCount} {t('itemsCount')}
+                  {/* Tiny icon badge at bottom */}
+                  <div className="absolute bottom-0 inset-x-0 bg-black/40 backdrop-blur-2xs py-0.5 text-[9px] text-white font-bold text-center">
+                    {cat.itemCount || 4}
                   </div>
                 </div>
 
-                {/* Content */}
-                <div className="p-3 bg-white">
-                  <h3 className="font-bold text-neutral-900 text-sm sm:text-base leading-snug group-hover:text-[#8C5E00] transition-colors truncate">
-                    {displayName}
-                  </h3>
-                  <p className="text-[11px] text-neutral-500 mt-0.5 capitalize truncate">
-                    {cat.slug.replace('-', ' & ')}
-                  </p>
-                </div>
-              </div>
+                {/* Name */}
+                <span
+                  className={`text-xs font-bold text-center max-w-[84px] truncate transition-colors ${
+                    isSelected
+                      ? 'text-[#8C5E00]'
+                      : 'text-neutral-700 group-hover:text-neutral-950'
+                  }`}
+                >
+                  {displayName}
+                </span>
+              </button>
             );
           })}
         </div>
@@ -119,3 +129,5 @@ export const CategoryList: React.FC<CategoryListProps> = ({
     </section>
   );
 };
+
+export default CategoryList;

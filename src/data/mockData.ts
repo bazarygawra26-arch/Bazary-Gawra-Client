@@ -71,16 +71,6 @@ export const mockCategories: Category[] = [
     image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
     itemCount: 19,
   },
-  {
-    id: 'cat-clothing',
-    name: 'Clothing & Traditional Wear',
-    name_ckb: 'جلوبەرگی کوردی و هاوچەرخ',
-    name_ar: 'الملابس والأزياء التقليدية',
-    slug: 'clothing',
-    iconName: 'Shirt',
-    image: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=600&q=80',
-    itemCount: 33,
-  },
 ];
 
 export const mockProducts: Product[] = [

@@ -1,18 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useLanguage } from '../../context/LanguageContext';
-import { Search, Sparkles, SlidersHorizontal, MapPin, Tag, ShieldCheck } from 'lucide-react';
+import { Search, Sparkles, SlidersHorizontal, MapPin, Tag, ShieldCheck, Camera } from 'lucide-react';
 import { AISearchInterpretation } from '../../types';
 
 interface AISearchBoxProps {
   onSearchSubmit: (query: string, interpretation?: AISearchInterpretation) => void;
   isSearching?: boolean;
+  initialValue?: string;
 }
 
-export const AISearchBox: React.FC<AISearchBoxProps> = ({ onSearchSubmit, isSearching }) => {
+export const AISearchBox: React.FC<AISearchBoxProps> = ({ onSearchSubmit, isSearching, initialValue }) => {
   const { language, t } = useLanguage();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialValue || '');
   const [activeInterpretation, setActiveInterpretation] = useState<AISearchInterpretation | null>(null);
 
   const samplePrompts = [
@@ -104,6 +106,14 @@ export const AISearchBox: React.FC<AISearchBoxProps> = ({ onSearchSubmit, isSear
             placeholder={t('searchPlaceholder')}
             className="w-full bg-transparent text-sm sm:text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
           />
+
+          <Link
+            href="/scanner"
+            className="p-2 rounded-xl text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
+            title="Scan product with AI Camera"
+          >
+            <Camera className="w-5 h-5 text-[#657A52]" />
+          </Link>
         </div>
 
         <button
