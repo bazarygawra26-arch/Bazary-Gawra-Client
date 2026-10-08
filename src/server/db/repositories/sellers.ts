@@ -32,7 +32,7 @@ export async function findSellers(lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Sell
         `)
         .eq('is_active', true);
 
-      if (!error && Array.isArray(data) && data.length > 0) {
+      if (!error && Array.isArray(data)) {
         return data.map((s: any) => {
           const locObj = s.locations;
           const locName =
@@ -300,7 +300,7 @@ export async function getSellerProducts(params: {
         p_offset: offset,
       });
 
-      if (!error && Array.isArray(data) && data.length > 0) {
+      if (!error && Array.isArray(data)) {
         return (data as any[]).map(mapCardToProduct);
       }
     } catch (rpcErr) {

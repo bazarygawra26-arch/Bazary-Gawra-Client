@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { mockProducts } from '@/data/mockData';
+import { findProducts } from '@/server/db/repositories/products';
 
 export async function POST(request: Request) {
   try {
@@ -102,11 +102,12 @@ Respond with ONLY valid JSON with this exact schema (no markdown fences, no extr
 
             // Find matching local database products
             const queryKeywords = (parsed.suggested_search_query || parsed.product_type || '').toLowerCase();
-            const similarProducts = mockProducts.filter((p) => {
+            const allDbProducts = await findProducts({ lang: 'en' });
+            const similarProducts = allDbProducts.filter((p) => {
               return (
-                p.category.toLowerCase().includes(parsed.category.toLowerCase()) ||
+                p.category.toLowerCase().includes((parsed.category || '').toLowerCase()) ||
                 p.name.toLowerCase().includes(queryKeywords) ||
-                queryKeywords.includes(p.name.toLowerCase().split(' ')[0])
+                (queryKeywords && p.name.toLowerCase().split(' ')[0] && queryKeywords.includes(p.name.toLowerCase().split(' ')[0]))
               );
             });
 
@@ -114,7 +115,7 @@ Respond with ONLY valid JSON with this exact schema (no markdown fences, no extr
               success: true,
               source: 'gemini-3.8-flash',
               analysis: parsed,
-              similar_products: similarProducts.length > 0 ? similarProducts.slice(0, 3) : mockProducts.slice(0, 3),
+              similar_products: similarProducts.length > 0 ? similarProducts.slice(0, 3) : allDbProducts.slice(0, 3),
             });
           }
         } else {
@@ -244,7 +245,8 @@ Respond with ONLY valid JSON with this exact schema (no markdown fences, no extr
     const chosenSampleKey = sampleType || 'airfryer';
     const analysis = sampleAnalyses[chosenSampleKey] || sampleAnalyses.airfryer;
 
-    const similarProducts = mockProducts.filter((p) => {
+    const allDbProducts = await findProducts({ lang: 'en' });
+    const similarProducts = allDbProducts.filter((p) => {
       return (
         p.category.toLowerCase().includes(analysis.category.toLowerCase()) ||
         p.name.toLowerCase().includes(analysis.suggested_search_query.toLowerCase())
@@ -255,7 +257,7 @@ Respond with ONLY valid JSON with this exact schema (no markdown fences, no extr
       success: true,
       source: 'fallback-demo',
       analysis,
-      similar_products: similarProducts.length > 0 ? similarProducts.slice(0, 3) : mockProducts.slice(0, 3),
+      similar_products: similarProducts.length > 0 ? similarProducts.slice(0, 3) : allDbProducts.slice(0, 3),
     });
   } catch (error: any) {
     console.error('Error in /api/ai-image-analyze:', error);

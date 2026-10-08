@@ -92,7 +92,7 @@ export async function findProducts(filters?: {
         p_limit: 50,
       });
 
-      if (!error && Array.isArray(data) && data.length > 0) {
+      if (!error && Array.isArray(data)) {
         return (data as any[]).map(mapDbProductToDomain);
       }
     } catch (err) {

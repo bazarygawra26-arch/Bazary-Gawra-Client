@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { mockProducts } from '@/data/mockData';
+import { findProducts } from '@/server/db/repositories/products';
 
 export async function POST(request: Request) {
   try {
@@ -18,14 +18,16 @@ export async function POST(request: Request) {
     else if (qLower.includes('erbil') || query.includes('هەولێر') || query.includes('أربيل')) location = 'Erbil';
     else if (qLower.includes('duhok') || query.includes('دهۆک')) location = 'Duhok';
 
-    // In Phase 2, provide the structured mock response while preparing for direct Gemini integration in Phase 8
-    const matchingProducts = mockProducts.filter((p) => {
-      return (
-        p.name.toLowerCase().includes(qLower) ||
-        p.category.toLowerCase().includes(qLower) ||
-        p.location.toLowerCase().includes(location.toLowerCase())
-      );
+    const lang = language === 'ckb' ? 'ku' : language === 'ar' ? 'ar' : 'en';
+
+    // Search dynamic Supabase products
+    const matchingProducts = await findProducts({
+      search: query,
+      city: location === 'Kurdistan' ? undefined : location,
+      lang: lang as 'en' | 'ku' | 'ar',
     });
+
+    const fallbackProducts = matchingProducts.length > 0 ? matchingProducts : await findProducts({ lang: lang as 'en' | 'ku' | 'ar' });
 
     return NextResponse.json({
       success: true,
@@ -42,7 +44,7 @@ export async function POST(request: Request) {
           ar: `تم تحديد طلب البحث لمتاجر ${location} المحلية مع تفاصيل الضمان الواضحة.`,
         },
       },
-      products: matchingProducts.length > 0 ? matchingProducts : mockProducts.slice(0, 4),
+      products: matchingProducts.length > 0 ? matchingProducts : fallbackProducts.slice(0, 4),
     });
   } catch (error: any) {
     console.error('AI search route error:', error);

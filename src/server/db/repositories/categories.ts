@@ -12,7 +12,7 @@ export async function findCategories(lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<C
         .eq('is_active', true)
         .order('sort_order', { ascending: true });
 
-      if (!error && Array.isArray(data) && data.length > 0) {
+      if (!error && Array.isArray(data)) {
         return data.map((c: any) => ({
           id: c.id,
           name: c.name_en || c.name || c.slug,
