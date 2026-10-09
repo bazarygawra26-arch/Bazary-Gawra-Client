@@ -89,6 +89,17 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
     }
   }, [recorder.error]);
 
+  // Lock body scroll to prevent background jitter when voice modal is active
+  useEffect(() => {
+    if (showModal) {
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = prevOverflow;
+      };
+    }
+  }, [showModal]);
+
   const formatTimer = (secs: number) => {
     const mins = Math.floor(secs / 60);
     const s = secs % 60;
@@ -240,9 +251,9 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 bg-neutral-950/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-fadeIn"
+          className="fixed inset-0 z-50 bg-neutral-950/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
         >
-          <div className="bg-white rounded-3xl border border-[#EAE7DF] shadow-2xl max-w-lg w-full p-5 sm:p-6 text-start space-y-4 sm:space-y-5 animate-scaleUp">
+          <div className="bg-white rounded-3xl border border-[#EAE7DF] shadow-2xl max-w-lg w-full p-5 sm:p-6 text-start space-y-4 sm:space-y-5 my-auto animate-scaleUp">
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-[#EAE7DF]">
               <div className="flex items-center gap-3">
@@ -370,16 +381,16 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
 
             {/* 1. Live Recording State with REAL Audio Level Waveform */}
             {recorder.state === 'recording' && (
-              <div className="py-6 px-4 flex flex-col items-center justify-center space-y-4 bg-gradient-to-b from-[#FAF9F6] to-[#FFFBF0] rounded-2xl border-2 border-dashed border-[#F4B942]">
+              <div className="min-h-[210px] py-6 px-4 flex flex-col items-center justify-center space-y-4 bg-gradient-to-b from-[#FAF9F6] to-[#FFFBF0] rounded-2xl border-2 border-dashed border-[#F4B942]">
                 {/* Real-time audio waveform reacting to actual microphone volume */}
-                <div className="flex items-center justify-center gap-2 h-14">
+                <div className="flex items-center justify-center gap-2 h-14 overflow-hidden">
                   {bars.map((mult, idx) => {
-                    const scaledHeight = Math.max(8, Math.min(52, Math.round(recorder.level * 60 * mult + 8)));
+                    const scaledHeight = Math.max(8, Math.min(48, Math.round(recorder.level * 55 * mult + 8)));
                     return (
                       <span
                         key={idx}
                         style={{ height: `${scaledHeight}px` }}
-                        className={`w-2 rounded-full transition-all duration-75 ${
+                        className={`w-2 rounded-full transition-[height] duration-100 ease-out ${
                           idx % 2 === 0 ? 'bg-[#F4B942]' : 'bg-[#657A52]'
                         }`}
                       />
@@ -387,9 +398,9 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
                   })}
                 </div>
 
-                <div className="w-full text-center min-h-[32px] px-2">
+                <div className="w-full text-center h-14 flex flex-col items-center justify-center px-2">
                   <p className="text-xs sm:text-sm font-bold text-[#8C5E00] flex items-center justify-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping inline-block" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping inline-block shrink-0" />
                     <span>
                       {isKu
                         ? 'دەنگەکەت تۆمار دەکرێت... کاتێک قسەکردنت تەواو بوو کرتە لە دوگمەی سوور بکە'
@@ -398,12 +409,14 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
                         : 'Recording voice... Click red button when finished'}
                     </span>
                   </p>
-                  {recorder.level > 0.05 && (
-                    <div className="flex items-center justify-center gap-1 text-[11px] text-[#657A52] font-semibold mt-1">
-                      <Volume2 className="w-3.5 h-3.5" />
-                      <span>{isKu ? 'دەنگت دەبیسترێت' : isAr ? 'يتم استقبال الصوت' : 'Voice detected'}</span>
-                    </div>
-                  )}
+                  <div
+                    className={`flex items-center justify-center gap-1 text-[11px] text-[#657A52] font-semibold h-5 transition-opacity duration-200 mt-1 ${
+                      recorder.level > 0.05 ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  >
+                    <Volume2 className="w-3.5 h-3.5 shrink-0" />
+                    <span>{isKu ? 'دەنگت دەبیسترێت' : isAr ? 'يتم استقبال الصوت' : 'Voice detected'}</span>
+                  </div>
                 </div>
 
                 <button

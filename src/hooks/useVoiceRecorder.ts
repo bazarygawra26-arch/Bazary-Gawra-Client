@@ -69,17 +69,20 @@ export function useVoiceRecorder() {
       analyser.fftSize = 256;
       ctx.createMediaStreamSource(s).connect(analyser);
       const buf = new Uint8Array(analyser.fftSize);
-      peak.current = 0;
-      const tick = () => {
+      let lastUpdate = 0;
+      const tick = (timestamp: number) => {
         analyser.getByteTimeDomainData(buf);
         let max = 0;
         for (const v of buf) max = Math.max(max, Math.abs(v - 128));
         const lvl = max / 128;
         peak.current = Math.max(peak.current, lvl);
-        setLevel(lvl);
+        if (timestamp - lastUpdate >= 40) {
+          setLevel(lvl);
+          lastUpdate = timestamp;
+        }
         raf.current = requestAnimationFrame(tick);
       };
-      tick();
+      raf.current = requestAnimationFrame(tick);
 
       const mimeType = pickMimeType();
       const mr = new MediaRecorder(s, mimeType ? { mimeType } : undefined);
