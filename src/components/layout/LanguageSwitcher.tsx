@@ -25,21 +25,21 @@ export const LanguageSwitcher: React.FC = () => {
   const activeLocale = language === 'ckb' || language === 'ku' ? 'ku' : language;
 
   return (
-    <div className="flex items-center bg-white border border-[#EAE7DF] rounded-lg p-1 shadow-2xs text-xs font-semibold">
-      <Globe className="w-3.5 h-3.5 text-neutral-400 mx-1.5 hidden sm:inline" />
+    <div className="flex items-center bg-white border border-[#EAE7DF] rounded-xl p-0.5 sm:p-1 shadow-2xs text-[11px] sm:text-xs font-semibold shrink-0">
+      <Globe className="w-3.5 h-3.5 text-neutral-400 mx-1 hidden sm:inline" />
       {locales.map((loc) => {
         const isActive = activeLocale === loc;
         return (
           <button
             key={loc}
             onClick={() => handleSelectLanguage(loc)}
-            className={`px-2.5 py-1 rounded-md transition-all ${
+            className={`px-1.5 sm:px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
               isActive
                 ? 'bg-[#F4B942] text-neutral-950 font-bold shadow-2xs'
                 : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100'
             }`}
           >
-            {loc === 'ku' ? 'کوردی' : loc === 'ar' ? 'العربية' : 'English'}
+            {loc === 'ku' ? 'کوردی' : loc === 'ar' ? 'العربية' : 'EN'}
           </button>
         );
       })}

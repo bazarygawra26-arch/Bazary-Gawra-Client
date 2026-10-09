@@ -69,11 +69,17 @@ export const CategoryList: React.FC<CategoryListProps> = ({
     .filter((c) => {
       if (
         c.slug === 'clothing' ||
+        c.slug === 'beauty' ||
+        c.slug === 'beauty-personal-care' ||
+        c.slug.includes('beauty') ||
         c.slug === 'food-honey' ||
         c.slug === 'local-products' ||
         c.slug === 'handmade' ||
         c.slug === 'other' ||
         c.name.toLowerCase().includes('cloth') ||
+        c.name.toLowerCase().includes('beauty') ||
+        c.name.includes('جوانی') ||
+        (c.name_ckb && c.name_ckb.includes('جوانی')) ||
         c.name.toLowerCase().includes('other')
       ) {
         return false;

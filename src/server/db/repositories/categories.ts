@@ -61,7 +61,10 @@ export async function findCategories(lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<C
             c.slug !== 'clothing' &&
             c.slug !== 'food-honey' &&
             c.slug !== 'local-products' &&
-            c.slug !== 'handmade'
+            c.slug !== 'handmade' &&
+            c.slug !== 'beauty' &&
+            c.slug !== 'beauty-personal-care' &&
+            !c.slug.includes('beauty')
         );
 
         const subCategoryRows = catRows.filter((c: any) => !!c.parent_id);
