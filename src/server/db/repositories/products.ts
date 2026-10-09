@@ -140,12 +140,12 @@ export async function findProductsPaginated(filters?: {
   hasDelivery?: boolean;
   search?: string;
   sort?: string;
-  lang?: 'en' | 'ku' | 'ar';
+  lang?: 'en' | 'ku' | 'ar' | 'ckb';
   page?: number;
   limit?: number;
   offset?: number;
 }): Promise<PaginatedProductsResult> {
-  const activeLang = filters?.lang || 'ku';
+  const activeLang: 'en' | 'ku' | 'ar' = (filters?.lang === 'ckb' ? 'ku' : filters?.lang) || 'ku';
   const page = Math.max(1, Number(filters?.page) || 1);
   const limit = Math.max(1, Math.min(100, Number(filters?.limit) || 12));
   const offset = filters?.offset !== undefined ? Number(filters.offset) : (page - 1) * limit;
@@ -278,7 +278,7 @@ export async function findProducts(filters?: {
   minPrice?: number;
   maxPrice?: number;
   search?: string;
-  lang?: 'en' | 'ku' | 'ar';
+  lang?: 'en' | 'ku' | 'ar' | 'ckb';
   page?: number;
   limit?: number;
 }): Promise<Product[]> {
