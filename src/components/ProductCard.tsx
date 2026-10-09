@@ -26,6 +26,7 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct }) => {
   const { language, t } = useLanguage();
+  const isKu = language === 'ku' || language === 'ckb';
   const { addToCompare, removeFromCompare, isCompared } = useComparison();
   const [isFavorited, setIsFavorited] = useState(false);
 
@@ -44,11 +45,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct
           loading="lazy"
         />
 
-        {/* Category Pill Tag */}
-        <div className="absolute top-3 start-3">
+        {/* Category & Sponsored Tags */}
+        <div className="absolute top-3 start-3 flex items-center gap-1.5 z-10">
           <span className="px-2.5 py-1 rounded-md bg-white/95 backdrop-blur-xs text-[11px] font-semibold text-neutral-800 shadow-2xs border border-[#EAE7DF]">
             {lp.category}
           </span>
+          {product.is_promoted && (
+            <span className="px-2.5 py-1 rounded-md bg-[#FFF5DD] backdrop-blur-xs text-[10px] font-black text-[#8C5E00] shadow-2xs border border-[#F4B942] flex items-center gap-1">
+              <Sparkles className="w-2.5 h-2.5 fill-[#F4B942]" />
+              <span>{isKu ? 'بە سپۆنسەر' : language === 'ar' ? 'برعاية' : 'Sponsored'}</span>
+            </span>
+          )}
         </div>
 
         {/* Favorite Icon Button */}

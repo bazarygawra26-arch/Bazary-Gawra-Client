@@ -48,6 +48,9 @@ export interface Product {
     highlights: string[];
     cautions: string[];
   };
+  is_promoted?: boolean;
+  promotion_expires_at?: string;
+  view_count?: number;
 }
 
 export interface Promotion {
@@ -259,3 +262,70 @@ export interface AIProductScanResult {
   };
   search_suggestions: string[];
 }
+
+export interface SellerPlan {
+  id: string;
+  slug: string;
+  name: string;
+  name_en: string;
+  name_ku: string;
+  name_ar: string;
+  price_iqd: number;
+  billing_period: string;
+  max_products: number;
+  can_promote_products: boolean;
+  analytics_tier: 'basic' | 'advanced';
+  features: string[];
+  features_en?: string[];
+  features_ku?: string[];
+  features_ar?: string[];
+  is_active: boolean;
+}
+
+export interface SellerSubscription {
+  id: string;
+  seller_id: string;
+  plan_id: string;
+  plan?: SellerPlan;
+  status: 'active' | 'trial' | 'past_due' | 'canceled' | 'expired';
+  current_period_start: string;
+  current_period_end: string;
+  renewal_date: string;
+  is_demo?: boolean;
+}
+
+export interface ProductPromotion {
+  id: string;
+  product_id: string;
+  product_name?: string;
+  product_image?: string;
+  seller_id: string;
+  promotion_type: string;
+  price_iqd: number;
+  duration_days: number;
+  starts_at: string;
+  ends_at: string;
+  status: 'pending' | 'active' | 'expired' | 'canceled';
+  badge_label_ku: string;
+  badge_label_en: string;
+  badge_label_ar: string;
+  is_demo?: boolean;
+  created_at: string;
+}
+
+export interface MonetizationPayment {
+  id: string;
+  seller_id: string;
+  seller_name?: string;
+  subscription_id?: string;
+  promotion_id?: string;
+  amount_iqd: number;
+  currency: string;
+  payment_method: string;
+  payment_status: 'pending' | 'completed' | 'demo_verified' | 'failed';
+  transaction_reference?: string;
+  notes?: string;
+  verified_at?: string;
+  created_at: string;
+}
+

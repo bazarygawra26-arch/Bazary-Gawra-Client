@@ -16,6 +16,8 @@ import { ProductDetailModal } from '../../components/ProductDetailModal';
 import { ProductCard } from '../../components/product/ProductCard';
 import { CompareTray } from '../../components/compare/CompareTray';
 import { KurdishPatternBg } from '../../components/ui/KurdishPatternBg';
+import { SponsoredSpotlight } from '../../components/home/SponsoredSpotlight';
+import { SustainableBusinessModel } from '../../components/home/SustainableBusinessModel';
 import { Product, Category, Seller, AISearchInterpretation, AiSearchComprehensiveResult } from '../../types';
 import { Sparkles, ShoppingBag, Loader2, MapPin } from 'lucide-react';
 
@@ -321,6 +323,11 @@ export default function LocaleHomePage() {
         <PromotionalBanners />
       )}
 
+      {/* 3.6 Dedicated Sponsored / Promoted Products Spotlight */}
+      {!activeQuery && (
+        <SponsoredSpotlight onViewProduct={(p) => setSelectedProductForModal(p)} />
+      )}
+
       {/* 4. Category Circles (scrollable on mobile, zero clothing) */}
       {categories.length > 0 && (
         <CategoryList
@@ -404,6 +411,9 @@ export default function LocaleHomePage() {
 
       {/* 7. Three-step "How the AI helps" strip */}
       <WhyBazaryGawra />
+
+      {/* 8. Sustainable Business Model for Local Marketplace */}
+      <SustainableBusinessModel />
 
       {/* Footer */}
       <Footer />
