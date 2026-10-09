@@ -42,7 +42,7 @@ export const DemoCheckoutModal: React.FC<DemoCheckoutModalProps> = ({
   const { language, isKu } = useLanguage();
   const isAr = language === 'ar';
 
-  const [selectedMethod, setSelectedMethod] = useState<'demo' | 'fib' | 'fastpay' | 'zaincash'>('demo');
+  const [selectedMethod, setSelectedMethod] = useState<'fib' | 'fastpay' | 'zaincash'>('fib');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -138,23 +138,7 @@ export const DemoCheckoutModal: React.FC<DemoCheckoutModalProps> = ({
             {isKu ? 'دەروازەی پارەدانی ناوخۆیی هەڵبژێرە:' : isAr ? 'اختر بوابة الدفع المحلية:' : 'Select Local Payment Gateway:'}
           </label>
 
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <button
-              type="button"
-              onClick={() => setSelectedMethod('demo')}
-              className={`p-3 rounded-2xl border text-start transition-all cursor-pointer ${
-                selectedMethod === 'demo'
-                  ? 'border-[#F4B942] bg-[#FFF5DD] shadow-2xs font-bold text-neutral-950 ring-2 ring-[#F4B942]/40'
-                  : 'border-[#EAE7DF] bg-white text-neutral-700 hover:bg-[#FAF9F6]'
-              }`}
-            >
-              <div className="flex items-center gap-1.5 font-bold mb-1">
-                <Sparkles className="w-4 h-4 text-[#8C5E00]" />
-                <span>{isKu ? 'تاقیکاری دەستبەجێ' : 'Instant Demo'}</span>
-              </div>
-              <p className="text-[10px] text-neutral-500">{isKu ? 'تاقیکردنەوە بۆ داوەران' : 'For hackathon judges'}</p>
-            </button>
-
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
             <button
               type="button"
               onClick={() => setSelectedMethod('fib')}
@@ -165,10 +149,12 @@ export const DemoCheckoutModal: React.FC<DemoCheckoutModalProps> = ({
               }`}
             >
               <div className="flex items-center gap-1.5 font-bold mb-1">
-                <Building2 className="w-4 h-4 text-emerald-700" />
-                <span>FIB Bank (بانکی یەکەمی عێراق)</span>
+                <Building2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                <span className="text-xs font-black">FIB Bank</span>
               </div>
-              <p className="text-[10px] text-neutral-500">QR & Corporate API</p>
+              <p className="text-[10px] text-neutral-500 leading-tight">
+                {isKu ? 'بانکی یەکەمی عێراق' : 'First Iraqi Bank'}
+              </p>
             </button>
 
             <button
@@ -181,10 +167,12 @@ export const DemoCheckoutModal: React.FC<DemoCheckoutModalProps> = ({
               }`}
             >
               <div className="flex items-center gap-1.5 font-bold mb-1">
-                <Smartphone className="w-4 h-4 text-[#657A52]" />
-                <span>FastPay (فاستپەی)</span>
+                <Smartphone className="w-4 h-4 text-[#657A52] shrink-0" />
+                <span className="text-xs font-black">FastPay</span>
               </div>
-              <p className="text-[10px] text-neutral-500">Kurdistan Mobile Wallet</p>
+              <p className="text-[10px] text-neutral-500 leading-tight">
+                {isKu ? 'فاستپەی (کوردستان)' : 'Kurdistan Wallet'}
+              </p>
             </button>
 
             <button
@@ -197,10 +185,12 @@ export const DemoCheckoutModal: React.FC<DemoCheckoutModalProps> = ({
               }`}
             >
               <div className="flex items-center gap-1.5 font-bold mb-1">
-                <CreditCard className="w-4 h-4 text-purple-700" />
-                <span>ZainCash (زین کاش)</span>
+                <CreditCard className="w-4 h-4 text-purple-700 shrink-0" />
+                <span className="text-xs font-black">ZainCash</span>
               </div>
-              <p className="text-[10px] text-neutral-500">Iraq Gateway & USSD</p>
+              <p className="text-[10px] text-neutral-500 leading-tight">
+                {isKu ? 'زین کاش عێراق' : 'ZainCash Iraq'}
+              </p>
             </button>
           </div>
         </div>
