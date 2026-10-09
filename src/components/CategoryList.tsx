@@ -188,6 +188,11 @@ export const CategoryList: React.FC<CategoryListProps> = ({
                       alt={displayName}
                       className="w-full h-full object-cover rounded-full"
                       loading="lazy"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.onerror = null;
+                        target.src = 'https://images.unsplash.com/photo-1587049352851-8d4e89133924?auto=format&fit=crop&w=600&q=80';
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full rounded-full bg-[#FAF9F6] flex items-center justify-center text-[#657A52]">
