@@ -67,13 +67,6 @@ export const Header: React.FC = () => {
                     </>
                   )}
                 </span>
-                <span className="text-[10px] tracking-wider uppercase text-neutral-500 font-medium hidden xl:inline">
-                  {isKu
-                    ? 'بازاڕی ژیری دەستکرد لە کوردستان'
-                    : language === 'ar'
-                      ? 'سوق كوردستان بالذكاء الاصطناعي'
-                      : 'Kurdistan AI Marketplace'}
-                </span>
               </div>
             </Link>
 
