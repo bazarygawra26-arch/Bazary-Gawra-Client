@@ -59,21 +59,21 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
         : isArabic
         ? 'أجهزة المطبخ'
         : 'Kitchen Appliance',
-      url: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&w=600&q=80',
+      url: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=600&q=80',
     },
     {
       id: 'coffee',
       label: isKurdish
         ? 'ئامێری قاوەی دیلۆنگی ئێسپرێسۆ'
         : isArabic
-        ? 'ماكينة قهوة ديلونجي ديديكا'
+        ? 'ماكينة قهوة ديلونجي ديدیکا'
         : 'DeLonghi Espresso Machine',
       category: isKurdish
         ? 'قاوە و قاوەساز'
         : isArabic
         ? 'القهوة والإسبريسو'
         : 'Coffee & Espresso',
-      url: 'https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&fit=crop&w=600&q=80',
+      url: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80',
     },
     {
       id: 'honey',
@@ -87,7 +87,7 @@ export const AIProductScanner: React.FC<AIProductScannerProps> = ({ onViewProduc
         : isArabic
         ? 'عسل وأغذية محلية'
         : 'Local Honey & Food',
-      url: 'https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=600&q=80',
+      url: 'https://images.unsplash.com/photo-1587049352851-8d4e89133924?auto=format&fit=crop&w=600&q=80',
     },
   ];
 
