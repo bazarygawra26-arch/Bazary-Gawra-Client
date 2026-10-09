@@ -329,3 +329,12 @@ export interface MonetizationPayment {
   created_at: string;
 }
 
+export interface PaginatedProductsResult {
+  products: Product[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+

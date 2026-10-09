@@ -1,6 +1,6 @@
 import 'server-only';
 import { supabaseAdmin } from '../supabaseAdmin';
-import { Product } from '../../../types';
+import { Product, PaginatedProductsResult } from '../../../types';
 import { localizeProduct } from '../../../lib/i18nData';
 
 // Map a Supabase row (either from search_products RPC or get_product_context_by_slug) to domain Product
@@ -131,15 +131,24 @@ function mapDbProductToDomain(row: any, lang: 'en' | 'ku' | 'ar' = 'ku'): Produc
   };
 }
 
-export async function findProducts(filters?: {
+export async function findProductsPaginated(filters?: {
   category?: string;
   city?: string;
   minPrice?: number;
   maxPrice?: number;
+  hasWarranty?: boolean;
+  hasDelivery?: boolean;
   search?: string;
+  sort?: string;
   lang?: 'en' | 'ku' | 'ar';
-}): Promise<Product[]> {
+  page?: number;
+  limit?: number;
+  offset?: number;
+}): Promise<PaginatedProductsResult> {
   const activeLang = filters?.lang || 'ku';
+  const page = Math.max(1, Number(filters?.page) || 1);
+  const limit = Math.max(1, Math.min(100, Number(filters?.limit) || 12));
+  const offset = filters?.offset !== undefined ? Number(filters.offset) : (page - 1) * limit;
 
   if (supabaseAdmin) {
     try {
@@ -149,11 +158,16 @@ export async function findProducts(filters?: {
         p_location_slug: filters?.city || undefined,
         p_min_price: filters?.minPrice || undefined,
         p_max_price: filters?.maxPrice || undefined,
+        p_delivery_only: filters?.hasDelivery ? true : undefined,
+        p_min_warranty_months: filters?.hasWarranty ? 1 : undefined,
+        p_sort: filters?.sort || undefined,
         p_lang: activeLang,
-        p_limit: 50,
+        p_limit: limit,
+        p_offset: offset,
       });
 
       if (!error && Array.isArray(data)) {
+        const total = (data[0] && Number(data[0].total_count)) || data.length || 0;
         const productIds = data.map((r: any) => r.product_id || r.id).filter(Boolean);
         let productsExtraMap: Record<string, { specs?: any; image_url?: string; images?: string[] }> = {};
 
@@ -186,11 +200,11 @@ export async function findProducts(filters?: {
               });
             }
           } catch (enrichErr) {
-            console.warn('[findProducts] image enrichment warning:', enrichErr);
+            console.warn('[findProductsPaginated] image enrichment warning:', enrichErr);
           }
         }
 
-        return (data as any[]).map((row) => {
+        const domainProducts = (data as any[]).map((row) => {
           const extra = productsExtraMap[row.product_id || row.id];
           const mergedRow = {
             ...row,
@@ -200,10 +214,20 @@ export async function findProducts(filters?: {
           };
           return mapDbProductToDomain(mergedRow, activeLang);
         });
+
+        const totalPages = Math.max(1, Math.ceil(total / limit));
+        return {
+          products: domainProducts,
+          total,
+          page,
+          limit,
+          totalPages,
+          hasMore: page < totalPages,
+        };
       }
 
       // If RPC is unavailable, perform direct table query from Supabase
-      let query = supabaseAdmin.from('products').select('*').neq('status', 'archived');
+      let query = supabaseAdmin.from('products').select('*', { count: 'exact' }).neq('status', 'archived');
       if (filters?.category) {
         query = query.ilike('category_slug', `%${filters.category}%`);
       }
@@ -217,16 +241,52 @@ export async function findProducts(filters?: {
         query = query.ilike('search_text', `%${filters.search}%`);
       }
 
-      const { data: tableData, error: tableErr } = await query.limit(50);
+      const { data: tableData, error: tableErr, count } = await query
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
       if (!tableErr && Array.isArray(tableData)) {
-        return tableData.map((row) => mapDbProductToDomain(row, activeLang));
+        const total = count || tableData.length || 0;
+        const totalPages = Math.max(1, Math.ceil(total / limit));
+        return {
+          products: tableData.map((row) => mapDbProductToDomain(row, activeLang)),
+          total,
+          page,
+          limit,
+          totalPages,
+          hasMore: page < totalPages,
+        };
       }
     } catch (err) {
-      console.warn('Repository findProducts error:', err);
+      console.warn('Repository findProductsPaginated error:', err);
     }
   }
 
-  return [];
+  return {
+    products: [],
+    total: 0,
+    page,
+    limit,
+    totalPages: 1,
+    hasMore: false,
+  };
+}
+
+export async function findProducts(filters?: {
+  category?: string;
+  city?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  search?: string;
+  lang?: 'en' | 'ku' | 'ar';
+  page?: number;
+  limit?: number;
+}): Promise<Product[]> {
+  const result = await findProductsPaginated({
+    ...filters,
+    limit: filters?.limit || 50,
+  });
+  return result.products;
 }
 
 export async function findProductById(id: string, lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Product | null> {
