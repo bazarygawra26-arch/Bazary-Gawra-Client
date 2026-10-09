@@ -75,8 +75,8 @@ function ProductsContent() {
         setIsLoading(true);
         const langParam = language === 'ckb' ? 'ku' : language;
         const [prodRes, catRes] = await Promise.all([
-          fetch(`/api/products?lang=${langParam}`),
-          fetch(`/api/categories?lang=${langParam}`),
+          fetch(`/api/products?lang=${langParam}`, { cache: 'no-store' }),
+          fetch(`/api/categories?lang=${langParam}`, { cache: 'no-store' }),
         ]);
 
         if (prodRes.ok && isMounted) {

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { productFilterSchema } from '../../../lib/schemas/product';
 import { findProducts, createProduct } from '../../../server/db/repositories/products';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -10,7 +13,12 @@ export async function GET(req: NextRequest) {
 
     const filters = parsed.success ? parsed.data : undefined;
     const products = await findProducts(filters);
-    return NextResponse.json(products);
+    return NextResponse.json(products, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'CDN-Cache-Control': 'no-store',
+      },
+    });
   } catch (error: any) {
     console.error('API /api/products GET error:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });

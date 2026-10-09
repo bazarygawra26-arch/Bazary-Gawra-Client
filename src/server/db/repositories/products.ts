@@ -86,10 +86,24 @@ function mapDbProductToDomain(row: any, lang: 'en' | 'ku' | 'ar' = 'ku'): Produc
     return_policy: returnText,
     origin: row.origin || undefined,
     description: row.description || '',
-    image_url: row.image_url || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
-    images: Array.isArray(row.images) && row.images.length > 0
-      ? row.images
-      : [row.image_url || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80'],
+    image_url:
+      row.image_url ||
+      row.primary_image ||
+      (Array.isArray(row.images) && row.images.length > 0 && row.images[0]) ||
+      row.specs?.image_url ||
+      (Array.isArray(row.specs?.images) && row.specs.images.length > 0 && row.specs.images[0]) ||
+      'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
+    images:
+      Array.isArray(row.images) && row.images.length > 0
+        ? row.images
+        : Array.isArray(row.specs?.images) && row.specs.images.length > 0
+        ? row.specs.images
+        : [
+            row.image_url ||
+              row.primary_image ||
+              row.specs?.image_url ||
+              'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
+          ],
     information_signals: {
       has_location: !!location,
       has_warranty: hasWarranty,
@@ -169,6 +183,24 @@ export async function findProductById(id: string, lang: 'en' | 'ku' | 'ar' = 'ku
       });
       if (!error && data) {
         const prod = mapDbProductToDomain(data, lang);
+        // Ensure image_url is populated dynamically from products table if RPC did not return it
+        if (!data.image_url || !data.images?.length) {
+          const { data: pRow } = await (supabaseAdmin as any)
+            .from('products')
+            .select('image_url, specs')
+            .eq('id', id)
+            .maybeSingle();
+          const rowData = pRow as any;
+          if (rowData) {
+            const dynamicImg = rowData.image_url || (Array.isArray(rowData.specs?.images) && rowData.specs.images[0]);
+            if (dynamicImg) {
+              prod.image_url = dynamicImg;
+              prod.images = Array.isArray(rowData.specs?.images) && rowData.specs.images.length > 0
+                ? rowData.specs.images
+                : [dynamicImg];
+            }
+          }
+        }
         await enrichProductWithSellerSlug(prod);
         return localizeProduct(prod, lang);
       }
@@ -202,6 +234,24 @@ export async function findProductBySlug(slug: string, lang: 'en' | 'ku' | 'ar' =
       });
       if (!error && data) {
         const prod = mapDbProductToDomain(data, lang);
+        // Ensure image_url is populated dynamically from products table if RPC did not return it
+        if (!data.image_url || !data.images?.length) {
+          const { data: pRow } = await (supabaseAdmin as any)
+            .from('products')
+            .select('image_url, specs')
+            .eq('id', prod.id)
+            .maybeSingle();
+          const rowData = pRow as any;
+          if (rowData) {
+            const dynamicImg = rowData.image_url || (Array.isArray(rowData.specs?.images) && rowData.specs.images[0]);
+            if (dynamicImg) {
+              prod.image_url = dynamicImg;
+              prod.images = Array.isArray(rowData.specs?.images) && rowData.specs.images.length > 0
+                ? rowData.specs.images
+                : [dynamicImg];
+            }
+          }
+        }
         await enrichProductWithSellerSlug(prod);
         return localizeProduct(prod, lang);
       }

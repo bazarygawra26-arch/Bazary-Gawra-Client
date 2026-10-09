@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findProductBySlug, findProductById } from '../../../../server/db/repositories/products';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
@@ -19,7 +22,12 @@ export async function GET(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    return NextResponse.json(product);
+    return NextResponse.json(product, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'CDN-Cache-Control': 'no-store',
+      },
+    });
   } catch (error: any) {
     console.error('API /api/products/[slug] error:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });

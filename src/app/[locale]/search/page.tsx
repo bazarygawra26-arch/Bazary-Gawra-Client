@@ -57,7 +57,7 @@ function SearchContent() {
     async function fetchCatalog() {
       try {
         setIsLoading(true);
-        const res = await fetch(`/api/products?lang=${language}`);
+        const res = await fetch(`/api/products?lang=${language}`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           if (isMounted) {

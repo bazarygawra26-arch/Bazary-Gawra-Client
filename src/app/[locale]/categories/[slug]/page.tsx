@@ -27,8 +27,8 @@ export default function CategoryProductsPage({
         setIsLoading(true);
         const langParam = language === 'ckb' ? 'ku' : language;
         const [catRes, prodRes] = await Promise.all([
-          fetch(`/api/categories?lang=${langParam}`),
-          fetch(`/api/products?category=${slug}&lang=${langParam}`),
+          fetch(`/api/categories?lang=${langParam}`, { cache: 'no-store' }),
+          fetch(`/api/products?category=${slug}&lang=${langParam}`, { cache: 'no-store' }),
         ]);
 
         if (catRes.ok && prodRes.ok) {

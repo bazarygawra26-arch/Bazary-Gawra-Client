@@ -32,7 +32,7 @@ function CompareContent() {
 
     if (missingIds.length > 0) {
       setIsLoadingUrl(true);
-      fetch(`/api/products?lang=${language}`)
+      fetch(`/api/products?lang=${language}`, { cache: 'no-store' })
         .then((r) => r.json())
         .then((all: Product[]) => {
           if (Array.isArray(all)) {

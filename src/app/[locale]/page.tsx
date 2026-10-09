@@ -44,9 +44,9 @@ export default function LocaleHomePage() {
         const langParam = language === 'ckb' ? 'ku' : language;
 
         const [prodRes, catRes, sellerRes] = await Promise.all([
-          fetch(`/api/products?lang=${langParam}`),
-          fetch(`/api/categories?lang=${langParam}`),
-          fetch(`/api/sellers?lang=${langParam}`),
+          fetch(`/api/products?lang=${langParam}`, { cache: 'no-store' }),
+          fetch(`/api/categories?lang=${langParam}`, { cache: 'no-store' }),
+          fetch(`/api/sellers?lang=${langParam}`, { cache: 'no-store' }),
         ]);
 
         if (prodRes.ok && catRes.ok && sellerRes.ok) {

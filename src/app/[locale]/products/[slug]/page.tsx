@@ -61,7 +61,7 @@ export default function SingleProductPage({
     async function loadProductDetail() {
       try {
         setIsLoading(true);
-        const res = await fetch(`/api/products/${encodeURIComponent(slug)}?lang=${language}`);
+        const res = await fetch(`/api/products/${encodeURIComponent(slug)}?lang=${language}`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           if (isMounted && data) {
@@ -69,7 +69,7 @@ export default function SingleProductPage({
 
             // Fetch similar products in category
             if (data.category) {
-              fetch(`/api/products?category=${encodeURIComponent(data.category)}&lang=${language}&limit=4`)
+              fetch(`/api/products?category=${encodeURIComponent(data.category)}&lang=${language}&limit=4`, { cache: 'no-store' })
                 .then((r) => r.json())
                 .then((similar) => {
                   if (isMounted && Array.isArray(similar)) {
