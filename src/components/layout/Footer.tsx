@@ -3,12 +3,24 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
 import { useLanguage } from '../../context/LanguageContext';
+import { locales, Locale } from '../../lib/i18n/config';
 import { MapPin } from 'lucide-react';
-import { LanguageSwitcher } from './LanguageSwitcher';
 
 export const Footer: React.FC = () => {
-  const { t, language, isKu } = useLanguage();
+  const { t, language, setLanguage, isKu } = useLanguage();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const handleSelectLanguage = (loc: Locale) => {
+    setLanguage(loc);
+    const segments = pathname.split('/');
+    if (segments.length > 1 && locales.includes(segments[1] as Locale)) {
+      segments[1] = loc;
+      router.push(segments.join('/'));
+    }
+  };
 
   return (
     <footer className="bg-white border-t border-[#EAE7DF] pt-14 pb-10 text-neutral-600 text-sm">
@@ -129,14 +141,43 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Bar */}
+        {/* Bottom Bar: Language options & Copyright */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
           <div>
             © {new Date().getFullYear()} {t('footerCopyright')}
           </div>
-          <div className="flex items-center gap-3">
+
+          <div className="flex items-center gap-3 text-xs">
             <span className="text-neutral-400 font-medium">{t('footerLanguages')}</span>
-            <LanguageSwitcher />
+            <button
+              type="button"
+              onClick={() => handleSelectLanguage('ku')}
+              className={`transition-colors cursor-pointer ${
+                isKu ? 'font-bold text-[#8C5E00]' : 'text-neutral-500 hover:text-neutral-900'
+              }`}
+            >
+              کوردی (سۆرانی)
+            </button>
+            <span className="text-neutral-300">•</span>
+            <button
+              type="button"
+              onClick={() => handleSelectLanguage('ar')}
+              className={`transition-colors cursor-pointer ${
+                language === 'ar' ? 'font-bold text-[#8C5E00]' : 'text-neutral-500 hover:text-neutral-900'
+              }`}
+            >
+              العربية
+            </button>
+            <span className="text-neutral-300">•</span>
+            <button
+              type="button"
+              onClick={() => handleSelectLanguage('en')}
+              className={`transition-colors cursor-pointer ${
+                language === 'en' ? 'font-bold text-[#8C5E00]' : 'text-neutral-500 hover:text-neutral-900'
+              }`}
+            >
+              English
+            </button>
           </div>
         </div>
       </div>
