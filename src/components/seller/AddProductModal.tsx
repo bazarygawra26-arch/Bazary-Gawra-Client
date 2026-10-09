@@ -15,6 +15,8 @@ import {
   Upload,
   Trash2,
   Camera,
+  Sparkles,
+  Check,
 } from 'lucide-react';
 
 interface AddProductModalProps {
@@ -71,6 +73,13 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   const [errorMessage, setErrorMessage] = useState('');
   const [createdProduct, setCreatedProduct] = useState<Product | null>(null);
 
+  // AI Seller Listing Assistant State
+  const [isGeneratingAiDraft, setIsGeneratingAiDraft] = useState(false);
+  const [aiDraftProposal, setAiDraftProposal] = useState<any | null>(null);
+  const [showAiDraftModal, setShowAiDraftModal] = useState(false);
+  const [showHintPrompt, setShowHintPrompt] = useState(false);
+  const [aiDraftInputHint, setAiDraftInputHint] = useState('');
+
   // Sync seller location whenever props change
   useEffect(() => {
     if (sellerLocation) {
@@ -108,6 +117,73 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       isMounted = false;
     };
   }, [isOpen, language]);
+
+  const handleAiDraftListing = async (overrideHint?: string) => {
+    const activeHint = overrideHint || aiDraftInputHint || nameCkb || name || description;
+    const primaryImage = imageUrl || uploadedImages[0];
+
+    if (!primaryImage && !activeHint) {
+      setShowHintPrompt(true);
+      return;
+    }
+
+    setIsGeneratingAiDraft(true);
+    setErrorMessage('');
+    setShowHintPrompt(false);
+
+    try {
+      const res = await fetch('/api/ai/listing-draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image_url: primaryImage || undefined,
+          short_description: activeHint || undefined,
+          language: isKu ? 'ku' : 'en',
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to generate listing draft');
+      }
+
+      const draft = await res.json();
+      setAiDraftProposal(draft);
+      setShowAiDraftModal(true);
+    } catch (err: any) {
+      console.warn('AI Listing draft error:', err);
+      setErrorMessage(
+        isKu
+          ? 'نەتوانرا زانیارییەکان بە ژیری دەستکرد دابڕێژرێت، تکایە ڕاستەوخۆ فۆڕمەکە پڕبکەرەوە.'
+          : 'Could not generate draft with AI; please fill the form manually.'
+      );
+    } finally {
+      setIsGeneratingAiDraft(false);
+    }
+  };
+
+  const applyAiDraft = (draft: any) => {
+    if (!draft) return;
+    if (draft.title_en) setName(draft.title_en);
+    if (draft.title_ku) setNameCkb(draft.title_ku);
+    if (draft.description_ku || draft.description_en) {
+      setDescription(isKu ? (draft.description_ku || draft.description_en) : (draft.description_en || draft.description_ku));
+    }
+    if (draft.suggested_category) {
+      const matchedCat = categories.find(
+        (c) =>
+          c.slug.toLowerCase() === draft.suggested_category.toLowerCase() ||
+          c.name.toLowerCase() === draft.suggested_category.toLowerCase()
+      );
+      if (matchedCat) {
+        setCategory(matchedCat.slug || matchedCat.name);
+      }
+    }
+    if (draft.brand) setBrand(draft.brand);
+    if (draft.capacity) setCapacity(draft.capacity);
+    if (draft.power) setPower(draft.power);
+
+    setShowAiDraftModal(false);
+  };
 
   if (!isOpen) return null;
 
@@ -376,6 +452,71 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{errorMessage}</span>
+                </div>
+              )}
+
+              {/* AI Seller Listing Assistant Banner */}
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#FFF9E6] via-[#FAF9F6] to-[#EEF2E9] border border-[#F4B942] shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-[#F4B942] flex items-center justify-center text-neutral-900 shadow-2xs shrink-0">
+                    <Sparkles className="w-4 h-4 fill-neutral-900" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-neutral-900 text-xs sm:text-sm">
+                      {isKu ? 'یاریدەدەری ژیری دەستکرد بۆ داڕشتنی کاڵا' : 'AI Seller Listing Assistant'}
+                    </h4>
+                    <p className="text-[11px] text-neutral-600">
+                      {isKu
+                        ? 'داڕشتنی خۆکاری ناونیشان و وەسف بە کوردی، عەرەبی و ئینگلیزی بەپێی وێنە و ئاماژەکانت.'
+                        : 'Auto-draft titles, categories, and descriptions in 3 languages based on image and keywords.'}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleAiDraftListing()}
+                  disabled={isGeneratingAiDraft}
+                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+                >
+                  {isGeneratingAiDraft ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>{isKu ? 'خەریکی داڕشتنە...' : 'Drafting...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>{isKu ? '✨ بە ژیری دەستکرد دایبڕێژە' : '✨ Draft with AI'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Quick Keyword Prompt if no image/text provided */}
+              {showHintPrompt && (
+                <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs space-y-2 animate-fadeIn">
+                  <span className="font-bold text-amber-900 block">
+                    {isKu
+                      ? 'تکایە وێنەیەک باربکە یان چەند وشەیەکی سەرەکی بنووسە بۆ بەگەڕخستنی ژیری دەستکرد:'
+                      : 'Please upload an image or type a few keywords to guide the AI draft:'}
+                  </span>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={aiDraftInputHint}
+                      onChange={(e) => setAiDraftInputHint(e.target.value)}
+                      placeholder={isKu ? 'بۆ نموونە: قاوەسازی بێدەنگ، کاتژمێری زیرەک...' : 'e.g. espresso coffee machine, smartwatch...'}
+                      className="flex-1 px-3 py-1.5 rounded-xl border border-amber-300 bg-white text-xs focus:outline-none focus:border-[#F4B942]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleAiDraftListing(aiDraftInputHint)}
+                      className="px-3 py-1.5 rounded-xl bg-[#F4B942] font-bold text-neutral-950 text-xs cursor-pointer shadow-2xs"
+                    >
+                      {isKu ? 'دابڕێژە' : 'Draft'}
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -720,6 +861,126 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
           )}
         </div>
       </div>
+
+      {/* AI Draft Review & Approval Modal */}
+      {showAiDraftModal && aiDraftProposal && (
+        <div className="fixed inset-0 z-60 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-xl w-full border border-[#EAE7DF] shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto text-start">
+            <div className="flex items-center justify-between pb-3 border-b border-[#EAE7DF]">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-[#FFF5DD] text-[#8C5E00] flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 fill-[#F4B942]" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-neutral-900 text-base">
+                    {isKu ? 'پێشنیاری ژیری دەستکرد بۆ کاڵاکەت' : 'AI Listing Draft Proposal'}
+                  </h3>
+                  <span className="text-[11px] text-neutral-500 font-medium">
+                    {isKu ? 'تکایە پێداچوونەوە بکە پێش پەسەندکردن' : 'Review and approve before applying to form'}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAiDraftModal(false)}
+                className="p-1 rounded-lg text-neutral-400 hover:text-neutral-700"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Proposed Titles */}
+            <div className="space-y-2 text-xs">
+              <span className="font-bold text-neutral-700 block">
+                {isKu ? 'ناونیشانی پێشنیارکراو بە ٣ زمان:' : 'Proposed Multilingual Titles:'}
+              </span>
+              <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF] space-y-1">
+                <div className="font-bold text-neutral-900">
+                  <span className="text-neutral-400 font-medium me-1">KU:</span> {aiDraftProposal.title_ku}
+                </div>
+                <div className="font-bold text-neutral-800">
+                  <span className="text-neutral-400 font-medium me-1">EN:</span> {aiDraftProposal.title_en}
+                </div>
+                <div className="font-bold text-neutral-800">
+                  <span className="text-neutral-400 font-medium me-1">AR:</span> {aiDraftProposal.title_ar}
+                </div>
+              </div>
+            </div>
+
+            {/* Proposed Description */}
+            <div className="space-y-1.5 text-xs">
+              <span className="font-bold text-neutral-700 block">
+                {isKu ? 'وەسفی پێشنیارکراو:' : 'Proposed Description:'}
+              </span>
+              <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF] text-neutral-700 leading-relaxed max-h-36 overflow-y-auto">
+                {aiDraftProposal.description_ku || aiDraftProposal.description_en}
+              </div>
+            </div>
+
+            {/* Inferred Attributes */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+              {aiDraftProposal.suggested_category && (
+                <div className="p-2.5 rounded-xl bg-white border border-[#EAE7DF]">
+                  <span className="text-[10px] text-neutral-400 font-bold block">CATEGORY</span>
+                  <span className="font-bold text-neutral-900">{aiDraftProposal.suggested_category}</span>
+                </div>
+              )}
+              {aiDraftProposal.brand && (
+                <div className="p-2.5 rounded-xl bg-white border border-[#EAE7DF]">
+                  <span className="text-[10px] text-neutral-400 font-bold block">BRAND</span>
+                  <span className="font-bold text-neutral-900">{aiDraftProposal.brand}</span>
+                </div>
+              )}
+              {aiDraftProposal.capacity && (
+                <div className="p-2.5 rounded-xl bg-white border border-[#EAE7DF]">
+                  <span className="text-[10px] text-neutral-400 font-bold block">CAPACITY</span>
+                  <span className="font-bold text-neutral-900">{aiDraftProposal.capacity}</span>
+                </div>
+              )}
+              {aiDraftProposal.power && (
+                <div className="p-2.5 rounded-xl bg-white border border-[#EAE7DF]">
+                  <span className="text-[10px] text-neutral-400 font-bold block">POWER</span>
+                  <span className="font-bold text-neutral-900">{aiDraftProposal.power}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Uncertain Fields Warning */}
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+              <span className="font-bold flex items-center gap-1.5 text-amber-800">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span>
+                  {isKu
+                    ? 'ئاگاداری شەفافیەت: خانەکانی خوارەوە دەبێت خۆت بە دەستی پشتڕاستیان بکەیتەوە:'
+                    : 'Transparency notice: The following fields require your manual confirmation:'}
+                </span>
+              </span>
+              <p className="text-[11px] text-amber-700 ps-5">
+                {aiDraftProposal.uncertain_fields?.join(', ') || 'Price, Warranty, Delivery, Return Policy'}
+              </p>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#EAE7DF]">
+              <button
+                type="button"
+                onClick={() => setShowAiDraftModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-600 hover:bg-neutral-100"
+              >
+                {isKu ? 'پاشگەزبوونەوە' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={() => applyAiDraft(aiDraftProposal)}
+                className="px-5 py-2.5 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>{isKu ? 'پەسەندکردن و بەکارهێنان لە فۆڕمدا' : 'Approve & Apply to Form'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useLanguage } from '../../context/LanguageContext';
 import { Search, Sparkles, SlidersHorizontal, MapPin, Tag, ShieldCheck, Camera } from 'lucide-react';
 import { AISearchInterpretation } from '../../types';
+import { VoiceSearchButton } from './VoiceSearchButton';
 
 interface AISearchBoxProps {
   onSearchSubmit: (query: string, interpretation?: AISearchInterpretation) => void;
@@ -125,6 +126,13 @@ export const AISearchBox: React.FC<AISearchBoxProps> = ({ onSearchSubmit, isSear
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t('searchPlaceholder')}
             className="w-full bg-transparent text-sm sm:text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
+          />
+
+          <VoiceSearchButton
+            onTranscriptComplete={(voiceText) => {
+              setQuery(voiceText);
+              onSearchSubmit(voiceText);
+            }}
           />
 
           <Link

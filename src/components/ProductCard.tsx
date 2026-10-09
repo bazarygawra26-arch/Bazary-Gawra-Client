@@ -89,6 +89,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct
             {displayName}
           </h3>
 
+          {/* Transparent AI Match Reason & Score */}
+          {lp.ai_match && lp.ai_match.match_reason && (
+            <div className="mb-2.5 p-2 rounded-xl bg-[#FFF8E7] border border-[#F4B942]/60 text-[11px] text-neutral-800 flex items-start gap-1.5 shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 text-[#8C5E00] fill-[#F4B942] shrink-0 mt-0.5" />
+              <div className="flex-1 leading-snug">
+                {lp.ai_match.score && (
+                  <span className="font-extrabold text-[#8C5E00] me-1">
+                    {lp.ai_match.score}%
+                  </span>
+                )}
+                <span className="text-neutral-700 font-medium">{lp.ai_match.match_reason}</span>
+              </div>
+            </div>
+          )}
+
           {/* Price Hierarchy & Discount */}
           <div className="flex items-baseline flex-wrap gap-1.5 mb-2">
             <span className="text-xl sm:text-2xl font-black text-neutral-950 tracking-tight">

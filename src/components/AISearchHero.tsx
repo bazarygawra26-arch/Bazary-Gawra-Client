@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Sparkles, Search, ArrowRight, CheckCircle2, SlidersHorizontal, MapPin, Tag, ShieldCheck } from 'lucide-react';
 import { AISearchInterpretation, Product } from '../types';
+import { VoiceSearchButton } from './ai/VoiceSearchButton';
 
 interface AISearchHeroProps {
   onSearchSubmit: (query: string, interpretation?: AISearchInterpretation) => void;
@@ -134,6 +135,15 @@ export const AISearchHero: React.FC<AISearchHeroProps> = ({ onSearchSubmit, isSe
                   ✕
                 </button>
               )}
+
+              <div className="pe-1.5 flex items-center">
+                <VoiceSearchButton
+                  onTranscriptComplete={(voiceText) => {
+                    setQuery(voiceText);
+                    onSearchSubmit(voiceText);
+                  }}
+                />
+              </div>
             </div>
 
             <button

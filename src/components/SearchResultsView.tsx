@@ -20,6 +20,7 @@ import {
   Layers,
   Store,
 } from 'lucide-react';
+import { AIFeedbackControl } from './ai/AIFeedbackControl';
 
 interface SearchResultsViewProps {
   products: Product[];
@@ -345,6 +346,13 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
                 <p className="text-sm text-neutral-800 leading-relaxed font-medium">
                   {aiResult.recommendation}
                 </p>
+
+                {/* AI Recommendation Feedback */}
+                <AIFeedbackControl
+                  requestId={aiResult.request_id}
+                  feature="search_recommendation"
+                  className="mt-4"
+                />
               </div>
             )}
 
@@ -580,6 +588,13 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
                     <span>{isCkb ? 'وەڵامی ڕاوێژکاری بازاڕی گەورە:' : isAr ? 'إجابة مستشار بازاري كورة:' : 'Advisor Response:'}</span>
                   </div>
                   {advisorAnswer}
+
+                  {/* Advisor Answer Feedback */}
+                  <AIFeedbackControl
+                    requestId={aiResult.request_id}
+                    feature="interactive_advisor"
+                    className="mt-3"
+                  />
                 </div>
               )}
             </div>

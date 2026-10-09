@@ -30,8 +30,16 @@ export const ProductFeedbackSection: React.FC<ProductFeedbackSectionProps> = ({
 
   const isKu = language === 'ckb' || language === 'ku';
   const isAr = language === 'ar';
+  const [hasAlreadySubmitted, setHasAlreadySubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const existing = localStorage.getItem(`submitted_feedback_${productId}`);
+      if (existing) {
+        setHasAlreadySubmitted(true);
+      }
+    }
     setIsLoading(true);
     fetch(`/api/product-feedback?productId=${encodeURIComponent(productId)}`)
       .then((r) => r.json())
@@ -46,9 +54,11 @@ export const ProductFeedbackSection: React.FC<ProductFeedbackSectionProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!comment.trim()) return;
+    if (!comment.trim() || hasAlreadySubmitted) return;
 
     setIsSubmitting(true);
+    setSubmitError(null);
+
     try {
       const res = await fetch('/api/product-feedback', {
         method: 'POST',
@@ -56,34 +66,46 @@ export const ProductFeedbackSection: React.FC<ProductFeedbackSectionProps> = ({
         body: JSON.stringify({
           productId,
           rating,
-          customerName: name.trim() || (isKu ? 'کڕیاری بەڕێز' : isAr ? 'مشتري محلي' : 'Verified Buyer'),
+          customerName: name.trim() || (isKu ? 'کڕیاری بەڕێز' : isAr ? 'مشتري محلي' : 'Local Buyer'),
           customerCity: city,
           comment: comment.trim(),
         }),
       });
 
-      if (res.ok) {
-        const created = await res.json();
-        setFeedbackList((prev) => [created, ...prev]);
-        setComment('');
-        setName('');
-        setSubmitSuccess(true);
-        setTimeout(() => {
-          setSubmitSuccess(false);
-          setShowForm(false);
-        }, 2000);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to submit review');
       }
-    } catch (err) {
+
+      const created = await res.json();
+      setFeedbackList((prev) => [created, ...prev]);
+      setComment('');
+      setName('');
+      setSubmitSuccess(true);
+      setHasAlreadySubmitted(true);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`submitted_feedback_${productId}`, 'true');
+      }
+      setTimeout(() => {
+        setSubmitSuccess(false);
+        setShowForm(false);
+      }, 2500);
+    } catch (err: any) {
       console.warn('Failed to post feedback:', err);
+      setSubmitError(
+        isKu
+          ? 'نەتوانرا بۆچوونەکەت تۆمار بکرێت، تکایە دڵنیابەرەوە لە پەیوەندی هێڵی ئینتەرنێت.'
+          : 'Could not record review; please check connection and try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const avgRating =
-    feedbackList.length > 0
-      ? (feedbackList.reduce((acc, f) => acc + f.rating, 0) / feedbackList.length).toFixed(1)
-      : '5.0';
+  const hasRatings = feedbackList.length > 0;
+  const avgRating = hasRatings
+    ? (feedbackList.reduce((acc, f) => acc + f.rating, 0) / feedbackList.length).toFixed(1)
+    : null;
 
   return (
     <div className="pt-6 border-t border-[#EAE7DF] space-y-4 text-start">
@@ -92,8 +114,8 @@ export const ProductFeedbackSection: React.FC<ProductFeedbackSectionProps> = ({
         <div>
           <h3 className="text-base sm:text-lg font-bold text-neutral-900 flex items-center gap-2">
             <span>{isKu ? 'بۆچوون و ڕای کڕیاران' : isAr ? 'آراء وتقييمات المشترين' : 'Customer Feedback & Reviews'}</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-[#FFF5DD] text-[#8C5E00] font-black">
-              ⭐ {avgRating} ({feedbackList.length})
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#FFF5DD] text-[#8C5E00] font-black">
+              {hasRatings ? `⭐ ${avgRating} (${feedbackList.length})` : (isKu ? 'هێشتا بێ هەڵسەنگاندنە (٠)' : '(0) No ratings yet')}
             </span>
           </h3>
           <p className="text-xs text-neutral-500 mt-0.5">
@@ -101,17 +123,23 @@ export const ProductFeedbackSection: React.FC<ProductFeedbackSectionProps> = ({
               ? 'ئەزموونی ڕاستەقینەی کڕیارانی کوردستان دەربارەی ئەم بەرهەمە'
               : isAr
               ? 'تجارب وآراء حقيقية من مشتري كوردستان حول هذا المنتج'
-              : 'Authentic verified feedback from local buyers across Kurdistan'}
+              : 'Authentic recorded feedback from buyers across Kurdistan'}
           </p>
         </div>
 
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="self-start sm:self-auto text-xs font-bold px-3.5 py-2 rounded-xl bg-[#FAF9F6] hover:bg-[#F4B942]/20 border border-[#EAE7DF] text-neutral-800 flex items-center gap-1.5 transition-colors cursor-pointer"
-        >
-          <MessageSquarePlus className="w-3.5 h-3.5 text-[#8C5E00]" />
-          <span>{showForm ? (isKu ? 'داخستن' : isAr ? 'إلغاء' : 'Cancel') : (isKu ? 'بۆچوونی خۆت بنووسە' : isAr ? 'أضف تقييمك' : 'Write Feedback')}</span>
-        </button>
+        {hasAlreadySubmitted ? (
+          <span className="text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 font-semibold">
+            {isKu ? '✓ تۆ پێشتر بۆچوونت تۆمارکردووە' : '✓ You already reviewed this item'}
+          </span>
+        ) : (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="self-start sm:self-auto text-xs font-bold px-3.5 py-2 rounded-xl bg-[#FAF9F6] hover:bg-[#F4B942]/20 border border-[#EAE7DF] text-neutral-800 flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <MessageSquarePlus className="w-3.5 h-3.5 text-[#8C5E00]" />
+            <span>{showForm ? (isKu ? 'داخستن' : isAr ? 'إلغاء' : 'Cancel') : (isKu ? 'بۆچوونی خۆت بنووسە' : isAr ? 'أضف تقييمك' : 'Write Feedback')}</span>
+          </button>
+        )}
       </div>
 
       {/* Review Submission Form */}
@@ -184,6 +212,10 @@ export const ProductFeedbackSection: React.FC<ProductFeedbackSectionProps> = ({
               <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
                 <CheckCircle2 className="w-4 h-4" />
                 {isKu ? 'بۆچوونەکەت بە سەرکەوتوویی تۆمارکرا!' : isAr ? 'تم إضافة تقييمك بنجاح!' : 'Feedback submitted successfully!'}
+              </span>
+            ) : submitError ? (
+              <span className="text-xs font-bold text-rose-600 flex items-center gap-1">
+                <span>{submitError}</span>
               </span>
             ) : <span />}
 

@@ -170,8 +170,17 @@ export async function processAiSearch(
     }
   }
 
-  // Localize product attributes according to active user language
-  const products: Product[] = rawProducts.map((p) => localizeProduct(p, normLang));
+  // Localize product attributes and perform transparent deterministic ranking
+  const localizedRaw = rawProducts.map((p) => localizeProduct(p, normLang));
+  const products: Product[] = rankProductsDeterministically(localizedRaw, {
+    query: cleanQuery,
+    productTerm,
+    targetLocation,
+    budgetMax,
+    budgetMin,
+    preferences,
+    normLang,
+  });
 
   // If products is 0, find real alternatives from the database (never hallucinating outside shops)
   let alternatives: Product[] | undefined = undefined;
@@ -395,7 +404,7 @@ export async function processAiSearch(
   const latencyMs = Date.now() - startTime;
 
   // Persist search query and AI results to Supabase ai_requests
-  await logSearchQuery({
+  const requestId = await logSearchQuery({
     query_text: query,
     detected_language: interpretation.detected_language,
     parsed_product_type: interpretation.product_type,
@@ -408,6 +417,7 @@ export async function processAiSearch(
   });
 
   return {
+    request_id: requestId,
     request: {
       product: productTerm,
       category: categoryTerm,
@@ -427,6 +437,180 @@ export async function processAiSearch(
     seller_questions,
     language: normLang,
   };
+}
+
+/**
+ * Transparent, deterministic ranking formula based on factual data
+ */
+function rankProductsDeterministically(
+  products: Product[],
+  criteria: {
+    query: string;
+    productTerm: string;
+    targetLocation: string;
+    budgetMax: number | null;
+    budgetMin: number | null;
+    preferences: string[];
+    normLang: 'en' | 'ckb' | 'ar';
+  }
+): Product[] {
+  const isCkb = criteria.normLang === 'ckb';
+  const isAr = criteria.normLang === 'ar';
+  const qTerms = (criteria.productTerm || criteria.query)
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((w) => w.length > 1);
+
+  const scored = products.map((p) => {
+    let score = 50; // base score
+    const highlights: string[] = [];
+    const cautions: string[] = [];
+
+    const pName = (p.name + ' ' + (p.name_ckb || '') + ' ' + (p.name_ar || '')).toLowerCase();
+    const pCat = (p.category || '').toLowerCase();
+    const pLoc = (p.location || '').toLowerCase();
+    const targetLoc = (criteria.targetLocation || '').toLowerCase();
+
+    // 1. Query Term Match (up to 25 pts)
+    const matchesTerm = qTerms.some((term) => pName.includes(term) || pCat.includes(term));
+    if (matchesTerm) {
+      score += 20;
+    } else {
+      score += 5;
+    }
+
+    // 2. Budget Compliance (up to 20 pts)
+    if (criteria.budgetMax && criteria.budgetMax > 0) {
+      if (p.price <= criteria.budgetMax) {
+        score += 20;
+        highlights.push(
+          isCkb
+            ? `لە خوار بودجەی داواکراوە (${criteria.budgetMax.toLocaleString()} دینار)`
+            : isAr
+            ? `ضمن الميزانية المطلوبة (${criteria.budgetMax.toLocaleString()} دينار)`
+            : `Within specified budget (${criteria.budgetMax.toLocaleString()} IQD)`
+        );
+      } else if (p.price <= criteria.budgetMax * 1.1) {
+        score += 8;
+        cautions.push(
+          isCkb ? 'کەمێک لە سەرووی بودجەی دیاریکراوە' : isAr ? 'أعلى بقليل من الميزانية' : 'Slightly exceeds budget'
+        );
+      } else {
+        score -= 10;
+        cautions.push(
+          isCkb ? 'لە سەرووی بودجەی داواکراوە' : isAr ? 'أعلى من الميزانية المحددة' : 'Above requested budget'
+        );
+      }
+    } else {
+      score += 15;
+    }
+
+    // 3. Location Match (up to 20 pts)
+    if (targetLoc && targetLoc !== 'kurdistan' && targetLoc !== 'kurdistan region' && targetLoc !== 'عێراق') {
+      if (pLoc.includes(targetLoc)) {
+        score += 20;
+        highlights.push(
+          isCkb
+            ? `لە هەمان شارە (${p.location})`
+            : isAr
+            ? `في نفس المدينة المطلوبة (${p.location})`
+            : `Located in requested city (${p.location})`
+        );
+      } else {
+        score += 5;
+        cautions.push(
+          isCkb
+            ? `لە شارێکی ترە (${p.location})`
+            : isAr
+            ? `متوفر في مدينة أخرى (${p.location})`
+            : `Located in ${p.location}`
+        );
+      }
+    } else {
+      score += 15;
+    }
+
+    // 4. Preferences Match (Warranty & Delivery) (up to 15 pts)
+    const wantsWarranty = criteria.preferences.some(
+      (pr) => pr.toLowerCase().includes('warranty') || pr.includes('گەرەنتی') || pr.includes('ضمان')
+    );
+    const hasWarranty = p.warranty && p.warranty !== 'Information unavailable' && p.warranty !== 'Not provided';
+    if (hasWarranty) {
+      score += wantsWarranty ? 15 : 8;
+      highlights.push(
+        isCkb ? `خاوەنی گەرەنتییە (${p.warranty})` : isAr ? `يشمل الضمان (${p.warranty})` : `Warranty: ${p.warranty}`
+      );
+    } else if (wantsWarranty) {
+      score -= 5;
+      cautions.push(
+        isCkb ? 'مەرجی گەرەنتی دیاری نەکراوە' : isAr ? 'الضمان غير محدد' : 'Warranty omitted'
+      );
+    }
+
+    const wantsDelivery = criteria.preferences.some(
+      (pr) => pr.toLowerCase().includes('delivery') || pr.includes('گەیاندن') || pr.includes('توصيل')
+    );
+    const hasDelivery = p.delivery_info && p.delivery_info !== 'Not provided';
+    if (hasDelivery) {
+      score += wantsDelivery ? 10 : 5;
+    }
+
+    // 5. Listing Completeness & Seller Trust (up to 10 pts)
+    if (p.seller_verification === 'verified') {
+      score += 5;
+      highlights.push(
+        isCkb ? 'فرۆشیاری پشتڕاستکراو' : isAr ? 'بائع موثق' : 'Verified Seller'
+      );
+    }
+    if (p.rating && p.rating >= 4.5) {
+      score += 5;
+    }
+
+    const finalScore = Math.min(99, Math.max(30, Math.round(score)));
+
+    // Generate clear, deterministic, honest 1-sentence match reason
+    const reasonsList: string[] = [];
+    if (criteria.budgetMax && p.price <= criteria.budgetMax) {
+      reasonsList.push(isCkb ? 'هاوتای بودجە' : isAr ? 'مطابق للميزانية' : 'Matches budget');
+    }
+    if (targetLoc && pLoc.includes(targetLoc)) {
+      reasonsList.push(isCkb ? `لە ${p.location}` : isAr ? `في ${p.location}` : `in ${p.location}`);
+    }
+    if (hasWarranty) {
+      reasonsList.push(isCkb ? 'گەرەنتی فەرمی' : isAr ? 'مع ضمان' : 'with warranty');
+    }
+    if (hasDelivery) {
+      reasonsList.push(isCkb ? 'گەیاندنی بەردەست' : isAr ? 'توصيل متاح' : 'delivery available');
+    }
+
+    let matchReason = '';
+    if (reasonsList.length > 0) {
+      matchReason = isCkb
+        ? `${reasonsList.join(' و ')} لە تۆماری فرۆشیاردا دابینکراوە.`
+        : isAr
+        ? `${reasonsList.join(' و ')} موثقة في بيانات البائع.`
+        : `${reasonsList.join(', ')} documented in seller listing.`;
+    } else {
+      matchReason = isCkb
+        ? `هاوتای پۆلی ${p.category}ە لە کەتەلۆگی بەردەستدا.`
+        : isAr
+        ? `يطابق فئة ${p.category} في الكتالوج المتاح.`
+        : `Matches category ${p.category} in active catalogue.`;
+    }
+
+    return {
+      ...p,
+      ai_match: {
+        score: finalScore,
+        match_reason: matchReason,
+        highlights,
+        cautions,
+      },
+    };
+  });
+
+  // Sort strictly by score descending
+  return scored.sort((a, b) => (b.ai_match?.score || 0) - (a.ai_match?.score || 0));
 }
 
 // Rule-based deterministic extractor for Kurdish, Arabic, and English queries (Zero-failure fallback when Gemini is 503 or offline)

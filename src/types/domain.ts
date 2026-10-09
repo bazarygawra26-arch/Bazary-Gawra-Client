@@ -184,6 +184,21 @@ export interface AIComparisonResult {
     productName: string;
     missing: string[];
   }[];
+  advantages_disadvantages?: {
+    productId: string;
+    productName: string;
+    advantages: string[];
+    disadvantages: string[];
+  }[];
+  best_match?: {
+    productId: string;
+    productName: string;
+    rationale: string;
+  };
+  facts_vs_advice?: {
+    verified_database_facts: string[];
+    general_buying_advice: string[];
+  };
 }
 
 export interface StructuredAiSearchRequest {
@@ -206,6 +221,7 @@ export interface DetailedInformationGap {
 }
 
 export interface AiSearchComprehensiveResult {
+  request_id?: string | null;
   request: StructuredAiSearchRequest;
   interpretation: AISearchInterpretation;
   products: Product[];

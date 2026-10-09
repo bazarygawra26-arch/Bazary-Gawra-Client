@@ -317,16 +317,38 @@ export async function logAiFeedback(record: {
   request_id?: string;
   helpful: boolean;
   comment?: string;
+  reason?: string;
+  feature?: string;
 }) {
   if (!supabaseAdmin) return;
   try {
-    await (supabaseAdmin.from('ai_feedback') as any).insert([
+    let validReqId = record.request_id && isValidUuid(record.request_id) ? record.request_id : null;
+
+    // If request_id is not provided, create a parent ai_requests record to satisfy not-null constraint
+    if (!validReqId) {
+      validReqId = await logAiRequest({
+        feature: (record.feature as any) || 'search',
+        input_text: record.comment || 'Direct customer feedback',
+        status: 'success',
+      });
+    }
+
+    if (!validReqId) {
+      console.warn('aiLogs: Could not establish valid request_id for ai_feedback');
+      return;
+    }
+
+    const { error } = await (supabaseAdmin.from('ai_feedback') as any).insert([
       {
-        request_id: record.request_id && isValidUuid(record.request_id) ? record.request_id : null,
+        request_id: validReqId,
         helpful: record.helpful,
         comment: record.comment || null,
       },
     ]);
+
+    if (error) {
+      console.warn('aiLogs: logAiFeedback insert error:', error);
+    }
   } catch (err) {
     console.warn('aiLogs: logAiFeedback error:', err);
   }

@@ -4,6 +4,7 @@ import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useComparison } from '../context/ComparisonContext';
 import { localizeProduct } from '../lib/i18nData';
+import { AIComparisonPanel } from './compare/AIComparisonPanel';
 import {
   X,
   Sparkles,
@@ -93,72 +94,8 @@ export const ProductComparisonDrawer: React.FC = () => {
             </div>
           ) : (
             <>
-              {/* 1. AI Comparison Synthesis Panel */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-[#FFFBF0] to-[#FAF9F6] border border-[#F4B942]/60 shadow-sm">
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2 font-bold text-neutral-900 text-sm">
-                    <Sparkles className="w-4 h-4 text-[#8C5E00] fill-[#F4B942]" />
-                    <span>{t('aiComparison')}</span>
-                  </div>
-                  <span className="text-[11px] font-semibold bg-[#FFF5DD] text-[#8C5E00] px-2 py-0.5 rounded-full">
-                    {isKu
-                      ? 'بزوێنەری شیکاری کەلێن و گونجاوی ژیری دەستکرد'
-                      : isAr
-                      ? 'محرك تحليل الفجوات والجدوى بالذكاء الاصطناعي'
-                      : 'AI Gap & Feasibility Engine'}
-                  </span>
-                </div>
-
-                <p className="text-xs sm:text-sm text-neutral-700 leading-relaxed">
-                  {localizedItems.length === 1 ? (
-                    isKu
-                      ? 'لانیکەم بەرهەمێکی تر زیاد بکە بۆ دروستکردنی شیکارییەکی گشتگیری گونجاوی و بەراوردکاری ژیری دەستکرد.'
-                      : isAr
-                      ? 'أضف منتجاً واحداً على الأقل لإنشاء تحليل مقارنة شامل للجدوى والمفاضلة بالذكاء الاصطناعي.'
-                      : 'Add at least one more product to generate a comprehensive AI comparative feasibility and trade-off synthesis.'
-                  ) : (
-                    <>
-                      {isKu ? (
-                        <>
-                          بەپێی زانیاری و بەڵێننامەی فرۆشیاران،{' '}
-                          <span className="font-bold text-neutral-900">
-                            {localizedItems[0].name.split('(')[0]}
-                          </span>{' '}
-                          گەرەنتییەکی بەهێزتر و گەیاندنی خێراتری ناوخۆیی دابین دەکات، لە کاتێکدا{' '}
-                          <span className="font-bold text-neutral-900">
-                            {localizedItems[1].name.split('(')[0]}
-                          </span>{' '}
-                          جیاوازی سەرەکی لە قەبارە و تایبەتمەندی تەکنیکیدایە.
-                        </>
-                      ) : isAr ? (
-                        <>
-                          بناءً على التزامات وبيانات التجار المقدمة، يوفر{' '}
-                          <span className="font-bold text-neutral-900">
-                            {localizedItems[0].name.split('(')[0]}
-                          </span>{' '}
-                          ضماناً محلياً أوثق وتوصيلاً أسرع، بينما يتميز{' '}
-                          <span className="font-bold text-neutral-900">
-                            {localizedItems[1].name.split('(')[0]}
-                          </span>{' '}
-                          بفروقات السعة والحجم الفني.
-                        </>
-                      ) : (
-                        <>
-                          Based on the provided vendor disclosures,{' '}
-                          <span className="font-bold text-neutral-900">
-                            {localizedItems[0].name.split('(')[0]}
-                          </span>{' '}
-                          offers stronger localized warranty and fast delivery, whereas{' '}
-                          <span className="font-bold text-neutral-900">
-                            {localizedItems[1].name.split('(')[0]}
-                          </span>{' '}
-                          differs primarily in capacity and technical footprint.
-                        </>
-                      )}
-                    </>
-                  )}
-                </p>
-              </div>
+              {/* 1. Live AI Comparison & Feasibility Engine */}
+              <AIComparisonPanel products={localizedItems} />
 
               {/* 2. Side-by-Side Product Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

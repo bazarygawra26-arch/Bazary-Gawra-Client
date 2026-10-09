@@ -74,72 +74,88 @@ Respond with ONLY valid JSON with this exact schema (no markdown fences, no extr
   }
 }`;
 
-    // If Gemini API Key exists and imageBase64 is provided, attempt live Gemini 3.8 Flash call
+    const CANDIDATE_MODELS = [
+      'gemini-3.1-flash-lite',
+      'gemini-3.5-flash-lite',
+      'gemini-3.5-flash',
+      'gemini-3.7-flash',
+      'gemini-3.8-flash',
+    ];
+
+    // If Gemini API Key exists and imageBase64 is provided, attempt live Gemini vision call across candidate models
     if (apiKey && imageBase64) {
-      try {
-        const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+      const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
 
-        const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [
-                {
-                  parts: [
-                    { text: systemPrompt },
-                    {
-                      inline_data: {
-                        mime_type: mimeType,
-                        data: cleanBase64,
+      for (const model of CANDIDATE_MODELS) {
+        try {
+          const geminiRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              signal: AbortSignal.timeout(9000),
+              body: JSON.stringify({
+                contents: [
+                  {
+                    parts: [
+                      { text: systemPrompt },
+                      {
+                        inlineData: {
+                          mimeType: mimeType,
+                          data: cleanBase64,
+                        },
                       },
-                    },
-                  ],
+                    ],
+                  },
+                ],
+                generationConfig: {
+                  temperature: 0.1,
+                  responseMimeType: 'application/json',
                 },
-              ],
-              generationConfig: {
-                temperature: 0.2,
-                responseMimeType: 'application/json',
-              },
-            }),
+              }),
+            }
+          );
+
+          if (geminiRes.ok) {
+            const geminiData = await geminiRes.json();
+            const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (rawText) {
+              const cleanedText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+              const parsed = JSON.parse(cleanedText);
+
+              // Localize parsed result to ensure 100% conformity
+              const localizedParsed = localizeAnalysisResult(parsed, normLang);
+
+              // Find matching local database products
+              const queryKeywords = (parsed.suggested_search_query || parsed.product_type || '').toLowerCase();
+              const allDbProducts = await findProducts({ lang: dbLang });
+              
+              const similarProducts = allDbProducts.filter((p) => {
+                const pCat = (p.category || '').toLowerCase();
+                const pName = (p.name || '').toLowerCase();
+                const targetCat = (parsed.category || '').toLowerCase();
+                const words = queryKeywords.split(/\s+/).filter((w: string) => w.length > 2);
+                
+                const catMatch = targetCat && (pCat.includes(targetCat) || targetCat.includes(pCat));
+                const wordMatch = words.some((w: string) => pName.includes(w) || pCat.includes(w));
+                return catMatch || wordMatch;
+              }).map((p) => localizeProduct(p, normLang));
+
+              return NextResponse.json({
+                success: true,
+                source: model,
+                analysis: localizedParsed,
+                similar_products: similarProducts.slice(0, 3),
+              });
+            }
+          } else {
+            const errText = await geminiRes.text();
+            console.warn(`Gemini vision API response not ok for ${model} (${geminiRes.status}):`, errText.slice(0, 100));
           }
-        );
-
-        if (geminiRes.ok) {
-          const geminiData = await geminiRes.json();
-          const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-
-          if (rawText) {
-            const cleanedText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-            const parsed = JSON.parse(cleanedText);
-
-            // Localize parsed result to ensure 100% conformity
-            const localizedParsed = localizeAnalysisResult(parsed, normLang);
-
-            // Find matching local database products
-            const queryKeywords = (parsed.suggested_search_query || parsed.product_type || '').toLowerCase();
-            const allDbProducts = await findProducts({ lang: dbLang });
-            const similarProducts = allDbProducts.filter((p) => {
-              return (
-                p.category.toLowerCase().includes((parsed.category || '').toLowerCase()) ||
-                p.name.toLowerCase().includes(queryKeywords) ||
-                (queryKeywords && p.name.toLowerCase().split(' ')[0] && queryKeywords.includes(p.name.toLowerCase().split(' ')[0]))
-              );
-            }).map((p) => localizeProduct(p, normLang));
-
-            return NextResponse.json({
-              success: true,
-              source: 'gemini-3.8-flash',
-              analysis: localizedParsed,
-              similar_products: similarProducts.length > 0 ? similarProducts.slice(0, 3) : allDbProducts.slice(0, 3).map((p) => localizeProduct(p, normLang)),
-            });
-          }
-        } else {
-          console.warn('Gemini vision API response not ok, status:', geminiRes.status);
+        } catch (geminiErr: any) {
+          console.warn(`Gemini vision call error on ${model}:`, geminiErr?.message || geminiErr);
         }
-      } catch (geminiErr) {
-        console.error('Gemini vision call error:', geminiErr);
       }
     }
 
@@ -510,6 +526,20 @@ Respond with ONLY valid JSON with this exact schema (no markdown fences, no extr
       },
     };
 
+    // If user uploaded a custom image and live AI vision failed or was unavailable, return an honest error
+    if (imageBase64 && !sampleType) {
+      return NextResponse.json(
+        {
+          error: isKurdish
+            ? 'سێرڤەری ژیری دەستکرد لەم ساتەدا بەردەست نییە یان سنوری داواکاری تەواو بووە. تکایە دووبارە هەوڵبدەرەوە.'
+            : isArabic
+            ? 'خدمة فحص الصور بالذكاء الاصطناعي غير متوفرة حالياً، يرجى المحاولة لاحقاً.'
+            : 'AI image inspection service is temporarily unavailable or rate-limited. Please try again.',
+        },
+        { status: 503 }
+      );
+    }
+
     const chosenSampleKey = sampleType || 'airfryer';
     const sampleGroup = sampleAnalysesMultilingual[chosenSampleKey] || sampleAnalysesMultilingual.airfryer;
     const baseAnalysis = sampleGroup[normLang] || sampleGroup.ckb;
@@ -517,17 +547,18 @@ Respond with ONLY valid JSON with this exact schema (no markdown fences, no extr
 
     const allDbProducts = await findProducts({ lang: dbLang });
     const similarProducts = allDbProducts.filter((p) => {
-      return (
-        p.category.toLowerCase().includes((localizedAnalysis.category || '').toLowerCase()) ||
-        p.name.toLowerCase().includes((localizedAnalysis.suggested_search_query || '').toLowerCase())
-      );
+      const pCat = (p.category || '').toLowerCase();
+      const pName = (p.name || '').toLowerCase();
+      const targetCat = (localizedAnalysis.category || '').toLowerCase();
+      const query = (localizedAnalysis.suggested_search_query || '').toLowerCase();
+      return (targetCat && pCat.includes(targetCat)) || (query && pName.includes(query));
     }).map((p) => localizeProduct(p, normLang));
 
     return NextResponse.json({
       success: true,
-      source: 'multilingual-inspection',
+      source: 'sample-simulation',
       analysis: localizedAnalysis,
-      similar_products: similarProducts.length > 0 ? similarProducts.slice(0, 3) : allDbProducts.slice(0, 3).map((p) => localizeProduct(p, normLang)),
+      similar_products: similarProducts.slice(0, 3),
     });
   } catch (error: any) {
     console.error('Error in /api/ai-image-analyze:', error);
