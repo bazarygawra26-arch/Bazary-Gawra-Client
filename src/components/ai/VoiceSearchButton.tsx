@@ -14,6 +14,7 @@ import {
   RefreshCw,
   Globe,
   Loader2,
+  Sparkles,
   ArrowRight,
   ArrowLeft,
 } from 'lucide-react';
@@ -45,9 +46,9 @@ const VOICE_LANGUAGES: SupportedVoiceLang[] = [
     name_ar: 'الكردية (السورانية)',
     name_en: 'Kurdish (Sorani)',
     code: 'ckb-IQ',
-    note_ku: 'پێویستی بە پشتگیری وێبگەڕە',
-    note_ar: 'يتطلب دعم المتصفح',
-    note_en: 'Requires browser speech engine',
+    note_ku: 'بە یارمەتی ژیری دەستکرد',
+    note_ar: 'بمساعدة الذكاء الاصطناعي',
+    note_en: 'With AI speech assistance',
   },
   {
     id: 'ar',
@@ -76,7 +77,6 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
   const isAr = language === 'ar';
   const isRtl = dir === 'rtl';
 
-  // Determine initial speech recognition locale
   const getInitialLangCode = () => {
     if (isAr) return 'ar-IQ';
     if (isKu) return 'ckb-IQ';
@@ -92,16 +92,17 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [recordingSeconds, setRecordingSeconds] = useState<number>(0);
   const [isPermissionDenied, setIsPermissionDenied] = useState<boolean>(false);
+  const [isConvertingToKurdish, setIsConvertingToKurdish] = useState<boolean>(false);
 
   const recognitionRef = useRef<any>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
-  // Sync default speech recognition language when UI language changes
   useEffect(() => {
     setSelectedLangCode(getInitialLangCode());
   }, [language]);
 
-  // Check browser Web Speech API capability on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognition =
@@ -112,7 +113,6 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
     }
   }, []);
 
-  // Timer while listening
   useEffect(() => {
     if (status === 'listening') {
       setRecordingSeconds(0);
@@ -136,7 +136,34 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const startListening = (langCodeOverride?: string) => {
+  // Convert browser-misheard phonetic Latin/English speech into genuine Sorani Kurdish using Gemini AI
+  const convertPhoneticToKurdish = async (textToFix?: string) => {
+    const raw = (textToFix || transcript || interimTranscript).trim();
+    if (!raw) return;
+
+    try {
+      setIsConvertingToKurdish(true);
+      const res = await fetch('/api/ai/voice-transcribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneticText: raw, language: 'ku' }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.transcript) {
+          setTranscript(data.transcript);
+          setInterimTranscript('');
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to convert phonetic to Kurdish:', err);
+    } finally {
+      setIsConvertingToKurdish(false);
+    }
+  };
+
+  const startListening = async (langCodeOverride?: string) => {
     const activeLangCode = langCodeOverride || selectedLangCode;
     setErrorMessage(null);
     setIsPermissionDenied(false);
@@ -145,6 +172,22 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
     setShowModal(true);
 
     if (typeof window === 'undefined') return;
+
+    // Start background MediaRecorder to capture audio
+    if (navigator?.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mr = new MediaRecorder(stream);
+        audioChunksRef.current = [];
+        mr.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunksRef.current.push(e.data);
+        };
+        mediaRecorderRef.current = mr;
+        mr.start(250);
+      } catch (mediaErr) {
+        console.warn('Could not start MediaRecorder fallback:', mediaErr);
+      }
+    }
 
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -163,7 +206,6 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
     }
 
     try {
-      // Abort any existing instance
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort();
@@ -232,7 +274,6 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
               : 'The selected speech language is not supported by your browser engine. You can select Arabic, English, or type directly.'
           );
         } else if (event.error === 'aborted') {
-          // Intentionally stopped, transition to review
           setStatus('review');
         } else {
           setStatus('error');
@@ -247,11 +288,26 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
       };
 
       recognition.onend = () => {
-        // When speech stream ends normally
+        // Stop audio recorder
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+          try {
+            mediaRecorderRef.current.stop();
+          } catch (_) {}
+        }
+
         setStatus((current) => {
           if (current === 'listening') return 'review';
           return current;
         });
+
+        // If in Kurdish mode and browser produced English/Latin letters (e.g. "slow a 2006 sub key")
+        // Automatically trigger AI Kurdish restoration!
+        setTimeout(() => {
+          const text = (transcript || interimTranscript).trim();
+          if (selectedLangCode === 'ckb-IQ' && /[a-zA-Z]/.test(text)) {
+            convertPhoneticToKurdish(text);
+          }
+        }, 100);
       };
 
       recognition.start();
@@ -275,9 +331,19 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
         recognitionRef.current.stop();
       } catch (_) {}
     }
-    // After a brief moment, transition to review
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch (_) {}
+    }
+
     setTimeout(() => {
       setStatus('review');
+      const text = (transcript || interimTranscript).trim();
+      // If Kurdish was selected and text contains Latin/English letters, auto-fix with AI
+      if (selectedLangCode === 'ckb-IQ' && /[a-zA-Z]/.test(text)) {
+        convertPhoneticToKurdish(text);
+      }
     }, 400);
   };
 
@@ -307,11 +373,17 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
         recognitionRef.current.abort();
       } catch (_) {}
     }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch (_) {}
+    }
     setShowModal(false);
     setStatus('idle');
     setTranscript('');
     setInterimTranscript('');
     setErrorMessage(null);
+    setIsConvertingToKurdish(false);
   };
 
   const handleLanguageSwitch = (newLangCode: string) => {
@@ -330,6 +402,8 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
       : size === 'lg'
       ? 'p-3'
       : 'p-2';
+
+  const hasLatinLetters = /[a-zA-Z]/.test(transcript);
 
   return (
     <>
@@ -397,7 +471,7 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
                   className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-2xs transition-colors shrink-0 ${
                     status === 'listening'
                       ? 'bg-rose-50 border border-rose-200 text-rose-600 animate-pulse'
-                      : status === 'processing'
+                      : status === 'processing' || isConvertingToKurdish
                       ? 'bg-amber-50 border border-amber-200 text-amber-600'
                       : status === 'error' || status === 'unsupported'
                       ? 'bg-red-50 border border-red-200 text-red-600'
@@ -406,7 +480,7 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
                 >
                   {status === 'listening' ? (
                     <Mic className="w-5 h-5 animate-bounce" />
-                  ) : status === 'processing' ? (
+                  ) : status === 'processing' || isConvertingToKurdish ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : status === 'error' || status === 'unsupported' ? (
                     <AlertCircle className="w-5 h-5" />
@@ -424,6 +498,10 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
                           : isAr
                           ? 'جاري الاستماع... تحدث بطلبك'
                           : 'Listening... Speak your request'
+                        : isConvertingToKurdish
+                        ? isKu
+                          ? 'خەریکی گۆڕینی دەنگە بۆ کوردی بە ژیری دەستکرد...'
+                          : 'Converting speech to Kurdish with AI...'
                         : status === 'processing'
                         ? isKu
                           ? 'خەریکی شیکردنەوەی دەنگە...'
@@ -509,10 +587,21 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
               </div>
             </div>
 
+            {/* Kurdish Browser Speech Explanatory Banner */}
+            {selectedLangCode === 'ckb-IQ' && (
+              <div className="p-2.5 rounded-xl bg-[#FFF5DD]/70 border border-[#F4B942]/40 text-[11px] text-[#8C5E00] flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 shrink-0 text-[#F4B942]" />
+                <span>
+                  {isKu
+                    ? 'پشتگیری زمانی کوردی بە ژیری دەستکرد کار پێکراوە. قسە بکە و سیستمەکە دەنگەکەت ڕاستەوخۆ دەکات بە دەقی کوردی سۆرانی.'
+                    : 'Kurdish voice recognition is enhanced by AI to ensure accurate Sorani Kurdish script.'}
+                </span>
+              </div>
+            )}
+
             {/* 1. Listening State with Animated Waves & Stop Button */}
             {status === 'listening' && (
               <div className="py-6 px-4 flex flex-col items-center justify-center space-y-4 bg-gradient-to-b from-[#FAF9F6] to-[#FFFBF0] rounded-2xl border-2 border-dashed border-[#F4B942]">
-                {/* Audio Waves Simulation */}
                 <div className="flex items-center justify-center gap-1.5 h-12">
                   <span className="w-1.5 h-4 bg-[#F4B942] rounded-full animate-bounce delay-100" />
                   <span className="w-1.5 h-8 bg-[#8C5E00] rounded-full animate-pulse delay-75" />
@@ -522,13 +611,12 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
                   <span className="w-1.5 h-5 bg-[#657A52] rounded-full animate-pulse delay-300" />
                 </div>
 
-                {/* Real-time transcribed preview */}
                 <div className="w-full text-center min-h-[36px] px-2">
                   <p className="text-sm font-semibold text-neutral-800">
                     {transcript || interimTranscript || (
                       <span className="text-neutral-400 italic">
                         {isKu
-                          ? '...دەنگەکەت تۆمار دەکرێت، قسە بکە'
+                          ? '...دەنگەکەت تۆمار دەکرێت، بە کوردی قسە بکە'
                           : isAr
                           ? '...يتم تسجيل صوتك، تحدث الآن'
                           : '...Listening to your voice'}
@@ -537,7 +625,6 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
                   </p>
                 </div>
 
-                {/* Stop Button */}
                 <button
                   type="button"
                   onClick={stopListening}
@@ -550,11 +637,15 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
             )}
 
             {/* 2. Processing State */}
-            {status === 'processing' && (
+            {(status === 'processing' || isConvertingToKurdish) && (
               <div className="py-8 flex flex-col items-center justify-center space-y-3 bg-[#FAF9F6] rounded-2xl border border-[#EAE7DF]">
                 <Loader2 className="w-8 h-8 text-[#8C5E00] animate-spin" />
                 <p className="text-xs sm:text-sm font-bold text-neutral-800">
-                  {isKu
+                  {isConvertingToKurdish
+                    ? isKu
+                      ? 'ژیری دەستکرد خەریکی چاککردنی دەنگەکەیە بۆ دەقی کوردی سۆرانی...'
+                      : 'AI is converting speech to Sorani Kurdish...'
+                    : isKu
                     ? 'خەریکی ئامادەکردنی دەقەکەیە...'
                     : isAr
                     ? 'جاري تحويل الصوت إلى نص...'
@@ -583,44 +674,38 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
                   </span>
                 </div>
                 <p className="text-xs leading-relaxed text-neutral-700 ps-7">{errorMessage}</p>
-
-                {isPermissionDenied && (
-                  <div className="ps-7 pt-1 text-xs text-neutral-600">
-                    <p className="font-semibold">
-                      {isKu
-                        ? 'چۆن مۆڵەت دەدەیت؟'
-                        : isAr
-                        ? 'كيف تمنح الإذن؟'
-                        : 'How to allow permission:'}
-                    </p>
-                    <p className="text-[11px] text-neutral-500 mt-0.5">
-                      {isKu
-                        ? '١. کلیک لەسەر ئایکۆنی قفڵ لە تەنیشت بەستەری ناونیشان بکە. ٢. بژاردەی مایکڕۆفۆن بۆ "Allow" بگۆڕە. ٣. لاپەڕەکە نوێ بکەرەوە.'
-                        : isAr
-                        ? '١. اضغط على أيقونة القفل بجانب رابط الموقع. ٢. اختر "السماح" للميكروفون. ٣. أعد تحميل الصفحة.'
-                        : '1. Click the lock/settings icon next to the address bar. 2. Set Microphone to Allow. 3. Reload the page.'}
-                    </p>
-                  </div>
-                )}
               </div>
             )}
 
-            {/* 4. Editable Text Box (Visible in review, error, or idle states) */}
-            {status !== 'listening' && status !== 'processing' && (
+            {/* 4. Editable Text Box */}
+            {status !== 'listening' && !isConvertingToKurdish && status !== 'processing' && (
               <div className="space-y-2">
-                <label className="text-xs font-bold text-neutral-700 flex items-center justify-between">
-                  <span className="flex items-center gap-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-neutral-700 flex items-center gap-1.5">
                     <Edit3 className="w-3.5 h-3.5 text-[#657A52]" />
-                    {isKu
-                      ? 'دەقی داواکارییەکەت (دەتوانیت دەستکاری بکەیت):'
-                      : isAr
-                      ? 'نص الطلب (يمكنك التعديل والإضافة):'
-                      : 'Your Search Request (Editable):'}
-                  </span>
-                  <span className="text-[11px] text-neutral-400 font-normal">
-                    {transcript.trim().length} {isKu ? 'پیت' : isAr ? 'حرف' : 'chars'}
-                  </span>
-                </label>
+                    <span>
+                      {isKu
+                        ? 'دەقی داواکارییەکەت (دەتوانیت دەستکاری بکەیت):'
+                        : isAr
+                        ? 'نص الطلب (يمكنك التعديل والإضافة):'
+                        : 'Your Search Request (Editable):'}
+                    </span>
+                  </label>
+
+                  {/* AI Convert to Kurdish Button if English/Latin text detected */}
+                  {transcript.trim() && hasLatinLetters && (
+                    <button
+                      type="button"
+                      onClick={() => convertPhoneticToKurdish()}
+                      disabled={isConvertingToKurdish}
+                      className="px-2.5 py-1 rounded-lg bg-[#FFF5DD] hover:bg-[#F4B942]/30 text-[#8C5E00] border border-[#F4B942]/60 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-2xs"
+                      title="Convert English/phonetic mishearing into proper Kurdish"
+                    >
+                      <Sparkles className="w-3 h-3 text-[#F4B942] fill-[#F4B942]" />
+                      <span>{isKu ? '✨ گۆڕین بۆ کوردی سۆرانی' : '✨ Convert to Kurdish'}</span>
+                    </button>
+                  )}
+                </div>
 
                 <textarea
                   value={transcript}
@@ -677,7 +762,7 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
                 <button
                   type="button"
                   onClick={handleConfirmSearch}
-                  disabled={!transcript.trim() || status === 'listening'}
+                  disabled={!transcript.trim() || status === 'listening' || isConvertingToKurdish}
                   className="flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] active:scale-[0.98] text-neutral-950 text-xs sm:text-sm font-black shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
                   <Check className="w-4 h-4 stroke-[2.5]" />
