@@ -421,6 +421,13 @@ export async function POST(req: NextRequest) {
   const db = supabaseAdmin as any;
 
   try {
+    const body = await req.json().catch(() => null);
+    const productsToSeed = Array.isArray(body) && body.length > 0 
+      ? body 
+      : Array.isArray(body?.products) && body.products.length > 0 
+      ? body.products 
+      : RAW_PRODUCTS;
+
     // 1. Fetch categories
     const { data: catData, error: catErr } = await db.from('categories').select('id, slug');
     if (catErr || !catData) {
@@ -447,7 +454,7 @@ export async function POST(req: NextRequest) {
     const now = new Date();
     const promoEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    for (const item of RAW_PRODUCTS) {
+    for (const item of productsToSeed) {
       try {
         const catId = catMap.get(item.category_slug.toLowerCase()) || catData[0]?.id;
         const sellerId = sellerMap.get(item.seller_slug.toLowerCase()) || sellerData[0]?.id;
@@ -461,9 +468,9 @@ export async function POST(req: NextRequest) {
           .maybeSingle();
 
         let prodId = existingProd?.id;
+        const powerNum = item.power ? parseInt(item.power.replace(/[^0-9]/g, ''), 10) || null : null;
 
         if (!prodId) {
-          const powerNum = item.power ? parseInt(item.power.replace(/[^0-9]/g, ''), 10) || null : null;
           const { data: newProd, error: insertErr } = await db
             .from('products')
             .insert({
@@ -505,6 +512,38 @@ export async function POST(req: NextRequest) {
           }
 
           prodId = newProd.id;
+        } else {
+          // Update existing row in Supabase
+          await db
+            .from('products')
+            .update({
+              category_id: catId,
+              seller_id: sellerId,
+              price: item.price,
+              currency: item.currency || 'IQD',
+              brand: item.brand,
+              capacity: item.capacity,
+              power_watts: powerNum,
+              warranty_applicable: Boolean(item.warranty),
+              warranty_details: item.warranty,
+              delivery_available: Boolean(item.delivery_info),
+              delivery_info: item.delivery_info,
+              return_policy: item.return_policy,
+              image_url: item.image_url,
+              status: 'active',
+              specs: {
+                original_price: item.original_price || null,
+                brand: item.brand,
+                capacity: item.capacity,
+                power: item.power,
+                warranty: item.warranty,
+                delivery_info: item.delivery_info,
+                return_policy: item.return_policy,
+                is_promoted: Boolean(item.is_promoted),
+                promotion_expires_at: item.is_promoted ? promoEnd.toISOString() : null,
+              },
+            })
+            .eq('id', prodId);
         }
 
         // Clean & Insert Translations
