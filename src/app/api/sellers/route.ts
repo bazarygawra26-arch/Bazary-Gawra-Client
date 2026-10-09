@@ -4,7 +4,8 @@ import { findSellers } from '../../../server/db/repositories/sellers';
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const lang = (searchParams.get('lang') || 'ku') as 'en' | 'ku' | 'ar';
+    const rawLang = searchParams.get('lang') || 'ku';
+    const lang = (rawLang === 'ckb' || rawLang === 'ku' ? 'ku' : rawLang === 'ar' ? 'ar' : 'en') as 'en' | 'ku' | 'ar';
     const sellers = await findSellers(lang);
     return NextResponse.json(sellers);
   } catch (error: any) {

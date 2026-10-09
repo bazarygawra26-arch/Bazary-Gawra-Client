@@ -27,7 +27,7 @@ import {
 
 const DEMO_SHOPS = [
   {
-    id: 'seller-01',
+    id: '1ef9d0e1-dc94-437e-a1a9-e478055d3f73',
     slug: 'sulaymaniyah-home-tech',
     name: 'Sulaymaniyah Home Tech',
     name_ckb: 'ماڵی تەکنەلۆجی سلێمانی',
@@ -36,7 +36,7 @@ const DEMO_SHOPS = [
     phone: '+964 770 123 4567',
   },
   {
-    id: 'seller-02',
+    id: '581ec98e-637a-4653-9ac5-16ef19ebdedc',
     slug: 'erbil-modern-appliances',
     name: 'Erbil Modern Appliances',
     name_ckb: 'کەلوپەلی مۆدێرنی هەولێر',
@@ -45,7 +45,7 @@ const DEMO_SHOPS = [
     phone: '+964 750 234 5678',
   },
   {
-    id: 'seller-03',
+    id: '4542abe5-2b58-44bf-8705-6322658f779b',
     slug: 'hawraman-heritage-crafts',
     name: 'Hawraman Heritage Crafts',
     name_ckb: 'کەلەپوور و دەستکردی هەورامان',
@@ -58,6 +58,7 @@ const DEMO_SHOPS = [
 export default function SellerDashboardPage() {
   const { language, isKu } = useLanguage();
 
+  const [shops, setShops] = useState(DEMO_SHOPS);
   const [selectedShop, setSelectedShop] = useState(DEMO_SHOPS[0]);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
@@ -65,11 +66,46 @@ export default function SellerDashboardPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Dynamically load sellers from database
+  useEffect(() => {
+    async function loadShops() {
+      try {
+        const langParam = language === 'ckb' ? 'ku' : language;
+        const res = await fetch(`/api/sellers?lang=${langParam}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            const mapped = data.map((s: any) => ({
+              id: s.id,
+              slug: s.slug || s.id,
+              name: s.name,
+              name_ckb: s.name,
+              location: s.location,
+              location_ckb: s.location,
+              phone: s.phone || s.phone_placeholder || '+964 770 000 0000',
+            }));
+            setShops(mapped);
+            // Retain currently selected shop if found
+            setSelectedShop((prev) => {
+              const matched = mapped.find((m) => m.slug === prev.slug || m.id === prev.id);
+              return matched || mapped[0];
+            });
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load dynamic sellers:', e);
+      }
+    }
+    loadShops();
+  }, [language]);
+
   // Load shop products
   const loadProducts = async () => {
+    if (!selectedShop?.slug) return;
     try {
       setIsLoading(true);
-      const res = await fetch(`/api/sellers/${encodeURIComponent(selectedShop.slug)}/products?lang=${language}`);
+      const langParam = language === 'ckb' ? 'ku' : language;
+      const res = await fetch(`/api/sellers/${encodeURIComponent(selectedShop.slug)}/products?lang=${langParam}`);
       if (res.ok) {
         const data = await res.json();
         setProducts(Array.isArray(data) ? data : []);
@@ -103,8 +139,8 @@ export default function SellerDashboardPage() {
     setProducts((prev) => [newProd, ...prev]);
   };
 
-  const displayName = isKu ? selectedShop.name_ckb : selectedShop.name;
-  const displayLocation = isKu ? selectedShop.location_ckb : selectedShop.location;
+  const displayName = isKu ? (selectedShop.name_ckb || selectedShop.name) : selectedShop.name;
+  const displayLocation = isKu ? (selectedShop.location_ckb || selectedShop.location) : selectedShop.location;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF9F6] text-neutral-900">
@@ -152,14 +188,14 @@ export default function SellerDashboardPage() {
                 <select
                   value={selectedShop.id}
                   onChange={(e) => {
-                    const found = DEMO_SHOPS.find((s) => s.id === e.target.value);
+                    const found = shops.find((s) => s.id === e.target.value || s.slug === e.target.value);
                     if (found) setSelectedShop(found);
                   }}
                   className="px-3 py-2 rounded-xl border border-[#EAE7DF] bg-[#FAF9F6] text-xs font-bold focus:outline-none focus:border-[#F4B942]"
                 >
-                  {DEMO_SHOPS.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {isKu ? s.name_ckb : s.name}
+                  {shops.map((s) => (
+                    <option key={s.id || s.slug} value={s.id}>
+                      {isKu ? (s.name_ckb || s.name) : s.name}
                     </option>
                   ))}
                 </select>

@@ -8,7 +8,8 @@ export async function GET(
   try {
     const { slug } = await params;
     const { searchParams } = new URL(req.url);
-    const lang = (searchParams.get('lang') || 'ku') as 'en' | 'ku' | 'ar';
+    const rawLang = searchParams.get('lang') || 'ku';
+    const lang = (rawLang === 'ckb' || rawLang === 'ku' ? 'ku' : rawLang === 'ar' ? 'ar' : 'en') as 'en' | 'ku' | 'ar';
     const excludeId = searchParams.get('excludeId') || undefined;
     const category = searchParams.get('category') || undefined;
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : 12;

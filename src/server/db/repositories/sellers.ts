@@ -3,7 +3,18 @@ import { supabaseAdmin } from '../supabaseAdmin';
 import { Seller, SellerProfile, Product } from '../../../types';
 import { localizeSellerName, localizeLocation } from '../../../lib/i18nData';
 
-export async function findSellers(lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Seller[]> {
+export function normalizeDbLang(lang?: string): 'en' | 'ku' | 'ar' {
+  if (lang === 'ckb' || lang === 'ku') return 'ku';
+  if (lang === 'ar') return 'ar';
+  return 'en';
+}
+
+export function isUuid(val?: string | null): boolean {
+  return !!val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+}
+
+export async function findSellers(lang: 'en' | 'ku' | 'ar' | string = 'ku'): Promise<Seller[]> {
+  const pLang = normalizeDbLang(lang);
   if (supabaseAdmin) {
     try {
       const { data, error } = await supabaseAdmin
@@ -36,16 +47,16 @@ export async function findSellers(lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Sell
         return data.map((s: any) => {
           const locObj = s.locations;
           const locName =
-            lang === 'ku'
+            pLang === 'ku'
               ? (locObj?.name_ku || s.address || 'کوردستان')
-              : lang === 'ar'
+              : pLang === 'ar'
               ? (locObj?.name_ar || s.address || 'كوردستان')
               : (locObj?.name_en || s.address || 'Kurdistan');
 
           const name =
-            lang === 'ku'
+            pLang === 'ku'
               ? (s.name_ku || s.name_en)
-              : lang === 'ar'
+              : pLang === 'ar'
               ? (s.name_ar || s.name_en)
               : s.name_en;
 
@@ -65,7 +76,7 @@ export async function findSellers(lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Sell
             verification_status: s.verification_status || 'unverified',
             is_demo: s.is_demo ?? false,
             avatar_bg: 'from-amber-500 to-amber-700',
-            description: lang === 'ku' ? s.description_ku : lang === 'ar' ? s.description_ar : s.description_en,
+            description: pLang === 'ku' ? s.description_ku : pLang === 'ar' ? s.description_ar : s.description_en,
           };
         });
       }
@@ -77,8 +88,9 @@ export async function findSellers(lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Sell
   return [];
 }
 
-export async function findSellerBySlug(slug: string, lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Seller | null> {
-  const all = await findSellers(lang);
+export async function findSellerBySlug(slug: string, lang: 'en' | 'ku' | 'ar' | string = 'ku'): Promise<Seller | null> {
+  const pLang = normalizeDbLang(lang);
+  const all = await findSellers(pLang);
   return (
     all.find(
       (s) =>
@@ -95,9 +107,9 @@ export async function findSellerBySlug(slug: string, lang: 'en' | 'ku' | 'ar' = 
  */
 export async function getSellerProfile(
   slug: string,
-  lang: 'en' | 'ku' | 'ar' = 'ku'
+  lang: 'en' | 'ku' | 'ar' | string = 'ku'
 ): Promise<SellerProfile | null> {
-  const pLang = lang === 'ku' ? 'ku' : lang === 'ar' ? 'ar' : 'en';
+  const pLang = normalizeDbLang(lang);
 
   if (supabaseAdmin) {
     // 1. Try get_seller_profile RPC
@@ -116,7 +128,7 @@ export async function getSellerProfile(
 
     // 2. Direct DB fallback matching the exact schema
     try {
-      const { data: seller, error: sErr } = await supabaseAdmin
+      let sellerQuery = supabaseAdmin
         .from('sellers')
         .select(`
           id,
@@ -140,9 +152,15 @@ export async function getSellerProfile(
             name_ar
           )
         `)
-        .or(`slug.eq.${slug},id.eq.${slug}`)
-        .eq('is_active', true)
-        .maybeSingle();
+        .eq('is_active', true);
+
+      if (isUuid(slug)) {
+        sellerQuery = sellerQuery.or(`slug.eq.${slug},id.eq.${slug}`);
+      } else {
+        sellerQuery = sellerQuery.eq('slug', slug);
+      }
+
+      const { data: seller, error: sErr } = await sellerQuery.maybeSingle();
 
       if (!sErr && seller) {
         const s = seller as any;
@@ -246,7 +264,7 @@ export async function getSellerProfile(
  */
 export async function getSellerProducts(params: {
   sellerSlug: string;
-  lang?: 'en' | 'ku' | 'ar';
+  lang?: 'en' | 'ku' | 'ar' | string;
   excludeProductId?: string;
   categorySlug?: string;
   limit?: number;
@@ -254,47 +272,79 @@ export async function getSellerProducts(params: {
 }): Promise<Product[]> {
   const {
     sellerSlug,
-    lang = 'ku',
+    lang,
     excludeProductId,
     categorySlug,
     limit = 12,
     offset = 0,
   } = params;
 
+  const pLang = normalizeDbLang(lang);
+
   if (supabaseAdmin) {
-    // 1. Try get_seller_products RPC
+    // 1. Try get_seller_products RPC if available
     try {
       const { data, error } = await (supabaseAdmin as any).rpc('get_seller_products', {
         p_seller_slug: sellerSlug,
-        p_lang: lang,
+        p_lang: pLang,
         p_exclude_product_id: excludeProductId || undefined,
         p_category_slug: categorySlug || undefined,
         p_limit: limit,
         p_offset: offset,
       });
 
-      if (!error && Array.isArray(data)) {
+      if (!error && Array.isArray(data) && data.length > 0) {
         return (data as any[]).map(mapCardToProduct);
       }
     } catch (rpcErr) {
       // RPC fallback below
     }
 
-    // 2. Direct search_products fallback
+    // 2. Direct database query matching the seller
     try {
-      // First get seller_id
-      const { data: sellerRow } = await supabaseAdmin
+      let sellerQuery = supabaseAdmin
         .from('sellers')
-        .select('id, slug, name_en, name_ku, name_ar, phone, whatsapp, verification_status')
-        .or(`slug.eq.${sellerSlug},id.eq.${sellerSlug}`)
-        .maybeSingle();
+        .select('id, slug, name_en, name_ku, name_ar, phone, whatsapp, verification_status');
+
+      if (isUuid(sellerSlug)) {
+        sellerQuery = sellerQuery.or(`slug.eq.${sellerSlug},id.eq.${sellerSlug}`);
+      } else {
+        sellerQuery = sellerQuery.eq('slug', sellerSlug);
+      }
+
+      const { data: sellerRow, error: sErr } = await sellerQuery.maybeSingle();
 
       if (sellerRow) {
         const sRow = sellerRow as any;
+
+        // Query products table directly with relations for full reliability
+        let prodsQuery = supabaseAdmin
+          .from('products')
+          .select(`
+            *,
+            categories ( id, slug, name_en, name_ku, name_ar ),
+            locations ( id, slug, name_en, name_ku, name_ar ),
+            sellers ( id, slug, name_en, name_ku, name_ar, phone, whatsapp, verification_status ),
+            product_translations ( lang, name, description )
+          `)
+          .eq('seller_id', sRow.id)
+          .eq('status', 'active');
+
+        if (excludeProductId) {
+          prodsQuery = prodsQuery.neq('id', excludeProductId);
+        }
+
+        const { data: directProds, error: dpErr } = await prodsQuery.range(offset, offset + limit - 1);
+
+        if (!dpErr && Array.isArray(directProds) && directProds.length > 0) {
+          return directProds.map((row) => mapDirectRowToProduct(row, pLang));
+        }
+
+        // Secondary fallback to search_products RPC
         const { data: allProds, error: pErr } = await (supabaseAdmin as any).rpc('search_products', {
           p_category_slug: categorySlug || undefined,
-          p_lang: lang,
-          p_limit: 50,
+          p_lang: pLang,
+          p_limit: 100,
         });
 
         if (!pErr && Array.isArray(allProds)) {
@@ -319,6 +369,86 @@ export async function getSellerProducts(params: {
   }
 
   return [];
+}
+
+function mapDirectRowToProduct(row: any, lang: 'en' | 'ku' | 'ar'): Product {
+  const trans = Array.isArray(row.product_translations) ? row.product_translations : [];
+  const currTrans = trans.find((t: any) => t.lang === lang) || trans.find((t: any) => t.lang === 'ku') || trans[0] || {};
+  const kuTrans = trans.find((t: any) => t.lang === 'ku') || {};
+  const arTrans = trans.find((t: any) => t.lang === 'ar') || {};
+
+  const name = currTrans.name || row.slug;
+  const desc = currTrans.description || '';
+
+  const catObj = row.categories;
+  const catName = lang === 'ku' ? (catObj?.name_ku || catObj?.name_en) : lang === 'ar' ? (catObj?.name_ar || catObj?.name_en) : catObj?.name_en;
+
+  const locObj = row.locations;
+  const locName = lang === 'ku' ? (locObj?.name_ku || locObj?.name_en) : lang === 'ar' ? (locObj?.name_ar || locObj?.name_en) : locObj?.name_en;
+
+  const sellerObj = row.sellers;
+  const sellerName = lang === 'ku' ? (sellerObj?.name_ku || sellerObj?.name_en) : lang === 'ar' ? (sellerObj?.name_ar || sellerObj?.name_en) : sellerObj?.name_en;
+
+  const hasWarranty = row.warranty_applicable || row.warranty_months != null;
+  const hasDelivery = row.delivery_available === true;
+  const missing: string[] = [];
+  if (!hasWarranty) missing.push(lang === 'ku' ? 'گەرەنتی دیاری نەکراوە' : 'No warranty provided');
+  if (!hasDelivery) missing.push(lang === 'ku' ? 'زانیاری گەیاندن دیاری نەکراوە' : 'No delivery details');
+
+  const price = Number(row.price || 0);
+  const origPrice = row.specs?.original_price ? Number(row.specs.original_price) : undefined;
+  const discountPercent = origPrice && origPrice > price ? Math.round(((origPrice - price) / origPrice) * 100) : undefined;
+
+  let warrantyText = undefined;
+  if (row.warranty_months) {
+    warrantyText = lang === 'ku' ? `${row.warranty_months} مانگ گەرەنتی` : `${row.warranty_months} Months Warranty`;
+  } else if (hasWarranty) {
+    warrantyText = lang === 'ku' ? 'گەرەنتی فەرمی' : 'Official Warranty';
+  }
+
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: name,
+    name_ckb: kuTrans.name || name,
+    name_ar: arTrans.name || name,
+    description: desc,
+    category: catName || 'General',
+    price: price,
+    original_price: origPrice,
+    discount_percent: discountPercent,
+    currency: (row.currency === 'USD' ? 'USD' : 'IQD') as 'IQD' | 'USD',
+    location: locName || 'Kurdistan',
+    seller_name: sellerName || 'Local Seller',
+    seller_id: sellerObj?.id || row.seller_id,
+    seller_slug: sellerObj?.slug,
+    seller_location: locName || 'Kurdistan',
+    seller_phone: sellerObj?.phone || undefined,
+    seller_whatsapp: sellerObj?.whatsapp || undefined,
+    seller_verification: sellerObj?.verification_status as any,
+    capacity: row.capacity || undefined,
+    power: row.power_watts ? `${row.power_watts}W` : undefined,
+    warranty: warrantyText,
+    delivery_info: row.delivery_info || (hasDelivery ? (lang === 'ku' ? 'گەیاندن بەردەستە' : 'Delivery available') : undefined),
+    is_demo: row.is_demo ?? false,
+    brand: row.brand || undefined,
+    image_url: row.image_url || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
+    images: Array.isArray(row.images) && row.images.length > 0 ? row.images : [row.image_url || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80'],
+    information_signals: {
+      has_location: !!locName,
+      has_warranty: hasWarranty,
+      has_delivery: hasDelivery,
+      has_return_policy: !!row.return_policy,
+      has_specifications: !!row.capacity || !!row.power_watts,
+      missing_points: missing,
+    },
+    ai_match: {
+      score: 90,
+      match_reason: lang === 'ku' ? 'بەرهەمی ئەسڵی و پشتڕاستکراوی بازاڕی گەورە.' : 'Authentic verified product.',
+      highlights: [locName || 'Kurdistan', `${price.toLocaleString()} IQD`],
+      cautions: missing,
+    },
+  };
 }
 
 function mapCardToProduct(row: any): Product {

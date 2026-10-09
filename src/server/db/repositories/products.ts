@@ -323,19 +323,23 @@ export async function createProduct(input: Partial<Product>): Promise<Product> {
 
   if (supabaseAdmin) {
     try {
-      // Resolve category_id and seller_id from database
-      const [catLookup, sellerLookup] = await Promise.all([
-        supabaseAdmin
-          .from('categories')
-          .select('id')
-          .or(`slug.eq.${newProd.category},name_en.eq.${newProd.category}`)
-          .maybeSingle(),
-        supabaseAdmin
-          .from('sellers')
-          .select('id')
-          .or(`slug.eq.${newProd.seller_slug},id.eq.${newProd.seller_id}`)
-          .maybeSingle(),
-      ]);
+      // Resolve category_id and seller_id from database safely
+      const isUuidStr = (val?: string | null) =>
+        !!val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+
+      const catLookupPromise = newProd.category
+        ? (isUuidStr(newProd.category)
+            ? supabaseAdmin.from('categories').select('id').eq('id', newProd.category).maybeSingle()
+            : supabaseAdmin.from('categories').select('id').or(`slug.eq.${newProd.category},name_en.eq.${newProd.category}`).maybeSingle())
+        : Promise.resolve({ data: null });
+
+      const sellerLookupPromise = newProd.seller_id && isUuidStr(newProd.seller_id)
+        ? supabaseAdmin.from('sellers').select('id').eq('id', newProd.seller_id).maybeSingle()
+        : newProd.seller_slug
+        ? supabaseAdmin.from('sellers').select('id').eq('slug', newProd.seller_slug).maybeSingle()
+        : Promise.resolve({ data: null });
+
+      const [catLookup, sellerLookup] = await Promise.all([catLookupPromise, sellerLookupPromise]);
 
       const catId = (catLookup?.data as any)?.id || null;
       const sellerId = (sellerLookup?.data as any)?.id || null;
