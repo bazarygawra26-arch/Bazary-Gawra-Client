@@ -19,6 +19,10 @@ import {
   Sparkles,
   ArrowRight,
   ExternalLink,
+  Upload,
+  Trash2,
+  Camera,
+  Check,
 } from 'lucide-react';
 
 interface AddProductModalProps {
@@ -105,8 +109,14 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   const [nameCkb, setNameCkb] = useState('');
   const [category, setCategory] = useState('Kitchen & Home');
   const [price, setPrice] = useState<string>('');
-  const [imageUrl, setImageUrl] = useState(PRESET_IMAGES[1].url);
-  const [selectedImages, setSelectedImages] = useState<string[]>(PRESET_IMAGES[1].images);
+  const [originalPrice, setOriginalPrice] = useState<string>('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+
   const [location, setLocation] = useState(sellerLocation);
   const [warranty, setWarranty] = useState(
     isKu ? '١٢ مانگ گەرەنتی فەرمی ناوخۆیی' : '12 Months Official Warranty'
@@ -139,6 +149,78 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
     { en: 'Other', ku: 'هی تر', ar: 'أخرى' },
   ];
 
+  const handleFilesUpload = async (files: FileList | File[] | null) => {
+    if (!files || files.length === 0) return;
+
+    const validFiles: File[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.type.startsWith('image/')) {
+        validFiles.push(file);
+      }
+    }
+
+    if (validFiles.length === 0) {
+      setErrorMessage(
+        isKu
+          ? 'تکایە تەنها پەڕگەی وێنە (PNG, JPG, WebP) هەڵبژێرە.'
+          : 'Please select valid image files (PNG, JPG, WebP).'
+      );
+      return;
+    }
+
+    setIsUploading(true);
+    setErrorMessage('');
+
+    try {
+      const formData = new FormData();
+      validFiles.forEach((file) => formData.append('files', file));
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await res.json();
+      const newUrls: string[] = Array.isArray(data.urls) ? data.urls : [data.url];
+
+      setUploadedImages((prev) => [...prev, ...newUrls]);
+      setSelectedImages((prev) => [...prev, ...newUrls]);
+
+      // If no custom image was set yet, set the first uploaded one as primary
+      if (!imageUrl || PRESET_IMAGES.some((p) => p.url === imageUrl)) {
+        setImageUrl(newUrls[0]);
+      }
+    } catch (err: any) {
+      console.error('File upload error:', err);
+      setErrorMessage(
+        isKu
+          ? 'بارکردنی وێنە سەرکەوتوو نەبوو، تکایە دووبارە هەوڵبدەرەوە.'
+          : 'Image upload failed, please try again.'
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveImage = (urlToRemove: string) => {
+    const nextUploaded = uploadedImages.filter((u) => u !== urlToRemove);
+    setUploadedImages(nextUploaded);
+    setSelectedImages((prev) => prev.filter((u) => u !== urlToRemove));
+
+    if (imageUrl === urlToRemove) {
+      setImageUrl(nextUploaded[0] || (PRESET_IMAGES[0]?.url || ''));
+    }
+  };
+
+  const handleSetPrimaryImage = (url: string) => {
+    setImageUrl(url);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
@@ -152,6 +234,14 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       return;
     }
 
+    const finalImage = imageUrl || (uploadedImages[0] || PRESET_IMAGES[0].url);
+    const finalImagesList =
+      selectedImages && selectedImages.length > 0
+        ? selectedImages
+        : uploadedImages.length > 0
+        ? uploadedImages
+        : [finalImage];
+
     try {
       setIsSubmitting(true);
       const res = await fetch('/api/products', {
@@ -163,8 +253,9 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
           name_ar: name.trim(),
           category,
           price: Number(price),
-          image_url: imageUrl,
-          images: selectedImages && selectedImages.length > 0 ? selectedImages : [imageUrl],
+          original_price: originalPrice && !isNaN(Number(originalPrice)) ? Number(originalPrice) : undefined,
+          image_url: finalImage,
+          images: finalImagesList,
           location,
           seller_name: sellerName,
           seller_location: sellerLocation,
@@ -340,8 +431,8 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 </div>
               </div>
 
-              {/* Category & Price */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              {/* Category, Selling Price, Original Price (Discount), Brand */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div>
                   <label className="block font-bold text-neutral-700 mb-1">
                     <Layers className="w-3.5 h-3.5 inline me-1 text-neutral-400" />
@@ -362,7 +453,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
 
                 <div>
                   <label className="block font-bold text-neutral-700 mb-1">
-                    {isKu ? 'نرخ (دیناری عێراقی IQD)' : 'Price (IQD)'} *
+                    {isKu ? 'نرخی فرۆشتن (IQD)' : 'Selling Price (IQD)'} *
                   </label>
                   <input
                     type="number"
@@ -370,7 +461,25 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     placeholder="e.g. 185000"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#EAE7DF] focus:outline-none focus:border-[#F4B942] bg-white font-bold"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#EAE7DF] focus:outline-none focus:border-[#F4B942] bg-white font-bold text-neutral-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-neutral-700 mb-1">
+                    {isKu ? 'نرخی پێش داشکاندن' : 'Original Price (Optional)'}
+                    {originalPrice && Number(originalPrice) > (Number(price) || 0) && (
+                      <span className="ms-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black">
+                        -{Math.round(((Number(originalPrice) - Number(price)) / Number(originalPrice)) * 100)}%
+                      </span>
+                    )}
+                  </label>
+                  <input
+                    type="number"
+                    value={originalPrice}
+                    onChange={(e) => setOriginalPrice(e.target.value)}
+                    placeholder={isKu ? 'ئەگەر داشکاندن هەبێت' : 'e.g. 210000'}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#EAE7DF] focus:outline-none focus:border-[#F4B942] bg-white font-medium text-neutral-600"
                   />
                 </div>
 
@@ -388,41 +497,150 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 </div>
               </div>
 
-              {/* Product Image Presets & URL */}
-              <div>
-                <label className="block font-bold text-neutral-700 mb-1.5">
-                  <ImageIcon className="w-3.5 h-3.5 inline me-1 text-neutral-400" />
-                  {isKu ? 'وێنەی بەرهەم (هەڵبژاردنی نموونە یان بەستەر)' : 'Product Image (Presets or URL)'}
-                </label>
-                <div className="flex items-center gap-2 overflow-x-auto pb-2">
-                  {PRESET_IMAGES.map((preset, idx) => (
-                    <button
-                      type="button"
-                      key={idx}
-                      onClick={() => {
-                        setImageUrl(preset.url);
-                        setSelectedImages(preset.images);
-                      }}
-                      className={`relative w-14 h-14 rounded-xl border-2 overflow-hidden shrink-0 transition-all ${
-                        imageUrl === preset.url
-                          ? 'border-[#F4B942] ring-2 ring-[#F4B942]/30 scale-105'
-                          : 'border-[#EAE7DF] opacity-70 hover:opacity-100'
-                      }`}
-                    >
-                      <img src={preset.url} alt={preset.label} className="w-full h-full object-cover" />
-                    </button>
-                  ))}
+              {/* Product Image Upload Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="block font-bold text-neutral-900 text-xs flex items-center gap-1.5">
+                    <Upload className="w-4 h-4 text-[#8C5E00]" />
+                    <span>{isKu ? 'بارکردنی وێنەی بەرهەم لە ئامێرەکەت' : 'Upload Product Images from Device'}</span>
+                    <span className="text-neutral-400 font-normal text-[11px]">
+                      ({isKu ? 'دەتوانیت یەک یان چەند وێنەیەک هەڵبژێریت' : 'Select one or more photos'})
+                    </span>
+                  </label>
+                  {uploadedImages.length > 0 && (
+                    <span className="text-[11px] font-bold text-[#657A52] bg-[#FAF9F6] px-2 py-0.5 rounded-md border border-[#EAE7DF]">
+                      {uploadedImages.length} {isKu ? 'وێنە بارکراوە' : 'uploaded'}
+                    </span>
+                  )}
                 </div>
+
+                {/* Hidden File Input */}
                 <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => {
-                    setImageUrl(e.target.value);
-                    setSelectedImages([e.target.value]);
-                  }}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full px-3.5 py-2 rounded-xl border border-[#EAE7DF] focus:outline-none focus:border-[#F4B942] bg-white text-[11px]"
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/png,image/jpeg,image/webp,image/jpg"
+                  multiple
+                  onChange={(e) => handleFilesUpload(e.target.files)}
+                  className="hidden"
                 />
+
+                {/* Dropzone Area */}
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    handleFilesUpload(e.dataTransfer.files);
+                  }}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 ${
+                    isDragging
+                      ? 'border-[#F4B942] bg-amber-50/50 scale-[1.01]'
+                      : 'border-[#EAE7DF] hover:border-[#F4B942] bg-[#FAF9F6] hover:bg-white'
+                  }`}
+                >
+                  {isUploading ? (
+                    <div className="py-2 flex flex-col items-center gap-2">
+                      <Loader2 className="w-7 h-7 text-[#8C5E00] animate-spin" />
+                      <span className="font-bold text-neutral-700 text-xs">
+                        {isKu ? 'وێنەکان باردەکرێن بۆ داتابەیسی بازاڕی گەورە...' : 'Uploading images to storage...'}
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-12 h-12 rounded-2xl bg-[#FFF5DD] text-[#8C5E00] flex items-center justify-center shadow-xs">
+                        <Camera className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <span className="font-bold text-neutral-900 text-xs block">
+                          {isKu
+                            ? 'لێرە دابنێ یان کلیك بکە بۆ هەڵبژاردنی وێنە لە مۆبایل یان کۆمپیوتەرەکەت'
+                            : 'Click to upload or drag & drop photos here'}
+                        </span>
+                        <span className="text-[11px] text-neutral-500 mt-0.5 block">
+                          {isKu
+                            ? 'پشتگیری لە فۆرماتی JPG, PNG, WebP دەکات • تا ٥ مێگابایت'
+                            : 'Supports JPG, PNG, WebP • up to 5MB'}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Uploaded Images Gallery / Management */}
+                {uploadedImages.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] font-semibold text-neutral-600 block">
+                      {isKu
+                        ? 'وێنە هەڵبژێردراوەکان (کلیك لەسەر هەر وێنەیەک بکە بۆ ئەوەی ببێتە وێنەی سەرەکی):'
+                        : 'Uploaded photos (Click any to set as Main Cover):'}
+                    </span>
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
+                      {uploadedImages.map((url, idx) => {
+                        const isPrimary = (imageUrl || uploadedImages[0]) === url;
+                        return (
+                          <div
+                            key={idx}
+                            onClick={() => handleSetPrimaryImage(url)}
+                            className={`group relative aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${
+                              isPrimary
+                                ? 'border-[#F4B942] ring-2 ring-[#F4B942]/40 scale-105'
+                                : 'border-[#EAE7DF] hover:border-neutral-400'
+                            }`}
+                          >
+                            <img src={url} alt={`Upload ${idx + 1}`} className="w-full h-full object-cover" />
+                            {isPrimary && (
+                              <div className="absolute top-1 start-1 px-1.5 py-0.5 rounded-md bg-[#F4B942] text-neutral-950 font-black text-[9px] shadow-xs">
+                                {isKu ? 'سەرەکی' : 'Cover'}
+                              </div>
+                            )}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveImage(url);
+                              }}
+                              className="absolute top-1 end-1 p-1 rounded-full bg-black/60 hover:bg-red-600 text-white transition-colors"
+                              title={isKu ? 'سڕینەوەی وێنە' : 'Remove photo'}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Optional Presets Accordion / Toggle */}
+                <details className="text-[11px] text-neutral-500 group">
+                  <summary className="cursor-pointer hover:text-neutral-800 font-medium py-1">
+                    {isKu ? 'یان هەڵبژاردن لە وێنەی نموونەیی ئامادەکراو...' : 'Or pick from sample presets...'}
+                  </summary>
+                  <div className="pt-2 flex items-center gap-2 overflow-x-auto pb-1">
+                    {PRESET_IMAGES.map((preset, idx) => (
+                      <button
+                        type="button"
+                        key={idx}
+                        onClick={() => {
+                          setImageUrl(preset.url);
+                          setSelectedImages(preset.images);
+                        }}
+                        className={`relative w-12 h-12 rounded-xl border-2 overflow-hidden shrink-0 transition-all ${
+                          imageUrl === preset.url
+                            ? 'border-[#F4B942] ring-2 ring-[#F4B942]/30 scale-105'
+                            : 'border-[#EAE7DF] opacity-60 hover:opacity-100'
+                        }`}
+                      >
+                        <img src={preset.url} alt={preset.label} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </details>
               </div>
 
               {/* Radical Transparency Signals */}

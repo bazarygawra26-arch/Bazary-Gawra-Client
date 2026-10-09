@@ -293,6 +293,11 @@ export async function createProduct(input: Partial<Product>): Promise<Product> {
     power: input.power,
     brand: input.brand,
     description: input.description || '',
+    original_price: input.original_price ? Number(input.original_price) : undefined,
+    discount_percent:
+      input.original_price && Number(input.original_price) > (Number(input.price) || 0)
+        ? Math.round(((Number(input.original_price) - (Number(input.price) || 0)) / Number(input.original_price)) * 100)
+        : undefined,
     image_url:
       input.image_url ||
       'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
@@ -342,6 +347,7 @@ export async function createProduct(input: Partial<Product>): Promise<Product> {
           category_id: catId,
           seller_id: sellerId,
           price: newProd.price,
+          original_price: newProd.original_price || null,
           currency: newProd.currency,
           brand: newProd.brand,
           capacity: newProd.capacity,
