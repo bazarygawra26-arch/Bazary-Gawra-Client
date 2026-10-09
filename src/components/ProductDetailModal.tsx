@@ -35,6 +35,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
   const [question, setQuestion] = useState('');
   const [chatLog, setChatLog] = useState<{ q: string; a: string }[]>([]);
   const [isAsking, setIsAsking] = useState(false);
+  const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
 
   if (!product) return null;
 
@@ -65,8 +66,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
   const displayName = lp.name;
 
   const handleAskQuestion = async (qText: string) => {
-    if (!qText.trim()) return;
+    if (!qText.trim() || isAsking) return;
+    setPendingQuestion(qText);
     setIsAsking(true);
+    setQuestion('');
 
     try {
       const res = await fetch('/api/ai/product-chat', {
@@ -83,14 +86,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
         const data = await res.json();
         if (data.answer) {
           setChatLog((prev) => [...prev, { q: qText, a: data.answer }]);
-          setQuestion('');
+          setPendingQuestion(null);
+          setIsAsking(false);
           return;
         }
       }
     } catch (err) {
       console.warn('Live product-chat request error, falling back to grounded audit:', err);
-    } finally {
-      setIsAsking(false);
     }
 
     // Grounded factual fallback if network fails
@@ -139,7 +141,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
     }
 
     setChatLog((prev) => [...prev, { q: qText, a: answer }]);
-    setQuestion('');
+    setPendingQuestion(null);
+    setIsAsking(false);
   };
 
   return (
@@ -277,8 +280,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                 return (
                   <button
                     key={idx}
+                    disabled={isAsking}
                     onClick={() => handleAskQuestion(text)}
-                    className="text-xs px-2.5 py-1 rounded-lg bg-white border border-[#EAE7DF] text-neutral-700 hover:border-[#F4B942] hover:bg-amber-50/50 transition-all"
+                    className="text-xs px-2.5 py-1 rounded-lg bg-white border border-[#EAE7DF] text-neutral-700 hover:border-[#F4B942] hover:bg-amber-50/50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     💬 {text}
                   </button>
@@ -287,8 +291,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
             </div>
 
             {/* Chat conversation display */}
-            {chatLog.length > 0 && (
-              <div className="space-y-3 mb-4 max-h-56 overflow-y-auto p-3 rounded-xl bg-white border border-[#EAE7DF]">
+            {(chatLog.length > 0 || isAsking) && (
+              <div className="space-y-3 mb-4 max-h-60 overflow-y-auto p-3.5 rounded-xl bg-white border border-[#EAE7DF] shadow-xs">
                 {chatLog.map((item, i) => (
                   <div key={i} className="space-y-1.5 text-xs">
                     <div className="font-bold text-neutral-800 flex items-center gap-1.5">
@@ -300,6 +304,31 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                     </div>
                   </div>
                 ))}
+
+                {/* Animated loading state while AI is thinking/searching */}
+                {isAsking && (
+                  <div className="space-y-1.5 text-xs animate-fadeIn">
+                    <div className="font-bold text-neutral-800 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#8C5E00] animate-ping" />
+                      <span>{isKu ? 'تۆ:' : isAr ? 'أنت:' : 'You:'} {pendingQuestion || question}</span>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-gradient-to-r from-[#FFFBF0] via-[#FAF9F6] to-white border border-[#F4B942]/60 shadow-xs flex items-center gap-3">
+                      <div className="w-5 h-5 border-2 border-[#8C5E00] border-t-transparent rounded-full animate-spin shrink-0" />
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-3.5 h-3.5 fill-[#F4B942] text-[#8C5E00] animate-spin" />
+                          <span className="font-extrabold text-neutral-900 text-xs">
+                            {isKu ? 'ژیری دەستکرد خەریکی پشکنین و لێکۆڵینەوەیە...' : isAr ? 'الذكاء الاصطناعي يقوم بالبحث والتحقق...' : 'AI is searching & verifying disclosures...'}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-neutral-500">
+                          {isKu ? 'پشکنینی تایبەتمەندییەکان، گەرەنتی، و مەرجەکانی فرۆشیار' : isAr ? 'فحص المواصفات، الضمان، وشروط التاجر' : 'Checking verified merchant specifications, warranty & delivery terms'}
+                        </p>
+                        <div className="h-1.5 bg-neutral-200/80 rounded-full w-3/4 animate-pulse mt-1" />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -314,17 +343,27 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               <input
                 type="text"
                 value={question}
+                disabled={isAsking}
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder={t('askAiPlaceholder')}
-                className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#EAE7DF] bg-white text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#F4B942]"
+                className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#EAE7DF] bg-white text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#F4B942] disabled:opacity-60"
               />
               <button
                 type="submit"
                 disabled={isAsking || !question.trim()}
-                className="px-4 py-2.5 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="px-4 py-2.5 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] active:scale-95 text-neutral-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-all shrink-0 shadow-2xs"
               >
-                <Send className="w-3.5 h-3.5" />
-                <span>{t('askAiBtn')}</span>
+                {isAsking ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-neutral-950 border-t-transparent rounded-full animate-spin" />
+                    <span>{isKu ? 'خەریکی گەڕانە...' : isAr ? 'جارٍ البحث...' : 'Searching...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{t('askAiBtn')}</span>
+                  </>
+                )}
               </button>
             </form>
           </div>

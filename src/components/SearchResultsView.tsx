@@ -28,6 +28,7 @@ interface SearchResultsViewProps {
   activeQuery: string;
   interpretation: AISearchInterpretation | null;
   aiResult?: AiSearchComprehensiveResult | null;
+  isSearching?: boolean;
   onClearSearch: () => void;
   onViewProduct: (product: Product) => void;
 }
@@ -37,6 +38,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
   activeQuery,
   interpretation,
   aiResult,
+  isSearching = false,
   onClearSearch,
   onViewProduct,
 }) => {
@@ -214,7 +216,38 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
           )}
         </div>
 
+        {/* AI Searching Loading State */}
+        {isSearching && (
+          <div className="bg-white rounded-2xl p-6 sm:p-10 border-2 border-[#F4B942]/60 shadow-md mb-8 text-center animate-fadeIn">
+            <div className="w-14 h-14 rounded-2xl bg-[#FFF5DD] border border-[#F4B942] flex items-center justify-center mx-auto mb-4 text-[#8C5E00] shadow-xs">
+              <Sparkles className="w-7 h-7 animate-spin text-[#8C5E00]" />
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black text-neutral-900 mb-2 flex items-center justify-center gap-2">
+              <span>{isCkb ? 'ژیری دەستکرد خەریکی گەڕان و شیکردنەوەیە...' : isAr ? 'الذكاء الاصطناعي يقوم بالبحث والتحليل...' : 'AI is searching & analyzing products...'}</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#F4B942] animate-ping" />
+            </h3>
+            <p className="text-xs sm:text-sm text-neutral-600 max-w-lg mx-auto leading-relaxed">
+              {isCkb
+                ? 'پشکنینی داتابەیسی کاڵاکانی کوردستان، بەراوردکردنی باشترین نرخەکان، و دۆزینەوەی فرۆشیارانی پشتڕاستکراو'
+                : isAr
+                ? 'فحص قاعدة بيانات منتجات كوردستان، ومقارنة أفضل الأسعار، واكتشاف المتاجر المعتمدة'
+                : 'Searching Kurdistan product database, comparing prices, and matching verified merchant disclosures'}
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-8">
+              {[1, 2, 3, 4].map((n) => (
+                <div key={n} className="rounded-2xl bg-[#FAF9F6] p-4 border border-[#EAE7DF] animate-pulse space-y-3 text-start">
+                  <div className="h-40 bg-neutral-200/70 rounded-xl" />
+                  <div className="h-4 bg-neutral-200/80 rounded w-4/5" />
+                  <div className="h-3 bg-neutral-200/60 rounded w-1/2" />
+                  <div className="h-5 bg-amber-100 rounded w-2/5 mt-2" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Filter Toolbar */}
+        {!isSearching && (
         <div className="bg-white rounded-xl p-3 sm:p-4 border border-[#EAE7DF] shadow-2xs mb-6 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-neutral-400 font-semibold flex items-center gap-1">
@@ -275,9 +308,12 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
             </select>
           </div>
         </div>
+        )}
 
-        {/* Product Grid */}
-        {filteredProducts.length === 0 ? (
+        {/* Product Grid & AI Analysis */}
+        {!isSearching && (
+          <>
+            {filteredProducts.length === 0 ? (
           <div className="p-8 sm:p-12 text-center bg-white rounded-2xl border border-[#EAE7DF] space-y-4">
             <h3 className="font-bold text-neutral-900 text-lg mb-1">{t('noResults')}</h3>
             <p className="text-xs text-neutral-600 max-w-xl mx-auto leading-relaxed">
@@ -600,6 +636,8 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
               )}
             </div>
           </div>
+        )}
+        </>
         )}
       </div>
     </div>

@@ -312,6 +312,7 @@ export default function LocaleHomePage() {
             activeQuery={activeQuery}
             interpretation={activeInterpretation}
             aiResult={aiSearchResult}
+            isSearching={isSearching}
             onClearSearch={handleClearSearch}
             onViewProduct={(p) => setSelectedProductForModal(p)}
           />
