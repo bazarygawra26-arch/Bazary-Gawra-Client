@@ -169,35 +169,37 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct
 
         {/* Action Buttons */}
         <div className="mt-4 pt-3 border-t border-[#EAE7DF] flex items-center gap-2">
-          <button
-            onClick={() => (compared ? removeFromCompare(product.id) : addToCompare(product))}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold border transition-colors ${
-              compared
-                ? 'bg-[#657A52] border-[#657A52] text-white'
-                : 'bg-white border-[#EAE7DF] text-neutral-800 hover:bg-[#FAF9F6] hover:border-[#D8D4C8]'
-            }`}
-          >
-            <ArrowLeftRight className="w-3.5 h-3.5" />
-            <span>{compared ? t('addedToCompare') : t('compareButton')}</span>
-          </button>
-
           {onViewProduct ? (
             <button
+              type="button"
               onClick={() => onViewProduct(product)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 transition-colors shadow-2xs"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-black text-white hover:text-white transition-all shadow-xs hover:shadow whitespace-nowrap group cursor-pointer"
             >
-              <Eye className="w-3.5 h-3.5" />
+              <Eye className="w-3.5 h-3.5 text-[#F4B942] group-hover:scale-110 transition-transform" />
               <span>{t('viewProduct')}</span>
             </button>
           ) : (
             <Link
               href={`/products/${product.slug || product.id}`}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 transition-colors shadow-2xs"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-black text-white hover:text-white transition-all shadow-xs hover:shadow whitespace-nowrap group cursor-pointer"
             >
-              <Eye className="w-3.5 h-3.5" />
+              <Eye className="w-3.5 h-3.5 text-[#F4B942] group-hover:scale-110 transition-transform" />
               <span>{t('viewProduct')}</span>
             </Link>
           )}
+
+          <button
+            type="button"
+            onClick={() => (compared ? removeFromCompare(product.id) : addToCompare(product))}
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold border transition-all whitespace-nowrap cursor-pointer ${
+              compared
+                ? 'bg-[#657A52] border-[#657A52] text-white shadow-2xs'
+                : 'bg-white border-[#E0DCD1] text-neutral-700 hover:bg-[#FAF9F6] hover:border-neutral-400 hover:text-neutral-950'
+            }`}
+          >
+            <ArrowLeftRight className="w-3.5 h-3.5" />
+            <span>{compared ? t('addedToCompare') : t('compareButton')}</span>
+          </button>
         </div>
       </div>
     </div>

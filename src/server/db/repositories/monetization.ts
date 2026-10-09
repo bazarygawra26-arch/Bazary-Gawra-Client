@@ -533,8 +533,8 @@ export async function getActivePromotedProducts(lang: 'en' | 'ku' | 'ar' = 'ku')
   const flagged = allProducts.filter((p) => p.is_promoted);
   if (flagged.length > 0) return flagged;
 
-  // For Hackathon demo preview: feature the top 5 products with real seller IDs
-  return allProducts.slice(0, 5).map((p) => ({ ...p, is_promoted: true }));
+  // For Hackathon demo preview: feature the top 4 products with real seller IDs
+  return allProducts.slice(0, 4).map((p) => ({ ...p, is_promoted: true }));
 }
 
 export async function getAdminMonetizationSummary(): Promise<{

@@ -42,7 +42,7 @@ export const SponsoredSpotlight: React.FC<SponsoredSpotlightProps> = ({ onViewPr
   if (loading || promotedProducts.length === 0) return null;
 
   return (
-    <section className="py-8 w-full max-w-7xl xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 animate-fadeIn">
+    <section className="py-8 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fadeIn">
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-3 border-b border-[#EAE7DF]">
         <div className="flex items-center gap-2.5">
@@ -74,16 +74,16 @@ export const SponsoredSpotlight: React.FC<SponsoredSpotlightProps> = ({ onViewPr
 
         <Link
           href="/seller/plans"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#8C5E00] hover:text-neutral-950 transition-colors self-start sm:self-auto"
+          className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-[#FFF5DD] hover:bg-[#FFECC0] text-[#8C5E00] border border-[#F4B942]/60 hover:border-[#F4B942] transition-all shadow-2xs self-start sm:self-auto"
         >
           <span>{isKu ? 'سپۆنسەرکردنی کاڵاکەت' : 'Sponsor your product'}</span>
           {isRtl ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
         </Link>
       </div>
 
-      {/* Promoted Products Grid - Single Row of 5 Products */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 lg:gap-4.5">
-        {promotedProducts.slice(0, 5).map((product) => (
+      {/* Promoted Products Grid - Exactly 4 Cards in One Row on Desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+        {promotedProducts.slice(0, 4).map((product) => (
           <ProductCard
             key={product.id}
             product={{ ...product, is_promoted: true }}
