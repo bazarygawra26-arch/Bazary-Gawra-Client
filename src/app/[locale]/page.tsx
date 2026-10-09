@@ -17,7 +17,7 @@ import { ProductCard } from '../../components/product/ProductCard';
 import { CompareTray } from '../../components/compare/CompareTray';
 import { KurdishPatternBg } from '../../components/ui/KurdishPatternBg';
 import { Product, Category, Seller, AISearchInterpretation, AiSearchComprehensiveResult } from '../../types';
-import { Sparkles, ShoppingBag, Loader2 } from 'lucide-react';
+import { Sparkles, ShoppingBag, Loader2, MapPin } from 'lucide-react';
 
 export default function LocaleHomePage() {
   const { language, t } = useLanguage();
@@ -273,21 +273,29 @@ export default function LocaleHomePage() {
         <KurdishPatternBg opacity={0.04} />
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          {/* Kurdish Warm Hospitality Greeting */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFF5DD] border border-[#F4B942]/50 text-[#8C5E00] text-xs sm:text-sm font-bold shadow-2xs mb-5">
+          {/* Eyebrow / Kurdish Warm Hospitality Greeting */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFF5DD] border border-[#F4B942]/50 text-[#8C5E00] text-xs sm:text-sm font-bold shadow-2xs mb-4">
             <Sparkles className="w-4 h-4 fill-[#F4B942] text-[#F4B942]" />
-            <span>{greeting}</span>
+            <span>{t('heroEyebrow') || greeting}</span>
           </div>
 
+          {/* Main Headline */}
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-neutral-900 tracking-tight leading-[1.15] mb-4">
             {t('heroHeadline')}
           </h1>
 
-          <p className="text-neutral-600 text-sm sm:text-base max-w-2xl mx-auto mb-8 leading-relaxed">
+          {/* Description */}
+          <p className="text-neutral-600 text-sm sm:text-base max-w-2xl mx-auto mb-5 leading-relaxed font-normal">
             {t('heroSubheadline')}
           </p>
 
-          {/* Large AI Search Box with 3 tappable prompt chips and camera button inside */}
+          {/* Local Marketplace Trust & Regional Scope Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EEF2E9] border border-[#657A52]/25 text-[#657A52] text-xs font-bold mb-8 shadow-2xs">
+            <MapPin className="w-3.5 h-3.5 text-[#657A52]" />
+            <span>{t('localMarketplaceNotice')}</span>
+          </div>
+
+          {/* Large AI Search Box with Voice Assistant and Clickable Prompt Chips */}
           <div className="max-w-3xl mx-auto">
             <AISearchBox onSearchSubmit={handleSearchSubmit} isSearching={isSearching} />
           </div>

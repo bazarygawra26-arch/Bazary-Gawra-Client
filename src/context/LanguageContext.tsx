@@ -17,11 +17,13 @@ const translationsData = {
   en: {
     siteTitle: 'BAZARY GAWRA',
     siteTagline: 'AI-Powered Local Product Discovery for Kurdistan',
-    heroBadge: '✨ AI-Powered Local Product Discovery',
-    heroHeadline: 'Find Local Products Smarter.',
-    heroSubheadline: 'Search, compare, and understand local products across Sulaymaniyah, Erbil, and Duhok with AI.',
-    searchPlaceholder: 'I need a coffee machine in Sulaymaniyah under 200,000 IQD...',
+    heroEyebrow: 'Welcome to Bazary Gawra',
+    heroBadge: '✨ Kurdistan Local Marketplace • Sulaymaniyah • Erbil • Duhok',
+    heroHeadline: 'Easily discover local products.',
+    heroSubheadline: 'Explore products from Kurdistan sellers, compare prices and features, and make the right choice with AI assistance.',
+    searchPlaceholder: 'What are you looking for?',
     searchButton: 'Search with AI',
+    localMarketplaceNotice: 'Connecting shoppers directly with local merchants in Sulaymaniyah, Erbil, and Duhok',
     navHome: 'Home',
     navCategories: 'Categories',
     navProducts: 'Products',
@@ -95,7 +97,7 @@ const translationsData = {
     askAiAboutProduct: 'Ask AI about this product',
     askAiPlaceholder: 'Ask about warranty, delivery time, or specs...',
     askAiBtn: 'Ask AI',
-    naturalPromptsLabel: 'Try natural prompts:',
+    naturalPromptsLabel: 'To get started, choose one of these requests:',
     // Why Bazary Gawra
     whyBazaryGawraBadge: 'The Bazary Gawra Standard',
     whyBazaryGawraSubtitle: 'Making local product discovery simpler, clearer, and more informed with artificial intelligence.',
@@ -169,11 +171,13 @@ const translationsData = {
   ckb: {
     siteTitle: 'بازاڕی گەورە',
     siteTagline: 'دۆزینەوە و بەراوردکاری زیرەکی بەرهەمە ناوخۆیییەکان لە کوردستان',
-    heroBadge: '✨ دۆزینەوەی زیرەکی بەرهەمی ناوخۆیی بە ژیری دەستکرد',
-    heroHeadline: 'بەرهەمە ناوخۆییەکان زیرەکانەتر بدۆزەرەوە.',
-    heroSubheadline: 'گەڕان، بەراوردکردن، و تێگەیشتن لە بەرهەمە ناوخۆیییەکان لە سلێمانی، هەولێر، و دهۆک بە ژیری دەستکرد.',
-    searchPlaceholder: 'قاوەسازێکم دەوێت لە سلێمانی تا ٢٠٠ هەزار دینار...',
-    searchButton: 'گەڕان بە ژیری دەستکرد',
+    heroEyebrow: 'بەخێربێیت بۆ بازاڕی گەورە',
+    heroBadge: '✨ بازاڕی ناوخۆیی کوردستان • سلێمانی • هەولێر • دهۆک',
+    heroHeadline: 'بەرهەمە ناوخۆییەکان بە ئاسانی بدۆزەرەوە.',
+    heroSubheadline: 'بەرهەمەکانی فرۆشیارانی کوردستان بگەڕێ، نرخ و تایبەتمەندییەکانیان بەراورد بکە، و بە یارمەتی ژیری دەستکرد هەڵبژاردنی گونجاو بکە.',
+    searchPlaceholder: 'چی بەدوایدا دەگەڕێیت؟',
+    searchButton: 'گەڕان بە یارمەتی ژیری دەستکرد',
+    localMarketplaceNotice: 'پەیوەندی ڕاستەوخۆی کڕیاران بە فرۆشیارە ناوخۆییەکانی سلێمانی، هەولێر و دهۆک',
     navHome: 'سەرەکی',
     navCategories: 'پۆلەکان',
     navProducts: 'بەرهەمەکان',
@@ -247,7 +251,7 @@ const translationsData = {
     askAiAboutProduct: 'لە ژیری دەستکرد بپرسە دەربارەی ئەم بەرهەمە',
     askAiPlaceholder: 'دەربارەی گەرەنتی، گەیاندن یان تایبەتمەندییەکان بپرسە...',
     askAiBtn: 'لە ژیری دەستکرد بپرسە',
-    naturalPromptsLabel: 'داواکاری ئامادەکراو بە شێوازی قسەکردن:',
+    naturalPromptsLabel: 'بۆ دەستپێکردن، یەکێک لەم داواکارییانە هەڵبژێرە:',
     // Why Bazary Gawra
     whyBazaryGawraBadge: 'ستانداردی بازاڕی گەورە',
     whyBazaryGawraSubtitle: 'ئاسانکاری، ڕوونی، و هۆشیاری زیاتر لە دۆزینەوەی بەرهەمی ناوخۆیی بە بەکارهێنانی ژیری دەستکرد.',
@@ -321,11 +325,13 @@ const translationsData = {
   ar: {
     siteTitle: 'بازاري گەورە',
     siteTagline: 'اكتشاف ومقارنة المنتجات المحلية بالذكاء الاصطناعي في إقليم كوردستان',
-    heroBadge: '✨ اكتشاف ذكي للمنتجات المحلية بالذكاء الاصطناعي',
-    heroHeadline: 'اعثر على المنتجات المحلية بذكاء أكبر.',
-    heroSubheadline: 'ابحث وقارن وافهم المنتجات المحلية في السليمانية وأربيل ودهوك بالذكاء الاصطناعي.',
-    searchPlaceholder: 'أريد ماكينة قهوة في السليمانية بأقل من 200,000 دينار...',
-    searchButton: 'بحث بالذكاء الاصطناعي',
+    heroEyebrow: 'أهلاً وسهلاً بك في بازاڕی گەورە',
+    heroBadge: '✨ سوق كوردستان المحلي • السليمانية • أربيل • دهوك',
+    heroHeadline: 'اعثر على المنتجات المحلية بكل سهولة.',
+    heroSubheadline: 'تصفح منتجات بائعي كوردستان، وقارن الأسعار والمواصفات، واختر الأنسب بمساعدة الذكاء الاصطناعي.',
+    searchPlaceholder: 'عما تبحث؟',
+    searchButton: 'بحث بمساعدة الذكاء الاصطناعي',
+    localMarketplaceNotice: 'ربط المتسوقين مباشرة بالتجار المحليين في السليمانية وأربيل ودهوك',
     navHome: 'الرئيسية',
     navCategories: 'التصنيفات',
     navProducts: 'المنتجات',
@@ -399,7 +405,7 @@ const translationsData = {
     askAiAboutProduct: 'اسأل الذكاء الاصطناعي عن هذا المنتج',
     askAiPlaceholder: 'اسأل عن الضمان، التوصيل، أو المواصفات...',
     askAiBtn: 'اسأل الآن',
-    naturalPromptsLabel: 'أمثلة لطلبات طبيعية:',
+    naturalPromptsLabel: 'للبدء، اختر أحد هذه الطلبات:',
     // Why Bazary Gawra
     whyBazaryGawraBadge: 'معيار بازاري گەورە',
     whyBazaryGawraSubtitle: 'جعل اكتشاف المنتجات المحلية أسهل وأوضح وأكثر شفافية باستخدام الذكاء الاصطناعي.',
@@ -488,12 +494,20 @@ const LanguageContext = createContext<LanguageContextType>({
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
-  const [language, setLanguage] = useState<SupportedLanguage>('ku');
+  const getLangFromPath = (): SupportedLanguage => {
+    if (!pathname) return 'ku';
+    const seg = pathname.split('/')[1];
+    if (seg === 'ar') return 'ar';
+    if (seg === 'en') return 'en';
+    return 'ku';
+  };
+
+  const [language, setLanguage] = useState<SupportedLanguage>(getLangFromPath);
 
   useEffect(() => {
     if (!pathname) return;
     const seg = pathname.split('/')[1];
-    if (seg === 'ku') {
+    if (seg === 'ku' || seg === 'ckb') {
       setLanguage('ku');
     } else if (seg === 'ar') {
       setLanguage('ar');
