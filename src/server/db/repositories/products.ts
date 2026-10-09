@@ -56,6 +56,29 @@ function mapDbProductToDomain(row: any, lang: 'en' | 'ku' | 'ar' = 'ku'): Produc
   const origPrice = row.original_price ? Number(row.original_price) : (row.specs?.original_price ? Number(row.specs.original_price) : undefined);
   const discountPercent = origPrice && origPrice > price ? Math.round(((origPrice - price) / origPrice) * 100) : undefined;
 
+  const rawImageList: string[] = [];
+  if (row.image_url) rawImageList.push(row.image_url);
+  if (row.primary_image) rawImageList.push(row.primary_image);
+  if (Array.isArray(row.images)) rawImageList.push(...row.images);
+  if (Array.isArray(row.specs?.images)) rawImageList.push(...row.specs.images);
+  if (row.specs?.image_url) rawImageList.push(row.specs.image_url);
+
+  const seenImgs = new Set<string>();
+  const uniqueImages: string[] = [];
+  for (const img of rawImageList) {
+    if (typeof img === 'string' && img.trim()) {
+      const trimmed = img.trim();
+      if (!seenImgs.has(trimmed)) {
+        seenImgs.add(trimmed);
+        uniqueImages.push(trimmed);
+      }
+    }
+  }
+
+  const finalImages = uniqueImages.length > 0
+    ? uniqueImages
+    : ['https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80'];
+
   return {
     id: id,
     slug: slug,
@@ -86,24 +109,8 @@ function mapDbProductToDomain(row: any, lang: 'en' | 'ku' | 'ar' = 'ku'): Produc
     return_policy: returnText,
     origin: row.origin || undefined,
     description: row.description || '',
-    image_url:
-      row.image_url ||
-      row.primary_image ||
-      (Array.isArray(row.images) && row.images.length > 0 && row.images[0]) ||
-      row.specs?.image_url ||
-      (Array.isArray(row.specs?.images) && row.specs.images.length > 0 && row.specs.images[0]) ||
-      'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
-    images:
-      Array.isArray(row.images) && row.images.length > 0
-        ? row.images
-        : Array.isArray(row.specs?.images) && row.specs.images.length > 0
-        ? row.specs.images
-        : [
-            row.image_url ||
-              row.primary_image ||
-              row.specs?.image_url ||
-              'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
-          ],
+    image_url: finalImages[0],
+    images: finalImages,
     information_signals: {
       has_location: !!location,
       has_warranty: hasWarranty,
@@ -147,7 +154,52 @@ export async function findProducts(filters?: {
       });
 
       if (!error && Array.isArray(data)) {
-        return (data as any[]).map((row) => mapDbProductToDomain(row, activeLang));
+        const productIds = data.map((r: any) => r.product_id || r.id).filter(Boolean);
+        let productsExtraMap: Record<string, { specs?: any; image_url?: string; images?: string[] }> = {};
+
+        if (productIds.length > 0) {
+          try {
+            const [productsRes, imagesRes] = await Promise.all([
+              supabaseAdmin.from('products').select('id, specs, image_url').in('id', productIds),
+              supabaseAdmin
+                .from('product_images')
+                .select('product_id, url, sort_order, is_primary')
+                .in('product_id', productIds)
+                .order('sort_order', { ascending: true })
+            ]);
+
+            if (productsRes.data) {
+              productsRes.data.forEach((p: any) => {
+                productsExtraMap[p.id] = { specs: p.specs, image_url: p.image_url };
+              });
+            }
+
+            if (imagesRes.data && imagesRes.data.length > 0) {
+              imagesRes.data.forEach((img: any) => {
+                if (!productsExtraMap[img.product_id]) {
+                  productsExtraMap[img.product_id] = {};
+                }
+                if (!productsExtraMap[img.product_id].images) {
+                  productsExtraMap[img.product_id].images = [];
+                }
+                productsExtraMap[img.product_id].images!.push(img.url);
+              });
+            }
+          } catch (enrichErr) {
+            console.warn('[findProducts] image enrichment warning:', enrichErr);
+          }
+        }
+
+        return (data as any[]).map((row) => {
+          const extra = productsExtraMap[row.product_id || row.id];
+          const mergedRow = {
+            ...row,
+            specs: extra?.specs || row.specs,
+            image_url: extra?.image_url || row.image_url,
+            images: extra?.images || (Array.isArray(extra?.specs?.images) ? extra.specs.images : row.images)
+          };
+          return mapDbProductToDomain(mergedRow, activeLang);
+        });
       }
 
       // If RPC is unavailable, perform direct table query from Supabase
@@ -204,6 +256,18 @@ export async function findProductById(id: string, lang: 'en' | 'ku' | 'ar' = 'ku
             }
           }
         }
+        try {
+          const { data: pImages } = await (supabaseAdmin as any)
+            .from('product_images')
+            .select('url')
+            .eq('product_id', id)
+            .order('sort_order', { ascending: true });
+          if (pImages && pImages.length > 0) {
+            const galleryUrls = pImages.map((pi: any) => pi.url);
+            prod.images = Array.from(new Set([...galleryUrls, ...(prod.images || [])]));
+            if (prod.images.length > 0) prod.image_url = prod.images[0];
+          }
+        } catch {}
         await enrichProductWithSellerSlug(prod);
         return localizeProduct(prod, lang);
       }
@@ -217,6 +281,18 @@ export async function findProductById(id: string, lang: 'en' | 'ku' | 'ar' = 'ku
 
       if (directData) {
         const prod = mapDbProductToDomain(directData, lang);
+        try {
+          const { data: pImages } = await (supabaseAdmin as any)
+            .from('product_images')
+            .select('url')
+            .eq('product_id', id)
+            .order('sort_order', { ascending: true });
+          if (pImages && pImages.length > 0) {
+            const galleryUrls = pImages.map((pi: any) => pi.url);
+            prod.images = Array.from(new Set([...galleryUrls, ...(prod.images || [])]));
+            if (prod.images.length > 0) prod.image_url = prod.images[0];
+          }
+        } catch {}
         await enrichProductWithSellerSlug(prod);
         return localizeProduct(prod, lang);
       }
@@ -255,6 +331,18 @@ export async function findProductBySlug(slug: string, lang: 'en' | 'ku' | 'ar' =
             }
           }
         }
+        try {
+          const { data: pImages } = await (supabaseAdmin as any)
+            .from('product_images')
+            .select('url')
+            .eq('product_id', prod.id)
+            .order('sort_order', { ascending: true });
+          if (pImages && pImages.length > 0) {
+            const galleryUrls = pImages.map((pi: any) => pi.url);
+            prod.images = Array.from(new Set([...galleryUrls, ...(prod.images || [])]));
+            if (prod.images.length > 0) prod.image_url = prod.images[0];
+          }
+        } catch {}
         await enrichProductWithSellerSlug(prod);
         return localizeProduct(prod, lang);
       }

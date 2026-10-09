@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useComparison } from '../context/ComparisonContext';
 import { Product } from '../types';
@@ -36,13 +36,41 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
   const [chatLog, setChatLog] = useState<{ q: string; a: string }[]>([]);
   const [isAsking, setIsAsking] = useState(false);
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
+  const [liveProduct, setLiveProduct] = useState<Product | null>(product);
+
+  useEffect(() => {
+    setLiveProduct(product);
+  }, [product]);
+
+  useEffect(() => {
+    if (!product?.id && !product?.slug) return;
+    const identifier = product.id || product.slug;
+    const langParam = language === 'ckb' ? 'ku' : language;
+    fetch(`/api/products/${identifier}?lang=${langParam}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && Array.isArray(data.images) && data.images.length > 0) {
+          setLiveProduct((prev) => {
+            if (!prev) return data;
+            const combinedImages = Array.from(new Set([...(prev.images || []), ...data.images]));
+            return {
+              ...prev,
+              ...data,
+              images: combinedImages.length > 0 ? combinedImages : data.images,
+            };
+          });
+        }
+      })
+      .catch((e) => console.warn('ProductDetailModal fresh load error:', e));
+  }, [product?.id, product?.slug, language]);
 
   if (!product) return null;
 
+  const currentProduct = liveProduct || product;
   const isKu = language === 'ckb' || language === 'ku';
   const isAr = language === 'ar';
 
-  const lp = localizeProduct(product, language);
+  const lp = localizeProduct(currentProduct, language);
   const compared = isCompared(lp.id);
 
   const sampleQuestions = [
@@ -76,7 +104,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          productId: product.id,
+          productId: currentProduct.id,
           question: qText,
           language: isKu ? 'ku' : isAr ? 'ar' : 'en',
         }),
@@ -101,24 +129,24 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
     if (lower.includes('warranty') || qText.includes('گەرەنتی') || qText.includes('ضمان')) {
       answer =
-        product.warranty && product.warranty !== 'Information unavailable' && product.warranty !== 'Not provided'
+        currentProduct.warranty && currentProduct.warranty !== 'Information unavailable' && currentProduct.warranty !== 'Not provided'
           ? isKu
-            ? `بەپێی زانیاری دیاریکراوی فرۆشیار، ئەم کاڵایە ئەم گەرەنتییەی هەیە: "${product.warranty}".`
+            ? `بەپێی زانیاری دیاریکراوی فرۆشیار، ئەم کاڵایە ئەم گەرەنتییەی هەیە: "${currentProduct.warranty}".`
             : isAr
-            ? `وفقاً لبيانات التاجر، يأتي هذا المنتج مع الضمان التالي: "${product.warranty}".`
-            : `According to the seller's stated information, this product comes with: "${product.warranty}".`
+            ? `وفقاً لبيانات التاجر، يأتي هذا المنتج مع الضمان التالي: "${currentProduct.warranty}".`
+            : `According to the seller's stated information, this product comes with: "${currentProduct.warranty}".`
           : isKu
           ? `کەلێنی زانیاری دۆزرایەوە: فرۆشیار مەرجی گەرەنتی دیاری نەکردووە بۆ ئەم بەرهەمە. زانیارییەکە نادیارە و پێشنیار دەکەین ڕاستەوخۆ لە فرۆشیار بپرسیت.`
           : isAr
           ? `تم رصد فجوة معلومات: لم يحدد التاجر شروط الضمان لهذا المنتج. المعلومات غير محددة ونوصي بالسؤال المباشر للبائع.`
           : `Information gap detected: The seller has not provided warranty terms for this listing. It is unknown and we recommend asking the seller directly.`;
     } else if (lower.includes('deliver') || qText.includes('گەیاندن') || qText.includes('دەگات') || qText.includes('توصيل')) {
-      answer = product.delivery_info && product.delivery_info !== 'Not provided'
+      answer = currentProduct.delivery_info && currentProduct.delivery_info !== 'Not provided'
         ? isKu
-          ? `مەرجی گەیاندنی فرۆشیار: "${product.delivery_info}".`
+          ? `مەرجی گەیاندنی فرۆشیار: "${currentProduct.delivery_info}".`
           : isAr
-          ? `شروط التوصيل المحددة من البائع: "${product.delivery_info}".`
-          : `Delivery terms provided by seller: "${product.delivery_info}".`
+          ? `شروط التوصيل المحددة من البائع: "${currentProduct.delivery_info}".`
+          : `Delivery terms provided by seller: "${currentProduct.delivery_info}".`
         : isKu
         ? `زانیاری گەیاندن لەلایەن فرۆشیارەوە لەم لیستەدا دیاری نەکراوە و نادیارە. دەتوانیت لە فرۆشیار بپرسیت.`
         : isAr
@@ -127,17 +155,17 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
     } else if (lower.includes('power') || lower.includes('watt') || lower.includes('capacity') || qText.includes('وات') || qText.includes('قەبارە') || qText.includes('سعة') || qText.includes('توانا')) {
       answer =
         isKu
-          ? `تایبەتمەندییە تۆمارکراوەکان: قەبارە: ${product.capacity || 'دیاری نەکراوە'}، هێزی کارەبا: ${product.power || 'دیاری نەکراوە'}.`
+          ? `تایبەتمەندییە تۆمارکراوەکان: قەبارە: ${currentProduct.capacity || 'دیاری نەکراوە'}، هێزی کارەبا: ${currentProduct.power || 'دیاری نەکراوە'}.`
           : isAr
-          ? `المواصفات الفنية المسجلة: السعة: ${product.capacity || 'غير محددة'}، القدرة: ${product.power || 'غير محددة'}.`
-          : `Technical specifications on file: Capacity: ${product.capacity || 'Not provided'}, Power: ${product.power || 'Not provided'}.`;
+          ? `المواصفات الفنية المسجلة: السعة: ${currentProduct.capacity || 'غير محددة'}، القدرة: ${currentProduct.power || 'غير محددة'}.`
+          : `Technical specifications on file: Capacity: ${currentProduct.capacity || 'Not provided'}, Power: ${currentProduct.power || 'Not provided'}.`;
     } else {
       answer =
         isKu
-          ? `لە سەر تۆماری پشتڕاستکراوی دووکانەکە: ئەمە ${displayName}یە لەلایەن ${product.seller_name} لە ${product.location} بە نرخی ${product.price.toLocaleString()} ${t('priceIQD')}. ئەگەر وردەکارییەک دیاری نەکرابێت، پێشنیار دەکەین ڕاستەوخۆ پەیوەندی بە فرۆشیارەوە بکەیت.`
+          ? `لە سەر تۆماری پشتڕاستکراوی دووکانەکە: ئەمە ${displayName}یە لەلایەن ${currentProduct.seller_name} لە ${currentProduct.location} بە نرخی ${currentProduct.price.toLocaleString()} ${t('priceIQD')}. ئەگەر وردەکارییەک دیاری نەکرابێت، پێشنیار دەکەین ڕاستەوخۆ پەیوەندی بە فرۆشیارەوە بکەیت.`
           : isAr
-          ? `بناءً على سجل التاجر المعتمد: هذا المنتج ${displayName} من متجر ${product.seller_name} في ${product.location} بسعر ${product.price.toLocaleString()} ${t('priceIQD')}. في حال عدم توفر تفاصيل محددة، نوصي بالتواصل المباشر مع البائع.`
-          : `Based strictly on the verified merchant record: This is the ${product.name} offered by ${product.seller_name} located in ${product.location} for ${product.price.toLocaleString()} ${product.currency}. If a specific fact is unavailable, please inquire directly with the merchant.`;
+          ? `بناءً على سجل التاجر المعتمد: هذا المنتج ${displayName} من متجر ${currentProduct.seller_name} في ${currentProduct.location} بسعر ${currentProduct.price.toLocaleString()} ${t('priceIQD')}. في حال عدم توفر تفاصيل محددة، نوصي بالتواصل المباشر مع البائع.`
+          : `Based strictly on the verified merchant record: This is the ${currentProduct.name} offered by ${currentProduct.seller_name} located in ${currentProduct.location} for ${currentProduct.price.toLocaleString()} ${currentProduct.currency}. If a specific fact is unavailable, please inquire directly with the merchant.`;
     }
 
     setChatLog((prev) => [...prev, { q: qText, a: answer }]);
@@ -236,7 +264,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               {/* Actions */}
               <div className="pt-3 flex items-center gap-3">
                 <button
-                  onClick={() => (compared ? removeFromCompare(product.id) : addToCompare(product))}
+                  onClick={() => (compared ? removeFromCompare(currentProduct.id) : addToCompare(currentProduct))}
                   className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold border transition-colors flex items-center justify-center gap-2 ${
                     compared
                       ? 'bg-[#657A52] border-[#657A52] text-white'
@@ -254,13 +282,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
           <div className="space-y-2 pt-4 border-t border-[#EAE7DF]">
             <h3 className="font-bold text-neutral-900 text-sm">{isKu ? 'وەسفی بەرهەم' : isAr ? 'وصف المنتج' : 'Product Description'}</h3>
             <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
-              {product.description}
+              {currentProduct.description}
             </p>
           </div>
 
           {/* Neutral Trust Signals Component */}
           <div>
-            <TrustSignals product={product} />
+            <TrustSignals product={currentProduct} />
           </div>
 
           {/* Section 14: AI Product Assistant */}
