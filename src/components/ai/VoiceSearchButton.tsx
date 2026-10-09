@@ -287,27 +287,21 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
         }
       };
 
-      recognition.onend = () => {
-        // Stop audio recorder
+      recognition.onend = async () => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
           try {
             mediaRecorderRef.current.stop();
           } catch (_) {}
         }
 
-        setStatus((current) => {
-          if (current === 'listening') return 'review';
-          return current;
-        });
-
-        // If in Kurdish mode and browser produced English/Latin letters (e.g. "slow a 2006 sub key")
-        // Automatically trigger AI Kurdish restoration!
-        setTimeout(() => {
-          const text = (transcript || interimTranscript).trim();
-          if (selectedLangCode === 'ckb-IQ' && /[a-zA-Z]/.test(text)) {
-            convertPhoneticToKurdish(text);
-          }
-        }, 100);
+        const text = (transcript || interimTranscript).trim();
+        if (selectedLangCode === 'ckb-IQ' && text) {
+          setStatus('processing');
+          await convertPhoneticToKurdish(text);
+          setStatus('review');
+        } else {
+          setStatus((current) => (current === 'listening' ? 'review' : current));
+        }
       };
 
       recognition.start();
@@ -324,7 +318,7 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
     }
   };
 
-  const stopListening = () => {
+  const stopListening = async () => {
     setStatus('processing');
     if (recognitionRef.current) {
       try {
@@ -337,14 +331,14 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
       } catch (_) {}
     }
 
-    setTimeout(() => {
-      setStatus('review');
-      const text = (transcript || interimTranscript).trim();
-      // If Kurdish was selected and text contains Latin/English letters, auto-fix with AI
-      if (selectedLangCode === 'ckb-IQ' && /[a-zA-Z]/.test(text)) {
-        convertPhoneticToKurdish(text);
-      }
-    }, 400);
+    const text = (transcript || interimTranscript).trim();
+    if (selectedLangCode === 'ckb-IQ' && text) {
+      setIsConvertingToKurdish(true);
+      await convertPhoneticToKurdish(text);
+      setIsConvertingToKurdish(false);
+    }
+
+    setStatus('review');
   };
 
   const handleConfirmSearch = () => {
@@ -612,17 +606,24 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
                 </div>
 
                 <div className="w-full text-center min-h-[36px] px-2">
-                  <p className="text-sm font-semibold text-neutral-800">
-                    {transcript || interimTranscript || (
-                      <span className="text-neutral-400 italic">
+                  {selectedLangCode === 'ckb-IQ' ? (
+                    <p className="text-xs sm:text-sm font-bold text-[#8C5E00] flex items-center justify-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block" />
+                      <span>
                         {isKu
-                          ? '...دەنگەکەت تۆمار دەکرێت، بە کوردی قسە بکە'
-                          : isAr
-                          ? '...يتم تسجيل صوتك، تحدث الآن'
-                          : '...Listening to your voice'}
+                          ? 'دەنگەکەت تۆمار دەکرێت... کاتێک قسەکردنت تەواو بوو کرتە لە دوگمەی سوور بکە'
+                          : 'Recording your voice... Click the red stop button when finished speaking'}
                       </span>
-                    )}
-                  </p>
+                    </p>
+                  ) : (
+                    <p className="text-sm font-semibold text-neutral-800">
+                      {transcript || interimTranscript || (
+                        <span className="text-neutral-400 italic">
+                          {isAr ? '...يتم تسجيل صوتك، تحدث الآن' : '...Listening to your voice'}
+                        </span>
+                      )}
+                    </p>
+                  )}
                 </div>
 
                 <button

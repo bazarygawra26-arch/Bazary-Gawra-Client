@@ -8,23 +8,44 @@ export async function POST(req: NextRequest) {
 
     // 1. Reconstruct Kurdish from browser phonetic text if provided
     if (phoneticText && typeof phoneticText === 'string' && phoneticText.trim().length > 0) {
-      const prompt = `A user was speaking Sorani Kurdish in Sulaymaniyah, Kurdistan into a voice shopping assistant.
-Because the browser speech recognition engine does not natively support Sorani Kurdish, it misheard the Kurdish speech phonetically as English or garbled words: "${phoneticText.trim()}".
-Task:
-1. Reconstruct what the user said in natural Sorani Kurdish (using Kurdish Arabic alphabet: سڵاو، ئامێری قاوە، بەرهەمی دەستکرد، نرخ، گەرەنتی، سلێمانی، هەولێر...).
-2. If the user said "slow", it was "سڵاو" (Slaw / Hello).
-3. If the user spoke numbers or product names (e.g. coffee machine, home appliance, honey, rug), reconstruct into authentic Sorani Kurdish.
-Return JSON format:
+      const prompt = `You are a specialized Sorani Kurdish AI speech interpreter for Bazary Gawra (a local marketplace in Kurdistan).
+A Kurdish user was speaking Sorani Kurdish into their microphone.
+Because their web browser does not support Kurdish speech recognition, the browser's English recognizer misheard the Kurdish pronunciation phonetically as English words:
+"${phoneticText.trim()}"
+
+YOUR TASK:
+Reconstruct and translate what the user was saying in natural, grammatically correct Sorani Kurdish (using standard Kurdish Arabic script: سۆرانی).
+
+Key phonetic patterns from Kurdish to English speech engines:
+- "slow" or "hello" -> "سڵاو" (Slaw)
+- "money" / "man" -> "ماڵ" / "مـ"
+- "made it" / "madet" -> "دەوێت" (dewêt)
+- "home goods" / "same house" -> "ئامێری ماڵ" / "پێداویستی ناوماڵ"
+- "left my money" -> "بە نرخێکی گونجاو"
+- "coffee" / "qawa" -> "ئامێری قاوە"
+- "fryer" / "air fryer" -> "ئێرفرایەر"
+- "honey" / "hangwen" -> "هەنگوینی سروشتی"
+- "craft" / "dastkrd" -> "بەرهەمی دەستکرد"
+- "slemani" / "suleimani" / "salam" -> "لە سلێمانی"
+- "erbil" / "hawler" -> "لە هەولێر"
+- "duhok" -> "لە دهۆک"
+- numbers like "two thousand" / "200" / "thousand" -> "دینار" / "هەزار"
+
+INSTRUCTIONS:
+- Produce ONE clear, natural, and authentic Sorani Kurdish shopping request.
+- Use Kurdish script (ئەلفوبێی سۆرانی: پ، چ، ژ، گ، ڤ، ۆ، ێ، ڵ، ڕ، ە).
+- Do not repeat examples or provide options. Output just the clean sentence.
+
+Return JSON:
 {
-  "transcript": "reconstructed Sorani Kurdish text in Kurdish script",
-  "explanation": "brief reason"
+  "transcript": "natural Sorani Kurdish sentence"
 }`;
 
-      const result = await generateJson<{ transcript: string; explanation?: string }>(prompt);
+      const result = await generateJson<{ transcript: string }>(prompt);
       if (result && result.transcript) {
         return NextResponse.json({
           success: true,
-          transcript: result.transcript,
+          transcript: result.transcript.trim(),
           original: phoneticText,
           method: 'phonetic_reconstruction',
         });
@@ -40,7 +61,7 @@ If the audio contains a shopping request (e.g. searching for products in Sulayma
 If Arabic was spoken, transcribe in Arabic. If English was spoken, transcribe in English.
 Return JSON format:
 {
-  "transcript": "exact transcribed text",
+  "transcript": "exact transcribed text in Kurdish script",
   "detected_language": "ckb"
 }`;
 
@@ -53,7 +74,7 @@ Return JSON format:
       if (result && result.transcript) {
         return NextResponse.json({
           success: true,
-          transcript: result.transcript,
+          transcript: result.transcript.trim(),
           detected_language: result.detected_language || 'ckb',
           method: 'audio_transcription',
         });
