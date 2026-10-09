@@ -61,11 +61,11 @@ export const PromotionalBanners: React.FC<PromotionalBannersProps> = ({ promotio
   return (
     <section
       aria-label="Promotional Banners"
-      className="py-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+      className="py-6 w-full max-w-[96%] sm:max-w-[95%] lg:max-w-[94%] xl:max-w-[1680px] 2xl:max-w-[1800px] mx-auto px-2 sm:px-4 lg:px-6"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="relative overflow-hidden rounded-3xl bg-neutral-900 border border-[#EAE7DF] shadow-md min-h-[220px] sm:min-h-[260px] md:min-h-[290px] flex items-center">
+      <div className="relative overflow-hidden rounded-3xl bg-neutral-900 border border-[#EAE7DF] shadow-xl min-h-[280px] sm:min-h-[320px] md:min-h-[360px] lg:min-h-[400px] xl:min-h-[420px] flex items-center w-full">
         {/* Background Image with Dark Gradient Overlay */}
         <div className="absolute inset-0 z-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -74,24 +74,24 @@ export const PromotionalBanners: React.FC<PromotionalBannersProps> = ({ promotio
             alt={title}
             className="w-full h-full object-cover object-center transition-all duration-700 scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/75 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/75 to-black/30 rtl:bg-gradient-to-l" />
         </div>
 
         {/* Content Box */}
-        <div className="relative z-10 p-6 sm:p-10 md:p-12 max-w-2xl text-start">
+        <div className="relative z-10 p-6 sm:p-10 md:p-14 lg:p-16 xl:p-20 max-w-3xl lg:max-w-4xl xl:max-w-5xl text-start">
           {badge && (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F4B942]/20 border border-[#F4B942]/50 text-[#F4B942] text-xs font-bold mb-3 backdrop-blur-xs">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#F4B942]/20 border border-[#F4B942]/50 text-[#F4B942] text-xs font-bold mb-3.5 backdrop-blur-xs">
               <Sparkles className="w-3.5 h-3.5" />
               <span>{badge}</span>
             </div>
           )}
 
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-snug mb-2">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-3">
             {title}
           </h2>
 
           {subtitle && (
-            <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed line-clamp-2 sm:line-clamp-3 mb-5 max-w-xl">
+            <p className="text-sm sm:text-base md:text-lg text-neutral-200 leading-relaxed line-clamp-2 sm:line-clamp-3 mb-6 max-w-2xl font-normal">
               {subtitle}
             </p>
           )}
@@ -99,7 +99,7 @@ export const PromotionalBanners: React.FC<PromotionalBannersProps> = ({ promotio
           <div className="flex items-center gap-3">
             <Link
               href={current.link_url}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#F4B942] text-neutral-950 font-bold text-xs sm:text-sm hover:bg-[#F2AC1E] shadow-sm transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] active:scale-95 text-neutral-950 font-black text-xs sm:text-sm shadow-md transition-all cursor-pointer"
             >
               <span>{isKu ? 'ببینە و بگەڕێ' : isAr ? 'استكشف العرض' : 'Explore Offer'}</span>
               {isKu || isAr ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
