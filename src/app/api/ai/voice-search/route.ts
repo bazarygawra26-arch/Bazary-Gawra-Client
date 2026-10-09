@@ -7,10 +7,10 @@ export const dynamic = "force-dynamic";
 
 const CANDIDATE_MODELS = [
   process.env.GEMINI_MODEL,
-  "gemini-3.5-flash",
   "gemini-3.7-flash",
-  "gemini-flash-latest",
+  "gemini-3.5-flash-lite",
   "gemini-3.1-flash-lite",
+  "gemini-flash-lite-latest",
   "gemini-3.8-flash",
 ].filter(Boolean) as string[];
 

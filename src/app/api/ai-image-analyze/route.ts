@@ -75,10 +75,10 @@ Respond with ONLY valid JSON with this exact schema (no markdown fences, no extr
 }`;
 
     const CANDIDATE_MODELS = [
-      'gemini-3.1-flash-lite',
-      'gemini-3.5-flash-lite',
-      'gemini-3.5-flash',
       'gemini-3.7-flash',
+      'gemini-3.5-flash-lite',
+      'gemini-3.1-flash-lite',
+      'gemini-flash-lite-latest',
       'gemini-3.8-flash',
     ];
 
@@ -93,7 +93,7 @@ Respond with ONLY valid JSON with this exact schema (no markdown fences, no extr
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              signal: AbortSignal.timeout(9000),
+              signal: AbortSignal.timeout(25000),
               body: JSON.stringify({
                 contents: [
                   {
