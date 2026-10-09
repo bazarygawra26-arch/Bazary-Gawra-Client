@@ -83,6 +83,7 @@ export interface ProductFeedback {
 export interface SubCategory {
   id: string;
   name: string;
+  name_en?: string;
   name_ckb: string;
   name_ar: string;
   slug: string;
@@ -94,6 +95,7 @@ export interface SubCategory {
 export interface Category {
   id: string;
   name: string;
+  name_en?: string;
   name_ckb: string;
   name_ar: string;
   slug: string;

@@ -74,11 +74,16 @@ export async function findCategories(lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<C
             .filter((sub: any) => sub.parent_id === c.id)
             .map((sub: any) => {
               const subCount = countsByCatId[sub.id] || 0;
+              const subEnName = sub.name_en || sub.name || sub.slug;
+              const subCkbName = sub.name_ku || sub.name_ckb || localizeCategory(sub.slug, 'ku');
+              const subArName = sub.name_ar || localizeCategory(sub.slug, 'ar');
+              const subActiveName = lang === 'ku' ? subCkbName : lang === 'ar' ? subArName : subEnName;
               return {
                 id: sub.id,
-                name: sub.name_en || sub.name || sub.slug,
-                name_ckb: sub.name_ku || sub.name_ckb || localizeCategory(sub.slug, 'ku'),
-                name_ar: sub.name_ar || localizeCategory(sub.slug, 'ar'),
+                name: subActiveName,
+                name_en: subEnName,
+                name_ckb: subCkbName,
+                name_ar: subArName,
                 slug: sub.slug,
                 iconName: sub.icon || 'Tag',
                 image: sub.image_url || defaultCategoryImages[sub.slug],
@@ -93,10 +98,12 @@ export async function findCategories(lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<C
           const enName = c.name_en || c.name || c.slug;
           const ckbName = c.name_ku || c.name_ckb || localizeCategory(c.slug, 'ku');
           const arName = c.name_ar || localizeCategory(c.slug, 'ar');
+          const activeName = lang === 'ku' ? ckbName : lang === 'ar' ? arName : enName;
 
           return {
             id: c.id,
-            name: enName,
+            name: activeName,
+            name_en: enName,
             name_ckb: ckbName,
             name_ar: arName,
             slug: c.slug,

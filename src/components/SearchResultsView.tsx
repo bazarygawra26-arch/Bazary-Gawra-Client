@@ -21,6 +21,7 @@ import {
   Store,
 } from 'lucide-react';
 import { AIFeedbackControl } from './ai/AIFeedbackControl';
+import { localizeLocation, localizeCategory } from '../lib/i18nData';
 
 interface SearchResultsViewProps {
   products: Product[];
@@ -194,7 +195,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
                 <span>{isCkb ? 'پارامیتەرەکانی ژیری دەستکرد:' : isAr ? 'معايير الفهم:' : 'AI Parameters:'}</span>
               </span>
               <span className="px-2.5 py-1 rounded-lg bg-[#FAF9F6] border border-[#EAE7DF] text-neutral-700">
-                {isCkb ? 'شار:' : isAr ? 'المدينة:' : 'City:'} <strong className="text-neutral-900">{interpretation.target_location}</strong>
+                {isCkb ? 'شار:' : isAr ? 'المدينة:' : 'City:'} <strong className="text-neutral-900">{localizeLocation(interpretation.target_location, language)}</strong>
               </span>
               {interpretation.budget_max && (
                 <span className="px-2.5 py-1 rounded-lg bg-[#FAF9F6] border border-[#EAE7DF] text-neutral-700">
@@ -202,7 +203,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
                 </span>
               )}
               <span className="px-2.5 py-1 rounded-lg bg-[#FAF9F6] border border-[#EAE7DF] text-neutral-700">
-                {isCkb ? 'پۆل:' : isAr ? 'الفئة:' : 'Category:'} <strong className="text-neutral-900">{interpretation.product_type}</strong>
+                {isCkb ? 'پۆل:' : isAr ? 'الفئة:' : 'Category:'} <strong className="text-neutral-900">{localizeCategory(interpretation.product_type, language) || interpretation.product_type}</strong>
               </span>
               {interpretation.extracted_preferences && interpretation.extracted_preferences.length > 0 && (
                 <span className="px-2.5 py-1 rounded-lg bg-[#FFF5DD] border border-[#F4B942]/50 text-[#8C5E00] font-semibold">
