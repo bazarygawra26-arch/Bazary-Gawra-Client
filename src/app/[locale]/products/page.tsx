@@ -37,6 +37,12 @@ function ProductsContent() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize] = useState<number>(12);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+
   // Filters & Sorting
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedCity, setSelectedCity] = useState<string>('all');
@@ -67,23 +73,58 @@ function ProductsContent() {
     if (cityParam) {
       setSelectedCity(cityParam);
     }
+    const pageParam = searchParams.get('page');
+    if (pageParam && Number(pageParam) > 0) {
+      setCurrentPage(Number(pageParam));
+    }
   }, [searchParams]);
 
-  // Load products and dynamic categories from DB
+  // Load products and dynamic categories with backend pagination & filtering
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
       try {
         setIsLoading(true);
         const langParam = language === 'ckb' ? 'ku' : language;
+        const queryParams = new URLSearchParams({
+          lang: langParam,
+          page: String(currentPage),
+          limit: String(pageSize),
+          paginate: 'true',
+        });
+
+        if (selectedCategory !== 'all') {
+          queryParams.set('category', selectedCategory);
+        }
+        if (selectedCity !== 'all') {
+          queryParams.set('city', selectedCity);
+        }
+        if (onlyWarranty) {
+          queryParams.set('hasWarranty', 'true');
+        }
+        if (sortBy === 'low-to-high') {
+          queryParams.set('sort', 'price_asc');
+        } else if (sortBy === 'high-to-low') {
+          queryParams.set('sort', 'price_desc');
+        }
+
         const [prodRes, catRes] = await Promise.all([
-          fetch(`/api/products?lang=${langParam}`, { cache: 'no-store' }),
+          fetch(`/api/products?${queryParams.toString()}`, { cache: 'no-store' }),
           fetch(`/api/categories?lang=${langParam}`, { cache: 'no-store' }),
         ]);
 
         if (prodRes.ok && isMounted) {
           const prodData = await prodRes.json();
-          setProducts(Array.isArray(prodData) ? prodData : prodData.Products || []);
+          if (prodData && Array.isArray(prodData.products)) {
+            setProducts(prodData.products);
+            setTotalCount(prodData.total ?? prodData.products.length);
+            setTotalPages(prodData.totalPages ?? 1);
+          } else {
+            const list = Array.isArray(prodData) ? prodData : prodData.Products || [];
+            setProducts(list);
+            setTotalCount(list.length);
+            setTotalPages(Math.ceil(list.length / pageSize) || 1);
+          }
         }
 
         if (catRes.ok && isMounted) {
@@ -100,7 +141,7 @@ function ProductsContent() {
     return () => {
       isMounted = false;
     };
-  }, [language]);
+  }, [language, currentPage, selectedCategory, selectedCity, onlyWarranty, sortBy, pageSize]);
 
   // AI Search handler
   const handleSearchSubmit = async (query: string, interpretation?: AISearchInterpretation) => {
@@ -149,38 +190,33 @@ function ProductsContent() {
     setAiSearchResult(null);
   };
 
-  // Filter & sort catalog products when not in AI search mode
-  const filteredAndSortedProducts = useMemo(() => {
-    let list = [...products];
+  const handleCategorySelect = (categorySlug: string) => {
+    setSelectedCategory(categorySlug);
+    setCurrentPage(1);
+  };
 
-    // Category filter
-    if (selectedCategory !== 'all') {
-      list = list.filter(
-        (p) =>
-          p.category?.toLowerCase() === selectedCategory.toLowerCase() ||
-          p.category?.toLowerCase().includes(selectedCategory.toLowerCase())
-      );
+  const handleCitySelect = (city: string) => {
+    setSelectedCity(city);
+    setCurrentPage(1);
+  };
+
+  const handleWarrantyToggle = () => {
+    setOnlyWarranty((prev) => !prev);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (newSort: 'recommended' | 'low-to-high' | 'high-to-low') => {
+    setSortBy(newSort);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
+      setCurrentPage(newPage);
+      const el = document.getElementById('products-content-area');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
-
-    // City filter
-    if (selectedCity !== 'all') {
-      list = list.filter((p) => p.location.toLowerCase().includes(selectedCity.toLowerCase()));
-    }
-
-    // Warranty filter
-    if (onlyWarranty) {
-      list = list.filter((p) => p.warranty && p.warranty.trim() !== '');
-    }
-
-    // Sorting
-    if (sortBy === 'low-to-high') {
-      list.sort((a, b) => a.price - b.price);
-    } else if (sortBy === 'high-to-low') {
-      list.sort((a, b) => b.price - a.price);
-    }
-
-    return list;
-  }, [products, selectedCategory, selectedCity, onlyWarranty, sortBy]);
+  };
 
   const hasActiveFilters = selectedCategory !== 'all' || selectedCity !== 'all' || onlyWarranty || sortBy !== 'recommended';
 
@@ -189,6 +225,7 @@ function ProductsContent() {
     setSelectedCity('all');
     setOnlyWarranty(false);
     setSortBy('recommended');
+    setCurrentPage(1);
   };
 
   return (
@@ -251,29 +288,24 @@ function ProductsContent() {
                   </div>
                   <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
                     <button
-                      onClick={() => setSelectedCategory('all')}
+                      onClick={() => handleCategorySelect('all')}
                       className={`px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
                         selectedCategory === 'all'
                           ? 'bg-[#171717] text-white shadow-xs'
                           : 'bg-white border border-[#EAE7DF] text-neutral-700 hover:border-neutral-400'
                       }`}
                     >
-                      {isKu ? 'هەموو بەرهەمەکان' : isAr ? 'جميع المنتجات' : 'All Products'} ({products.length})
+                      {isKu ? 'هەموو بەرهەمەکان' : isAr ? 'جميع المنتجات' : 'All Products'} ({totalCount > 0 ? totalCount : products.length})
                     </button>
                     {categories.map((cat) => {
                       const isSelected =
                         selectedCategory === cat.slug ||
                         selectedCategory.toLowerCase() === (cat.name || '').toLowerCase();
-                      const count = products.filter(
-                        (p) =>
-                          p.category?.toLowerCase() === cat.slug?.toLowerCase() ||
-                          p.category?.toLowerCase().includes((cat.name || '').toLowerCase())
-                      ).length;
 
                       return (
                         <button
                           key={cat.id || cat.slug}
-                          onClick={() => setSelectedCategory(isSelected ? 'all' : cat.slug)}
+                          onClick={() => handleCategorySelect(isSelected ? 'all' : cat.slug)}
                           className={`px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
                             isSelected
                               ? 'bg-[#657A52] text-white shadow-xs'
@@ -281,15 +313,6 @@ function ProductsContent() {
                           }`}
                         >
                           <span>{isKu ? (cat.name_ckb || cat.name) : cat.name}</span>
-                          {count > 0 && (
-                            <span
-                              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                                isSelected ? 'bg-white/20 text-white' : 'bg-[#FAF9F6] text-neutral-500'
-                              }`}
-                            >
-                              {count}
-                            </span>
-                          )}
                         </button>
                       );
                     })}
@@ -306,7 +329,7 @@ function ProductsContent() {
                     <span className="font-bold text-neutral-700">{isKu ? 'شار:' : isAr ? 'المدينة:' : 'City:'}</span>
                     <select
                       value={selectedCity}
-                      onChange={(e) => setSelectedCity(e.target.value)}
+                      onChange={(e) => handleCitySelect(e.target.value)}
                       className="px-3 py-1.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF] text-neutral-800 font-medium focus:outline-none focus:border-[#F4B942]"
                     >
                       <option value="all">{isKu ? 'هەموو شارەکان' : isAr ? 'كل المدن' : 'All Cities'}</option>
@@ -320,7 +343,7 @@ function ProductsContent() {
 
                   {/* Warranty Toggle */}
                   <button
-                    onClick={() => setOnlyWarranty(!onlyWarranty)}
+                    onClick={handleWarrantyToggle}
                     className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 font-bold transition-all cursor-pointer ${
                       onlyWarranty
                         ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
@@ -339,7 +362,7 @@ function ProductsContent() {
                     <span className="font-bold text-neutral-700">{isKu ? 'ڕیزبەندی:' : isAr ? 'الترتيب:' : 'Sort:'}</span>
                     <select
                       value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as any)}
+                      onChange={(e) => handleSortChange(e.target.value as any)}
                       className="px-3 py-1.5 rounded-xl bg-[#FAF9F6] border border-[#EAE7DF] text-neutral-800 font-medium focus:outline-none focus:border-[#F4B942]"
                     >
                       <option value="recommended">{isKu ? 'پێشنیارکراو' : isAr ? 'الموصى به' : 'Recommended'}</option>
@@ -366,7 +389,7 @@ function ProductsContent() {
               <div className="flex items-center justify-between text-xs text-neutral-600 px-1">
                 <span className="font-bold text-neutral-900">
                   {isKu ? 'بەرهەمە بەردەستەکان' : isAr ? 'المنتجات المتاحة' : 'Available Products'} (
-                  {filteredAndSortedProducts.length})
+                  {totalCount > 0 ? totalCount : products.length})
                 </span>
                 {onlyWarranty && (
                   <span className="text-emerald-700 font-medium">
@@ -383,7 +406,7 @@ function ProductsContent() {
                     {isKu ? 'بارکردنی بەرهەمەکان لە داتابەیسەوە...' : 'Loading products from database...'}
                   </p>
                 </div>
-              ) : filteredAndSortedProducts.length === 0 ? (
+              ) : products.length === 0 ? (
                 <div className="py-20 text-center rounded-3xl bg-white border border-[#EAE7DF] p-8 space-y-4">
                   <div className="w-16 h-16 rounded-full bg-[#FFF5DD] text-[#8C5E00] mx-auto flex items-center justify-center">
                     <Search className="w-8 h-8" />
@@ -406,10 +429,118 @@ function ProductsContent() {
                   </button>
                 </div>
               ) : (
-                <ProductGrid
-                  products={filteredAndSortedProducts}
-                  onViewProduct={(p) => setSelectedProduct(p)}
-                />
+                <>
+                  <ProductGrid
+                    products={products}
+                    onViewProduct={(p) => setSelectedProduct(p)}
+                  />
+
+                  {/* Backend Pagination Bar */}
+                  {totalPages > 1 && (
+                    <div className="pt-8 pb-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#EAE7DF]">
+                      <div className="text-xs font-medium text-neutral-500 order-2 sm:order-1">
+                        {isKu ? (
+                          <span>
+                            نیشاندانی{' '}
+                            <strong className="text-neutral-900 font-bold">
+                              {(currentPage - 1) * pageSize + 1}
+                            </strong>{' '}
+                            تا{' '}
+                            <strong className="text-neutral-900 font-bold">
+                              {Math.min(currentPage * pageSize, totalCount)}
+                            </strong>{' '}
+                            لە کۆی{' '}
+                            <strong className="text-neutral-900 font-bold">{totalCount}</strong> بەرهەم
+                          </span>
+                        ) : isAr ? (
+                          <span>
+                            عرض{' '}
+                            <strong className="text-neutral-900 font-bold">
+                              {(currentPage - 1) * pageSize + 1}
+                            </strong>{' '}
+                            إلى{' '}
+                            <strong className="text-neutral-900 font-bold">
+                              {Math.min(currentPage * pageSize, totalCount)}
+                            </strong>{' '}
+                            من إجمالي{' '}
+                            <strong className="text-neutral-900 font-bold">{totalCount}</strong> منتج
+                          </span>
+                        ) : (
+                          <span>
+                            Showing{' '}
+                            <strong className="text-neutral-900 font-bold">
+                              {(currentPage - 1) * pageSize + 1}
+                            </strong>{' '}
+                            to{' '}
+                            <strong className="text-neutral-900 font-bold">
+                              {Math.min(currentPage * pageSize, totalCount)}
+                            </strong>{' '}
+                            of{' '}
+                            <strong className="text-neutral-900 font-bold">{totalCount}</strong> products
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1.5 order-1 sm:order-2" dir="ltr">
+                        {/* Prev Button */}
+                        <button
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="px-3 py-2 rounded-xl border border-[#EAE7DF] bg-white text-neutral-700 hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          aria-label="Previous page"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          <span className="hidden sm:inline">{isKu ? 'پێشوو' : isAr ? 'السابق' : 'Prev'}</span>
+                        </button>
+
+                        {/* Page Numbers */}
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                          const isActive = pageNum === currentPage;
+                          if (
+                            totalPages > 7 &&
+                            pageNum !== 1 &&
+                            pageNum !== totalPages &&
+                            Math.abs(pageNum - currentPage) > 1
+                          ) {
+                            if (pageNum === 2 || pageNum === totalPages - 1) {
+                              return (
+                                <span key={pageNum} className="px-2 text-neutral-400 text-xs">
+                                  ...
+                                </span>
+                              );
+                            }
+                            return null;
+                          }
+
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => handlePageChange(pageNum)}
+                              className={`w-9 h-9 rounded-xl text-xs font-black transition-all flex items-center justify-center cursor-pointer ${
+                                isActive
+                                  ? 'bg-[#171717] text-white shadow-xs'
+                                  : 'bg-white border border-[#EAE7DF] text-neutral-700 hover:border-neutral-400'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+
+                        {/* Next Button */}
+                        <button
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-2 rounded-xl border border-[#EAE7DF] bg-white text-neutral-700 hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          aria-label="Next page"
+                        >
+                          <span className="hidden sm:inline">{isKu ? 'دواتر' : isAr ? 'التالي' : 'Next'}</span>
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}

@@ -253,7 +253,7 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
           aria-modal="true"
           className="fixed inset-0 z-50 bg-neutral-950/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
         >
-          <div className="bg-white rounded-3xl border border-[#EAE7DF] shadow-2xl max-w-lg w-full p-5 sm:p-6 text-start space-y-4 sm:space-y-5 my-auto animate-scaleUp">
+          <div className="bg-white rounded-3xl border border-[#EAE7DF] shadow-2xl max-w-xl w-full p-5 sm:p-6 text-start space-y-4 sm:space-y-5 my-auto animate-scaleUp">
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-[#EAE7DF]">
               <div className="flex items-center gap-3">
@@ -495,34 +495,14 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
             )}
 
             {/* Actions Footer */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2 border-t border-[#EAE7DF]">
-              <div className="flex items-center gap-2">
-                {recorder.state !== 'recording' && !isTranscribing && (
-                  <button
-                    type="button"
-                    onClick={() => handleStartRecording()}
-                    className="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl border border-[#EAE7DF] bg-[#FAF9F6] hover:bg-neutral-100 text-neutral-800 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5 text-[#8C5E00]" />
-                    <span>{isKu ? 'دووبارە قسە بکەوە' : isAr ? 'تحدث مجدداً' : 'Speak Again'}</span>
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl border border-[#EAE7DF] hover:bg-neutral-50 text-neutral-700 text-xs font-bold transition-colors cursor-pointer text-center"
-                >
-                  {isKu ? 'پەشیمانبوونەوە' : isAr ? 'إلغاء' : 'Cancel'}
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2">
+            <div className="pt-3 border-t border-[#EAE7DF] flex flex-col gap-3">
+              {/* Primary action row: Search & Apply to box */}
+              <div className="flex flex-wrap items-center justify-end gap-2.5">
                 {transcript.trim() && (
                   <button
                     type="button"
                     onClick={handleApplyToSearchBox}
-                    className="px-3.5 py-2.5 rounded-xl border border-[#F4B942] bg-[#FFF5DD] hover:bg-[#F4B942]/20 text-[#8C5E00] text-xs font-bold transition-all cursor-pointer"
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-[#F4B942] bg-[#FFF5DD] hover:bg-[#F4B942]/25 text-[#8C5E00] text-xs font-bold transition-all cursor-pointer whitespace-nowrap text-center"
                     title={isKu ? 'دەقەکە دەخاتە ناو خانەی گەڕان بەبێ ئەوەی یەکسەر بگەڕێت' : 'Put text in search box without submitting'}
                   >
                     {isKu ? 'دانان لە خانەی گەڕان' : isAr ? 'وضع في مربع البحث' : 'Insert to Search'}
@@ -533,12 +513,34 @@ export const VoiceSearchButton: React.FC<VoiceSearchButtonProps> = ({
                   type="button"
                   onClick={handleConfirmSearch}
                   disabled={!transcript.trim() || recorder.state === 'recording' || isTranscribing}
-                  className="flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] active:scale-[0.98] text-neutral-950 text-xs sm:text-sm font-black shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] active:scale-[0.98] text-neutral-950 text-xs sm:text-sm font-black shadow-xs transition-all disabled:opacity-50 cursor-pointer whitespace-nowrap"
                 >
                   <Check className="w-4 h-4 stroke-[2.5]" />
                   <span>
                     {isKu ? 'گەڕان بەم دەقە' : isAr ? 'بحث بهذا النص' : 'Search with this'}
                   </span>
+                </button>
+              </div>
+
+              {/* Secondary utility row: Re-record & Cancel */}
+              <div className="flex items-center justify-between gap-2 pt-1 border-t border-[#F2EFE9]">
+                {recorder.state !== 'recording' && !isTranscribing ? (
+                  <button
+                    type="button"
+                    onClick={() => handleStartRecording()}
+                    className="px-3.5 py-2 rounded-xl border border-[#EAE7DF] bg-[#FAF9F6] hover:bg-neutral-100 text-neutral-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 text-[#8C5E00]" />
+                    <span>{isKu ? 'دووبارە قسە بکەوە' : isAr ? 'تحدث مجدداً' : 'Speak Again'}</span>
+                  </button>
+                ) : <span />}
+
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="px-4 py-2 rounded-xl border border-[#EAE7DF] hover:bg-neutral-100 text-neutral-600 hover:text-neutral-900 text-xs font-bold transition-colors cursor-pointer text-center whitespace-nowrap"
+                >
+                  {isKu ? 'پەشیمانبوونەوە' : isAr ? 'إلغاء' : 'Cancel'}
                 </button>
               </div>
             </div>
