@@ -22,6 +22,8 @@ import {
   Loader2,
   Tag,
   Search,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 function ProductsContent() {
