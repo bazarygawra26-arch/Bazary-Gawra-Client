@@ -118,6 +118,9 @@ function mapDbProductToDomain(row: any, lang: 'en' | 'ku' | 'ar' = 'ku'): Produc
       highlights: [`${location}`, `${Number(row.price || 0).toLocaleString('en-US')} IQD`],
       cautions: missingList.length > 0 ? [`${missingList[0]}`] : [],
     },
+    is_promoted: Boolean(row.is_promoted || row.specs?.is_promoted),
+    promotion_expires_at: row.promotion_expires_at || row.specs?.promotion_expires_at,
+    view_count: Number(row.view_count || row.specs?.view_count || 24),
   };
 }
 
