@@ -30,6 +30,10 @@ export interface Product {
   seller_verification?: 'unverified' | 'pending' | 'verified';
   is_demo?: boolean;
   brand?: string;
+  original_price?: number;
+  discount_percent?: number;
+  rating?: number;
+  review_count?: number;
   information_signals?: {
     has_location: boolean;
     has_warranty: boolean;
@@ -44,6 +48,36 @@ export interface Product {
     highlights: string[];
     cautions: string[];
   };
+}
+
+export interface Promotion {
+  id: string;
+  slug: string;
+  title_en: string;
+  title_ku: string;
+  title_ar: string;
+  subtitle_en?: string;
+  subtitle_ku?: string;
+  subtitle_ar?: string;
+  badge_en?: string;
+  badge_ku?: string;
+  badge_ar?: string;
+  image_url: string;
+  link_url: string;
+  seller_id?: string;
+  is_active: boolean;
+  sort_order: number;
+}
+
+export interface ProductFeedback {
+  id: string;
+  product_id: string;
+  rating: number;
+  customer_name: string;
+  customer_city?: string;
+  comment: string;
+  is_verified?: boolean;
+  created_at: string;
 }
 
 export interface SubCategory {

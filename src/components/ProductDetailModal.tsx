@@ -22,6 +22,7 @@ import {
 import { TrustSignals } from './TrustSignals';
 import { localizeProduct } from '../lib/i18nData';
 import { Gallery } from './product/Gallery';
+import { ProductFeedbackSection } from './ProductFeedbackSection';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -184,14 +185,29 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                 {displayName}
               </h2>
 
-              {/* Price */}
-              <div className="flex items-baseline gap-2 pt-1">
+              {/* Price & Discount */}
+              <div className="flex items-baseline flex-wrap gap-2 pt-1">
                 <span className="text-3xl font-black text-neutral-950 tracking-tight">
                   {lp.price.toLocaleString()}
                 </span>
                 <span className="text-sm font-bold text-[#8C5E00] bg-[#FFF5DD] px-2 py-0.5 rounded">
                   {t('priceIQD')}
                 </span>
+
+                {lp.original_price && lp.original_price > lp.price && (
+                  <>
+                    <span className="text-sm font-medium text-neutral-400 line-through">
+                      {lp.original_price.toLocaleString()} {t('priceIQD')}
+                    </span>
+                    <span className="text-xs font-black text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                      {isKu
+                        ? `داشکاندن ${lp.discount_percent}%-`
+                        : isAr
+                        ? `تخفيض ${lp.discount_percent}%-`
+                        : `-${lp.discount_percent}% OFF`}
+                    </span>
+                  </>
+                )}
               </div>
 
               {/* Key Specs Pills */}
@@ -312,6 +328,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               </button>
             </form>
           </div>
+
+          {/* Customer Feedback & Reviews Section */}
+          <ProductFeedbackSection productId={product.id} productName={displayName} />
         </div>
       </div>
     </div>

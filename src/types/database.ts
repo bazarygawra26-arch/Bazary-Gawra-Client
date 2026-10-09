@@ -106,6 +106,7 @@ export interface Database {
           return_policy: string | null;
           origin: string | null;
           image_url: string | null;
+          original_price?: number | null;
           status: string;
           is_demo: boolean;
           view_count: number;

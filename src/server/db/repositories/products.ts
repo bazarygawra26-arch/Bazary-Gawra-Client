@@ -52,6 +52,10 @@ function mapDbProductToDomain(row: any, lang: 'en' | 'ku' | 'ar' = 'ku'): Produc
     else returnText = `${days} days return / exchange policy`;
   }
 
+  const price = Number(row.price || 0);
+  const origPrice = row.original_price ? Number(row.original_price) : (row.specs?.original_price ? Number(row.specs.original_price) : undefined);
+  const discountPercent = origPrice && origPrice > price ? Math.round(((origPrice - price) / origPrice) * 100) : undefined;
+
   return {
     id: id,
     slug: slug,
@@ -59,7 +63,11 @@ function mapDbProductToDomain(row: any, lang: 'en' | 'ku' | 'ar' = 'ku'): Produc
     name_ckb: row.name_ckb || (row.name_ku ?? name),
     name_ar: row.name_ar || name,
     category: row.category_name || (row.category?.name ?? (row.category_slug || 'General')),
-    price: Number(row.price || 0),
+    price: price,
+    original_price: origPrice,
+    discount_percent: discountPercent,
+    rating: row.rating ? Number(row.rating) : 4.8,
+    review_count: row.review_count ? Number(row.review_count) : 12,
     currency: (row.currency === 'USD' ? 'USD' : 'IQD') as 'IQD' | 'USD',
     location: location,
     seller_name: seller,

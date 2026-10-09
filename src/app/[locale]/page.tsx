@@ -9,6 +9,7 @@ import { AIRecommendation } from '../../components/ai/AIRecommendation';
 import { CategoryList } from '../../components/CategoryList';
 import { LocalSellersSection } from '../../components/LocalSellersSection';
 import { WhyBazaryGawra } from '../../components/WhyBazaryGawra';
+import { PromotionalBanners } from '../../components/PromotionalBanners';
 import { SearchResultsView } from '../../components/SearchResultsView';
 import { ProductComparisonDrawer } from '../../components/ProductComparisonDrawer';
 import { ProductDetailModal } from '../../components/ProductDetailModal';
@@ -305,6 +306,11 @@ export default function LocaleHomePage() {
             onViewProduct={(p) => setSelectedProductForModal(p)}
           />
         </div>
+      )}
+
+      {/* 3.5 Promotional Reklam Banners */}
+      {!activeQuery && (
+        <PromotionalBanners />
       )}
 
       {/* 4. Category Circles (scrollable on mobile, zero clothing) */}
