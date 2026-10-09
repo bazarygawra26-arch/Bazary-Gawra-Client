@@ -8,75 +8,140 @@ export function normalizeLang(lang: string | undefined): 'en' | 'ckb' | 'ar' {
 
 // 1. Categories
 const categoryDict: Record<string, { en: string; ckb: string; ar: string }> = {
+  // Top-Level Categories
   'kitchen-home': {
-    en: 'Kitchen & Home',
-    ckb: 'چێشتخانە و ماڵ',
-    ar: 'المطبخ والمنزل',
-  },
-  'coffee-machines': {
-    en: 'Coffee & Espresso',
-    ckb: 'قاوە و قاوەساز',
-    ar: 'القهوة والإسبريسو',
+    en: 'Kitchen Appliances & Supplies',
+    ckb: 'ئامێر و پێداویستییەکانی چێشتخانە',
+    ar: 'أجهزة ومستلزمات المطبخ',
   },
   'home-appliances': {
     en: 'Home Appliances',
-    ckb: 'کەلوپەلی کارەبایی ماڵ',
+    ckb: 'ئامێرەکانی ماڵ',
     ar: 'الأجهزة المنزلية',
   },
-  'smart-home': {
-    en: 'Smart Home & Tech',
-    ckb: 'ماڵی ژیر و تەکنەلۆجیا',
-    ar: 'المنزل الذكي والتقنية',
+  'electronics': {
+    en: 'Electronics',
+    ckb: 'ئەلیکترۆنیات',
+    ar: 'الإلكترونيات',
   },
-  'local-food-honey': {
-    en: 'Local Food & Honey',
-    ckb: 'هەنگوین و بەرهەمی خۆماڵی',
-    ar: 'العسل والمنتجات المحلية',
+  'beauty-personal-care': {
+    en: 'Beauty & Personal Care',
+    ckb: 'جوانی و چاودێری کەسی',
+    ar: 'الجمال والعناية الشخصية',
   },
-  'cooking-kitchenware': {
-    en: 'Cookware & Kitchen',
-    ckb: 'مەنجەڵ و پێداویستی چێشتخانە',
-    ar: 'أواني وأدوات المطبخ',
+  'beauty': {
+    en: 'Beauty & Personal Care',
+    ckb: 'جوانی و چاودێری کەسی',
+    ar: 'الجمال والعناية الشخصية',
+  },
+  'handmade-crafts': {
+    en: 'Handmade & Heritage',
+    ckb: 'دەستکرد و کەلەپوور',
+    ar: 'الحرف اليدوية والتراث',
   },
   'traditional-crafts': {
     en: 'Handmade & Heritage',
     ckb: 'دەستکرد و کەلەپوور',
-    ar: 'حرف يدوية وتراث',
+    ar: 'الحرف اليدوية والتراث',
   },
-  'vacuum-cleaners': {
-    en: 'Vacuum Cleaners',
-    ckb: 'جاڕووبەرقی',
-    ar: 'مكانس كهربائية',
+  'handmade': {
+    en: 'Handmade & Heritage',
+    ckb: 'دەستکرد و کەلەپوور',
+    ar: 'الحرف اليدوية والتراث',
   },
-  'fans-cooling': {
-    en: 'Cooling & Fans',
-    ckb: 'فێنککەرەوە و پانکە',
-    ar: 'التبريد والمراوح',
+  'local-food-honey': {
+    en: 'Local Food & Products',
+    ckb: 'خۆراک و بەرهەمی خۆماڵی',
+    ar: 'الأغذية والمنتجات المحلية',
   },
-  'heaters-heating': {
-    en: 'Heaters & Warming',
-    ckb: 'زۆپا و گەرمکەرەوە',
-    ar: 'المدافئ والتدفئة',
+  'food-honey': {
+    en: 'Local Food & Products',
+    ckb: 'خۆراک و بەرهەمی خۆماڵی',
+    ar: 'الأغذية والمنتجات المحلية',
   },
-  'water-purifiers': {
-    en: 'Water Purifiers',
-    ckb: 'پاڵاوتنی ئاو',
-    ar: 'فلاتر المياه',
+  'local-products': {
+    en: 'Local Food & Honey',
+    ckb: 'خۆراک و بەرهەمی خۆماڵی',
+    ar: 'الأغذية والمنتجات المحلية',
+  },
+  'books': {
+    en: 'Books',
+    ckb: 'کتێب',
+    ar: 'الكتب',
+  },
+  'book': {
+    en: 'Books',
+    ckb: 'کتێب',
+    ar: 'الكتب',
+  },
+  'other': {
+    en: 'Other',
+    ckb: 'هی تر',
+    ar: 'أخرى',
+  },
+
+  // Kitchen Subcategories
+  'coffee-machines': {
+    en: 'Coffee Machines',
+    ckb: 'قاوەساز',
+    ar: 'صانعات القهوة',
+  },
+  'air-fryers': {
+    en: 'Air Fryers',
+    ckb: 'ئێرفرایەر',
+    ar: 'قلايات هوائية',
+  },
+  'blenders': {
+    en: 'Blenders',
+    ckb: 'خەڵاتە',
+    ar: 'خلاطات',
   },
   'blenders-mixers': {
-    en: 'Blenders & Food Prep',
-    ckb: 'خەڵاتە و ئامادەکاری خواردن',
-    ar: 'خلاطات وتحضير الطعام',
-  },
-  'electronics': {
-    en: 'Electronics & Accessories',
-    ckb: 'ئەلیکترۆنیات و بەشەکان',
-    ar: 'إلكترونيات وإكسسوارات',
+    en: 'Blenders',
+    ckb: 'خەڵاتە',
+    ar: 'خلاطات',
   },
   'tea-makers-kettles': {
     en: 'Kettles & Tea Makers',
     ckb: 'قۆری و چایساز',
     ar: 'غلايات وصانعات الشاي',
+  },
+  'cooking-kitchenware': {
+    en: 'Cookware & Kitchen Tools',
+    ckb: 'مەنجەڵ و پێداویستی چێشتخانە',
+    ar: 'أدوات وأواني الطهي',
+  },
+
+  // Home Appliances Subcategories
+  'vacuum-cleaners': {
+    en: 'Vacuum Cleaners',
+    ckb: 'جارووبەرەقی',
+    ar: 'مكانس كهربائية',
+  },
+  'fans-cooling': {
+    en: 'Fans & Cooling',
+    ckb: 'فێنککەرەوە و پانکە',
+    ar: 'مراوح وتبريد',
+  },
+  'heaters': {
+    en: 'Heaters',
+    ckb: 'زۆپا و گەرمکەرەوە',
+    ar: 'مدافئ',
+  },
+  'heaters-heating': {
+    en: 'Heaters',
+    ckb: 'زۆپا و گەرمکەرەوە',
+    ar: 'مدافئ',
+  },
+  'water-purifiers': {
+    en: 'Water Purifiers',
+    ckb: 'پاڵێوەری ئاو',
+    ar: 'فلاتر مياه',
+  },
+  'smart-home': {
+    en: 'Home Appliances',
+    ckb: 'ئامێرەکانی ماڵ',
+    ar: 'الأجهزة المنزلية',
   },
 };
 
@@ -96,22 +161,54 @@ export function localizeCategory(raw: string | undefined, lang: string): string 
     }
   }
 
-  // Partial match checks
+  // Partial / semantic match checks
   const lower = raw.toLowerCase();
-  if (lower.includes('honey') || lower.includes('food') || lower.includes('هەنگوین') || lower.includes('عسل')) {
+  if (lower.includes('honey') || lower.includes('food') || lower.includes('هەنگوین') || lower.includes('خۆراک') || lower.includes('عسل')) {
     return categoryDict['local-food-honey'][l];
   }
-  if (lower.includes('coffee') || lower.includes('قاوە') || lower.includes('قهوة')) {
+  if (lower.includes('coffee') || lower.includes('قاوە') || lower.includes('قهوة') || lower.includes('espresso')) {
     return categoryDict['coffee-machines'][l];
   }
-  if (lower.includes('kitchen') || lower.includes('چێشتخانە') || lower.includes('مطبخ')) {
-    return categoryDict['kitchen-home'][l];
+  if (lower.includes('air fryer') || lower.includes('ئێرفرایەر') || lower.includes('قلاية')) {
+    return categoryDict['air-fryers'][l];
   }
-  if (lower.includes('vacuum') || lower.includes('جاڕوو') || lower.includes('مكانس')) {
+  if (lower.includes('blender') || lower.includes('خەڵاتە') || lower.includes('خلاط') || lower.includes('میکسەر')) {
+    return categoryDict['blenders'][l];
+  }
+  if (lower.includes('vacuum') || lower.includes('جاڕوو') || lower.includes('جاروو') || lower.includes('مكنسة') || lower.includes('مكانس')) {
     return categoryDict['vacuum-cleaners'][l];
   }
-  if (lower.includes('craft') || lower.includes('heritage') || lower.includes('دەستکرد') || lower.includes('تراث')) {
-    return categoryDict['traditional-crafts'][l];
+  if (lower.includes('tea') || lower.includes('kettle') || lower.includes('چایساز') || lower.includes('قۆری') || lower.includes('شاي')) {
+    return categoryDict['tea-makers-kettles'][l];
+  }
+  if (lower.includes('kitchen') || lower.includes('چێشتخانە') || lower.includes('مطبخ') || lower.includes('cookware')) {
+    return categoryDict['kitchen-home'][l];
+  }
+  if (lower.includes('craft') || lower.includes('heritage') || lower.includes('دەستکرد') || lower.includes('تراث') || lower.includes('kelim')) {
+    return categoryDict['handmade-crafts'][l];
+  }
+  if (lower.includes('beauty') || lower.includes('personal') || lower.includes('جوانی') || lower.includes('جمال')) {
+    return categoryDict['beauty-personal-care'][l];
+  }
+  if (lower.includes('appliance') || lower.includes('ئامێرەکانی ماڵ') || lower.includes('ناوماڵ')) {
+    return categoryDict['home-appliances'][l];
+  }
+  if (lower.includes('electronic') || lower.includes('ئەلیکترۆنی') || lower.includes('إلكتروني')) {
+    return categoryDict['electronics'][l];
+  }
+  if (lower.includes('book') || lower.includes('کتێب') || lower.includes('پەرتووک') || lower.includes('کتاب') || lower.includes('كتب')) {
+    return categoryDict['books'][l];
+  }
+  if (lower.includes('other') || lower.includes('هی تر') || lower.includes('أخرى')) {
+    return categoryDict['other'][l];
+  }
+
+  // Fallback: Never return raw English if Kurdish was requested
+  if (l === 'ckb') {
+    return 'هی تر';
+  }
+  if (l === 'ar') {
+    return 'أخرى';
   }
 
   return raw;
@@ -434,8 +531,11 @@ export function localizeSellerName(raw: string | undefined, lang: string): strin
 }
 
 // 4. Warranties
-export function localizeWarranty(raw: string | undefined, lang: string): string {
-  if (!raw || raw === 'Information unavailable' || raw === 'Not provided') {
+export function localizeWarranty(raw: any, lang: string): string {
+  if (typeof raw === 'object' && raw !== null) {
+    raw = raw.details || (raw.months ? `${raw.months} months warranty` : '');
+  }
+  if (!raw || typeof raw !== 'string' || raw === 'Information unavailable' || raw === 'Not provided') {
     return normalizeLang(lang) === 'ckb'
       ? 'گەرەنتی دیاری نەکراوە'
       : normalizeLang(lang) === 'ar'
@@ -529,8 +629,11 @@ export function localizeWarranty(raw: string | undefined, lang: string): string 
 }
 
 // 5. Delivery info
-export function localizeDelivery(raw: string | undefined, lang: string): string {
-  if (!raw || raw === 'Not provided') {
+export function localizeDelivery(raw: any, lang: string): string {
+  if (typeof raw === 'object' && raw !== null) {
+    raw = raw.info || (raw.available ? 'Local delivery available' : '');
+  }
+  if (!raw || typeof raw !== 'string' || raw === 'Not provided') {
     return normalizeLang(lang) === 'ckb'
       ? 'گەیاندن دیاری نەکراوە'
       : normalizeLang(lang) === 'ar'
@@ -640,8 +743,11 @@ export function localizeDelivery(raw: string | undefined, lang: string): string 
 }
 
 // 6. Return Policy
-export function localizeReturnPolicy(raw: string | undefined, lang: string): string {
-  if (!raw || raw === 'Not provided') {
+export function localizeReturnPolicy(raw: any, lang: string): string {
+  if (typeof raw === 'object' && raw !== null) {
+    raw = raw.details || (raw.days ? `${raw.days} days return policy` : '');
+  }
+  if (!raw || typeof raw !== 'string' || raw === 'Not provided') {
     return normalizeLang(lang) === 'ckb'
       ? 'مەرجی گەڕاندنەوە دیاری نەکراوە'
       : normalizeLang(lang) === 'ar'

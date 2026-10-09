@@ -46,6 +46,17 @@ export interface Product {
   };
 }
 
+export interface SubCategory {
+  id: string;
+  name: string;
+  name_ckb: string;
+  name_ar: string;
+  slug: string;
+  iconName?: string;
+  image?: string;
+  itemCount?: number;
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -55,6 +66,7 @@ export interface Category {
   iconName: string;
   image: string;
   itemCount: number;
+  subcategories?: SubCategory[];
 }
 
 export interface Seller {
@@ -163,6 +175,7 @@ export interface AiSearchComprehensiveResult {
   request: StructuredAiSearchRequest;
   interpretation: AISearchInterpretation;
   products: Product[];
+  alternatives?: Product[];
   comparison?: {
     summary: string;
     differences: string[];

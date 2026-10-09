@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { Product, Seller, Category } from '../types';
-import { mockProducts, mockSellers, mockCategories } from '../data/mockData';
 
 const supabaseUrl = (
   process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -52,10 +51,10 @@ export async function getProducts(options?: {
         return data as Product[];
       }
     } catch (err) {
-      console.warn('Supabase products fetch failed, using local verified dataset:', err);
+      console.warn('Supabase products fetch failed:', err);
     }
   }
-  return mockProducts;
+  return [];
 }
 
 /**
@@ -69,10 +68,10 @@ export async function getSellers(): Promise<Seller[]> {
         return data as Seller[];
       }
     } catch (err) {
-      console.warn('Supabase sellers fetch failed, using local verified dataset:', err);
+      console.warn('Supabase sellers fetch failed:', err);
     }
   }
-  return mockSellers;
+  return [];
 }
 
 /**
@@ -86,10 +85,10 @@ export async function getCategories(): Promise<Category[]> {
         return data as Category[];
       }
     } catch (err) {
-      console.warn('Supabase categories fetch failed, using local verified dataset:', err);
+      console.warn('Supabase categories fetch failed:', err);
     }
   }
-  return mockCategories;
+  return [];
 }
 
 /**

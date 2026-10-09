@@ -3,6 +3,8 @@ import { z } from 'zod';
 export const aiSearchRequestSchema = z.object({
   query: z.string().min(1, 'Query cannot be empty'),
   language: z.enum(['en', 'ku', 'ckb', 'ar']).default('ku'),
+  previousQuery: z.string().optional(),
+  previousProducts: z.array(z.string()).optional(),
 });
 
 export const aiSearchResponseSchema = z.object({

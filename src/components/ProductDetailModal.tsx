@@ -61,62 +61,85 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
     },
   ];
 
-  const handleAskQuestion = (qText: string) => {
+  const displayName = lp.name;
+
+  const handleAskQuestion = async (qText: string) => {
     if (!qText.trim()) return;
     setIsAsking(true);
 
-    setTimeout(() => {
-      let answer = '';
-      const lower = qText.toLowerCase();
+    try {
+      const res = await fetch('/api/ai/product-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: product.id,
+          question: qText,
+          language: isKu ? 'ku' : isAr ? 'ar' : 'en',
+        }),
+      });
 
-      if (lower.includes('warranty') || qText.includes('گەرەنتی') || qText.includes('ضمان')) {
-        answer =
-          product.warranty && product.warranty !== 'Information unavailable'
-            ? isKu
-              ? `بەپێی زانیاری دیاریکراوی فرۆشیار، ئەم کاڵایە ئەم گەرەنتییەی هەیە: "${product.warranty}".`
-              : isAr
-              ? `وفقاً لبيانات التاجر، يأتي هذا المنتج مع الضمان التالي: "${product.warranty}".`
-              : `According to the seller's stated information, this product comes with: "${product.warranty}".`
-            : isKu
-            ? `کەلێنی زانیاری دۆزرایەوە: فرۆشیار مەرجی گەرەنتی دیاری نەکردووە بۆ ئەم بەرهەمە. پێشنیار دەکەین پێش کڕین لە فرۆشیار دڵنیابیتەوە.`
-            : isAr
-            ? `تم رصد فجوة معلومات: لم يحدد التاجر شروط الضمان لهذا المنتج. نوصي بالتأكد من البائع قبل الشراء.`
-            : `Information gap detected: The seller has not provided warranty terms for this listing. We recommend confirming with the seller before purchasing.`;
-      } else if (lower.includes('deliver') || qText.includes('گەیاندن') || qText.includes('دەگات') || qText.includes('توصيل')) {
-        answer = product.delivery_info
-          ? isKu
-            ? `مەرجی گەیاندنی فرۆشیار: "${product.delivery_info}".`
-            : isAr
-            ? `شروط التوصيل المحددة من البائع: "${product.delivery_info}".`
-            : `Delivery terms provided by seller: "${product.delivery_info}".`
-          : isKu
-          ? `زانیاری گەیاندن لەلایەن فرۆشیارەوە لەم لیستەدا دیاری نەکراوە.`
-          : isAr
-          ? `تفاصيل التوصيل غير محددة صراحة في هذا الإعلان.`
-          : `Delivery details are not explicitly stated in this merchant listing.`;
-      } else if (lower.includes('power') || lower.includes('watt') || lower.includes('capacity') || qText.includes('وات') || qText.includes('قەبارە') || qText.includes('سعة') || qText.includes('توانا')) {
-        answer =
-          isKu
-            ? `تایبەتمەندییە تۆمارکراوەکان: قەبارە: ${product.capacity || 'دیاری نەکراوە'}، هێزی کارەبا: ${product.power || 'دیاری نەکراوە'}.`
-            : isAr
-            ? `المواصفات الفنية المسجلة: السعة: ${product.capacity || 'غير محددة'}، القدرة: ${product.power || 'غير محددة'}.`
-            : `Technical specifications on file: Capacity: ${product.capacity || 'Not provided'}, Power: ${product.power || 'Not provided'}.`;
-      } else {
-        answer =
-          isKu
-            ? `لە سەر تۆماری پشتڕاستکراوی دووکانەکە: ئەمە ${displayName}یە لەلایەن ${product.seller_name} لە ${product.location} بە نرخی ${product.price.toLocaleString()} ${t('priceIQD')}. خاڵە نادیارەکان لە لیستی شەفافیەت نیشاندراون.`
-            : isAr
-            ? `بناءً على سجل التاجر المعتمد: هذا المنتج ${displayName} من متجر ${product.seller_name} في ${product.location} بسعر ${product.price.toLocaleString()} ${t('priceIQD')}. النقاط المفقودة موضحة في تدقيق الشفافية.`
-            : `Based strictly on the verified merchant record: This is the ${product.name} offered by ${product.seller_name} located in ${product.location} for ${product.price.toLocaleString()} ${product.currency}. Missing attributes are flagged in the information transparency checklist.`;
+      if (res.ok) {
+        const data = await res.json();
+        if (data.answer) {
+          setChatLog((prev) => [...prev, { q: qText, a: data.answer }]);
+          setQuestion('');
+          return;
+        }
       }
-
-      setChatLog((prev) => [...prev, { q: qText, a: answer }]);
-      setQuestion('');
+    } catch (err) {
+      console.warn('Live product-chat request error, falling back to grounded audit:', err);
+    } finally {
       setIsAsking(false);
-    }, 400);
-  };
+    }
 
-  const displayName = lp.name;
+    // Grounded factual fallback if network fails
+    let answer = '';
+    const lower = qText.toLowerCase();
+
+    if (lower.includes('warranty') || qText.includes('گەرەنتی') || qText.includes('ضمان')) {
+      answer =
+        product.warranty && product.warranty !== 'Information unavailable' && product.warranty !== 'Not provided'
+          ? isKu
+            ? `بەپێی زانیاری دیاریکراوی فرۆشیار، ئەم کاڵایە ئەم گەرەنتییەی هەیە: "${product.warranty}".`
+            : isAr
+            ? `وفقاً لبيانات التاجر، يأتي هذا المنتج مع الضمان التالي: "${product.warranty}".`
+            : `According to the seller's stated information, this product comes with: "${product.warranty}".`
+          : isKu
+          ? `کەلێنی زانیاری دۆزرایەوە: فرۆشیار مەرجی گەرەنتی دیاری نەکردووە بۆ ئەم بەرهەمە. زانیارییەکە نادیارە و پێشنیار دەکەین ڕاستەوخۆ لە فرۆشیار بپرسیت.`
+          : isAr
+          ? `تم رصد فجوة معلومات: لم يحدد التاجر شروط الضمان لهذا المنتج. المعلومات غير محددة ونوصي بالسؤال المباشر للبائع.`
+          : `Information gap detected: The seller has not provided warranty terms for this listing. It is unknown and we recommend asking the seller directly.`;
+    } else if (lower.includes('deliver') || qText.includes('گەیاندن') || qText.includes('دەگات') || qText.includes('توصيل')) {
+      answer = product.delivery_info && product.delivery_info !== 'Not provided'
+        ? isKu
+          ? `مەرجی گەیاندنی فرۆشیار: "${product.delivery_info}".`
+          : isAr
+          ? `شروط التوصيل المحددة من البائع: "${product.delivery_info}".`
+          : `Delivery terms provided by seller: "${product.delivery_info}".`
+        : isKu
+        ? `زانیاری گەیاندن لەلایەن فرۆشیارەوە لەم لیستەدا دیاری نەکراوە و نادیارە. دەتوانیت لە فرۆشیار بپرسیت.`
+        : isAr
+        ? `تفاصيل التوصيل غير محددة صراحة في هذا الإعلان. يرجى التواصل مع البائع للتأكيد.`
+        : `Delivery details are not explicitly stated in this merchant listing and are unknown. Please check with the seller.`;
+    } else if (lower.includes('power') || lower.includes('watt') || lower.includes('capacity') || qText.includes('وات') || qText.includes('قەبارە') || qText.includes('سعة') || qText.includes('توانا')) {
+      answer =
+        isKu
+          ? `تایبەتمەندییە تۆمارکراوەکان: قەبارە: ${product.capacity || 'دیاری نەکراوە'}، هێزی کارەبا: ${product.power || 'دیاری نەکراوە'}.`
+          : isAr
+          ? `المواصفات الفنية المسجلة: السعة: ${product.capacity || 'غير محددة'}، القدرة: ${product.power || 'غير محددة'}.`
+          : `Technical specifications on file: Capacity: ${product.capacity || 'Not provided'}, Power: ${product.power || 'Not provided'}.`;
+    } else {
+      answer =
+        isKu
+          ? `لە سەر تۆماری پشتڕاستکراوی دووکانەکە: ئەمە ${displayName}یە لەلایەن ${product.seller_name} لە ${product.location} بە نرخی ${product.price.toLocaleString()} ${t('priceIQD')}. ئەگەر وردەکارییەک دیاری نەکرابێت، پێشنیار دەکەین ڕاستەوخۆ پەیوەندی بە فرۆشیارەوە بکەیت.`
+          : isAr
+          ? `بناءً على سجل التاجر المعتمد: هذا المنتج ${displayName} من متجر ${product.seller_name} في ${product.location} بسعر ${product.price.toLocaleString()} ${t('priceIQD')}. في حال عدم توفر تفاصيل محددة، نوصي بالتواصل المباشر مع البائع.`
+          : `Based strictly on the verified merchant record: This is the ${product.name} offered by ${product.seller_name} located in ${product.location} for ${product.price.toLocaleString()} ${product.currency}. If a specific fact is unavailable, please inquire directly with the merchant.`;
+    }
+
+    setChatLog((prev) => [...prev, { q: qText, a: answer }]);
+    setQuestion('');
+  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fadeIn">

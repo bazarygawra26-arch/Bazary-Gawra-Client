@@ -276,21 +276,45 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
 
         {/* Product Grid */}
         {filteredProducts.length === 0 ? (
-          <div className="p-12 text-center bg-white rounded-2xl border border-[#EAE7DF]">
+          <div className="p-8 sm:p-12 text-center bg-white rounded-2xl border border-[#EAE7DF] space-y-4">
             <h3 className="font-bold text-neutral-900 text-lg mb-1">{t('noResults')}</h3>
-            <p className="text-xs text-neutral-500 mb-4">
-              {isCkb
-                ? 'هیچ بەرهەمێک نەدۆزرایەوە بەم مەرجانە. تکایە فلتەرەکان لابدە یان گەڕانەکەت فراوانتر بکە.'
-                : isAr
-                ? 'لم يتم العثور على منتجات مطابقة. يرجى تعديل الفلاتر أو تجربة كلمات بحث أخرى.'
-                : 'Try adjusting your filters or search with a broader query term.'}
+            <p className="text-xs text-neutral-600 max-w-xl mx-auto leading-relaxed">
+              {aiResult?.recommendation ||
+                (isCkb
+                  ? 'هیچ بەرهەمێک نەدۆزرایەوە بەم مەرجانە. تکایە فلتەرەکان لابدە یان بودجە و شوێن فراوانتر بکە.'
+                  : isAr
+                  ? 'لم يتم العثور على منتجات مطابقة. يرجى تعديل الفلاتر أو زيادة الميزانية أو اختيار مدينة أخرى.'
+                  : 'No exact matches found with these criteria. Try adjusting your filters, budget, or location.')}
             </p>
-            <button
-              onClick={onClearSearch}
-              className="px-4 py-2 rounded-xl bg-[#F4B942] text-neutral-950 font-bold text-xs"
-            >
-              {t('resetFilters')}
-            </button>
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={onClearSearch}
+                className="px-4 py-2 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 font-bold text-xs shadow-2xs transition-colors cursor-pointer"
+              >
+                {t('resetFilters')}
+              </button>
+            </div>
+
+            {/* Display real alternatives that actually exist in the catalogue */}
+            {aiResult?.alternatives && aiResult.alternatives.length > 0 && (
+              <div className="pt-8 mt-6 border-t border-[#EAE7DF] text-start">
+                <div className="flex items-center gap-2 mb-4 text-xs font-bold text-neutral-800">
+                  <Sparkles className="w-4 h-4 text-[#8C5E00]" />
+                  <span>
+                    {isCkb
+                      ? 'بەرهەمە ڕاستەقینە هاوشێوەکان کە لە کەتەلۆگدا بەردەستن:'
+                      : isAr
+                      ? 'بدائل فعلية متوفرة حالياً في الكتالوج:'
+                      : 'Real catalogue alternatives available in this category:'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  {aiResult.alternatives.map((p) => (
+                    <ProductCard key={p.id} product={p} onViewProduct={onViewProduct} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">

@@ -1,7 +1,6 @@
 import 'server-only';
 import { supabaseAdmin } from '../supabaseAdmin';
 import { Product } from '../../../types';
-import { mockProducts } from '../../../data/mockData';
 import { localizeProduct } from '../../../lib/i18nData';
 
 // Map a Supabase row (either from search_products RPC or get_product_context_by_slug) to domain Product
@@ -30,23 +29,24 @@ function mapDbProductToDomain(row: any, lang: 'en' | 'ku' | 'ar' = 'ku'): Produc
   if (!hasSpecs) missingList.push(lang === 'ku' ? 'تایبەتمەندی تەکنیکی ناتەواوە' : lang === 'ar' ? 'المواصفات الفنية ناقصة' : 'Missing specifications');
 
   let defaultWarranty = lang === 'ku' ? 'گەرەنتی ستانداردی ناوخۆیی' : lang === 'ar' ? 'ضمان قياسي محلي' : 'Standard Warranty';
-  let warrantyText = typeof row.warranty === 'string' ? row.warranty : defaultWarranty;
-  if (row.warranty_months) {
-    if (lang === 'ku') warrantyText = `${row.warranty_months} مانگ گەرەنتی فەرمی ناوخۆیی`;
-    else if (lang === 'ar') warrantyText = `${row.warranty_months} شهراً ضمان رسمي محلي`;
-    else warrantyText = `${row.warranty_months} Months Official Warranty`;
+  let warrantyText = typeof row.warranty === 'string' ? row.warranty : (row.warranty?.details || defaultWarranty);
+  const months = row.warranty_months || (typeof row.warranty === 'object' ? row.warranty?.months : undefined);
+  if (months) {
+    if (lang === 'ku') warrantyText = `${months} مانگ گەرەنتی فەرمی ناوخۆیی`;
+    else if (lang === 'ar') warrantyText = `${months} شهراً ضمان رسمي محلي`;
+    else warrantyText = `${months} Months Official Warranty`;
   }
 
-  let deliveryText = row.delivery_info || (row.delivery?.info ?? undefined);
+  let deliveryText = typeof row.delivery_info === 'string' ? row.delivery_info : (row.delivery?.info ?? undefined);
   if (!deliveryText && (row.delivery_available || row.delivery?.available)) {
     if (lang === 'ku') deliveryText = 'گەیاندنی خێرا بەردەستە بۆ هەموو شارەکان';
     else if (lang === 'ar') deliveryText = 'توصيل سريع متوفر لكافة المدن';
     else deliveryText = 'Local delivery available';
   }
 
-  let returnText = row.return_policy;
-  if (!returnText && (row.return_days || row.return_policy?.days)) {
-    const days = row.return_days || row.return_policy?.days;
+  let returnText = typeof row.return_policy === 'string' ? row.return_policy : (row.return_policy?.details ?? undefined);
+  const days = row.return_days || (typeof row.return_policy === 'object' ? row.return_policy?.days : undefined);
+  if (!returnText && days) {
     if (lang === 'ku') returnText = `ماوەی ${days} ڕۆژ بۆ گەڕاندنەوە یان گۆڕین`;
     else if (lang === 'ar') returnText = `فترة استرجاع أو استبدال ${days} أيام`;
     else returnText = `${days} days return / exchange policy`;
@@ -124,40 +124,32 @@ export async function findProducts(filters?: {
       if (!error && Array.isArray(data)) {
         return (data as any[]).map((row) => mapDbProductToDomain(row, activeLang));
       }
+
+      // If RPC is unavailable, perform direct table query from Supabase
+      let query = supabaseAdmin.from('products').select('*').neq('status', 'archived');
+      if (filters?.category) {
+        query = query.ilike('category_slug', `%${filters.category}%`);
+      }
+      if (filters?.minPrice) {
+        query = query.gte('price', filters.minPrice);
+      }
+      if (filters?.maxPrice) {
+        query = query.lte('price', filters.maxPrice);
+      }
+      if (filters?.search) {
+        query = query.ilike('search_text', `%${filters.search}%`);
+      }
+
+      const { data: tableData, error: tableErr } = await query.limit(50);
+      if (!tableErr && Array.isArray(tableData)) {
+        return tableData.map((row) => mapDbProductToDomain(row, activeLang));
+      }
     } catch (err) {
-      console.warn('Repository findProducts rpc error, trying fallback:', err);
+      console.warn('Repository findProducts error:', err);
     }
   }
 
-  // Local verified fallback dataset
-  let result = [...mockProducts];
-  if (filters?.category) {
-    result = result.filter((p) => p.category.toLowerCase().includes(filters.category!.toLowerCase()));
-  }
-  if (filters?.city) {
-    result = result.filter(
-      (p) =>
-        p.location.toLowerCase().includes(filters.city!.toLowerCase()) ||
-        p.seller_location.toLowerCase().includes(filters.city!.toLowerCase())
-    );
-  }
-  if (filters?.maxPrice) {
-    result = result.filter((p) => p.price <= filters.maxPrice!);
-  }
-  if (filters?.minPrice) {
-    result = result.filter((p) => p.price >= filters.minPrice!);
-  }
-  if (filters?.search) {
-    const q = filters.search.toLowerCase();
-    result = result.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        (p.name_ckb && p.name_ckb.includes(q)) ||
-        (p.name_ar && p.name_ar.includes(q))
-    );
-  }
-
-  return result.map((p) => localizeProduct(p, activeLang));
+  return [];
 }
 
 export async function findProductById(id: string, lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Product | null> {
@@ -172,13 +164,25 @@ export async function findProductById(id: string, lang: 'en' | 'ku' | 'ar' = 'ku
         await enrichProductWithSellerSlug(prod);
         return localizeProduct(prod, lang);
       }
+
+      // Direct table lookup fallback
+      const { data: directData } = await supabaseAdmin
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (directData) {
+        const prod = mapDbProductToDomain(directData, lang);
+        await enrichProductWithSellerSlug(prod);
+        return localizeProduct(prod, lang);
+      }
     } catch (err) {
       console.warn('Repository findProductById error:', err);
     }
   }
 
-  const found = mockProducts.find((p) => p.id === id);
-  return found ? localizeProduct(found, lang) : null;
+  return null;
 }
 
 export async function findProductBySlug(slug: string, lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Product | null> {
@@ -306,24 +310,74 @@ export async function createProduct(input: Partial<Product>): Promise<Product> {
 
   if (supabaseAdmin) {
     try {
-      await (supabaseAdmin as any).from('products').insert({
-        id: newProd.id,
-        slug: newProd.slug,
-        price: newProd.price,
-        currency: newProd.currency,
-        brand: newProd.brand,
-        capacity: newProd.capacity,
-        warranty_details: newProd.warranty,
-        delivery_info: newProd.delivery_info,
-        return_policy: newProd.return_policy,
-        image_url: newProd.image_url,
-        is_demo: false,
-      });
+      // Resolve category_id and seller_id from database
+      const [catLookup, sellerLookup] = await Promise.all([
+        supabaseAdmin
+          .from('categories')
+          .select('id')
+          .or(`slug.eq.${newProd.category},name_en.eq.${newProd.category}`)
+          .maybeSingle(),
+        supabaseAdmin
+          .from('sellers')
+          .select('id')
+          .or(`slug.eq.${newProd.seller_slug},id.eq.${newProd.seller_id}`)
+          .maybeSingle(),
+      ]);
+
+      const catId = (catLookup?.data as any)?.id || null;
+      const sellerId = (sellerLookup?.data as any)?.id || null;
+
+      const { data: inserted, error: insErr } = await (supabaseAdmin as any)
+        .from('products')
+        .insert({
+          slug: newProd.slug,
+          category_id: catId,
+          seller_id: sellerId,
+          price: newProd.price,
+          currency: newProd.currency,
+          brand: newProd.brand,
+          capacity: newProd.capacity,
+          power_watts: newProd.power ? parseInt(newProd.power.replace(/[^0-9]/g, ''), 10) || null : null,
+          warranty_applicable: Boolean(newProd.warranty),
+          warranty_details: newProd.warranty,
+          delivery_available: Boolean(newProd.delivery_info),
+          delivery_info: newProd.delivery_info,
+          return_policy: newProd.return_policy,
+          image_url: newProd.image_url,
+          status: 'active',
+          is_demo: false,
+        })
+        .select('id')
+        .maybeSingle();
+
+      if (!insErr && inserted?.id) {
+        newProd.id = inserted.id;
+        // Insert multilingual records into product_translations
+        await (supabaseAdmin as any).from('product_translations').insert([
+          {
+            product_id: inserted.id,
+            lang: 'en',
+            name: newProd.name,
+            description: newProd.description || '',
+          },
+          {
+            product_id: inserted.id,
+            lang: 'ku',
+            name: newProd.name_ckb || newProd.name,
+            description: newProd.description || '',
+          },
+          {
+            product_id: inserted.id,
+            lang: 'ar',
+            name: newProd.name_ar || newProd.name,
+            description: newProd.description || '',
+          },
+        ]);
+      }
     } catch (err) {
-      console.warn('Database insert fallback to memory:', err);
+      console.warn('Database insert error in createProduct:', err);
     }
   }
 
-  mockProducts.unshift(newProd);
   return newProd;
 }

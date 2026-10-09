@@ -1,7 +1,6 @@
 import 'server-only';
 import { supabaseAdmin } from '../supabaseAdmin';
 import { Seller, SellerProfile, Product } from '../../../types';
-import { mockSellers, mockProducts } from '../../../data/mockData';
 import { localizeSellerName, localizeLocation } from '../../../lib/i18nData';
 
 export async function findSellers(lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Seller[]> {
@@ -71,11 +70,11 @@ export async function findSellers(lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Sell
         });
       }
     } catch (err) {
-      console.warn('Repository findSellers error, using fallback:', err);
+      console.warn('Repository findSellers error:', err);
     }
   }
 
-  return mockSellers;
+  return [];
 }
 
 export async function findSellerBySlug(slug: string, lang: 'en' | 'ku' | 'ar' = 'ku'): Promise<Seller | null> {
@@ -238,46 +237,7 @@ export async function getSellerProfile(
     }
   }
 
-  // Fallback for demo/offline
-  const matched = mockSellers.find(
-    (s) => s.id === slug || s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug.toLowerCase()
-  ) || mockSellers[0];
-
-  if (!matched) return null;
-
-  return {
-    id: matched.id,
-    slug: matched.id,
-    name: localizeSellerName(matched.name, lang),
-    description: lang === 'ku'
-      ? 'فرۆشیارێکی ناوخۆیی کوردستان کە کەلوپەلی ئەلیکترۆنی شەفاف و پێداویستییە ڕەسەنەکانی ماڵ پێشکەش دەکات.'
-      : lang === 'ar'
-      ? 'تاجر محلي يقدم إلكترونيات شفافة ومستلزمات منزلية أصلية.'
-      : 'Local Kurdish merchant offering transparent electronics and authentic home goods.',
-    location: localizeLocation(matched.location, lang),
-    phone: matched.phone_placeholder,
-    whatsapp: '+9647700000000',
-    verification_status: 'unverified',
-    is_demo: true,
-    product_count: matched.productCount || 4,
-    categories: [
-      {
-        slug: 'coffee-machines',
-        name: lang === 'ku' ? 'قاوە و قاوەساز' : lang === 'ar' ? 'القهوة والإسبريسو' : 'Coffee & Espresso',
-        count: 2,
-      },
-      {
-        slug: 'kitchen-home',
-        name: lang === 'ku' ? 'چێشتخانە و ماڵ' : lang === 'ar' ? 'المطبخ والمنزل' : 'Kitchen & Home',
-        count: 2,
-      },
-    ],
-    info_summary: {
-      with_warranty: 3,
-      with_delivery_info: 4,
-      with_return_policy: 2,
-    },
-  };
+  return null;
 }
 
 /**
@@ -358,14 +318,7 @@ export async function getSellerProducts(params: {
     }
   }
 
-  // Offline mock fallback
-  let list = mockProducts.filter((p) => {
-    return excludeProductId ? p.id !== excludeProductId : true;
-  });
-  if (categorySlug) {
-    list = list.filter((p) => p.category.toLowerCase().includes(categorySlug.toLowerCase()));
-  }
-  return list.slice(offset, offset + limit);
+  return [];
 }
 
 function mapCardToProduct(row: any): Product {

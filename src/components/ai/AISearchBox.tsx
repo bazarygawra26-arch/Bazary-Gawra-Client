@@ -46,14 +46,14 @@ export const AISearchBox: React.FC<AISearchBoxProps> = ({ onSearchSubmit, isSear
     },
     {
       en: 'Air fryer in Erbil with local delivery',
-      ckb: 'قلاوەرسی هەوایی لە هەولێر بە گەیاندن',
+      ckb: 'ئێرفرایەرێکم دەوێت لە هەولێر بە گەیاندن',
       ar: 'قلاية هوائية في أربيل مع توصيل',
       interpretation: {
         query: 'Air fryer in Erbil with local delivery',
         detected_language: 'ckb',
         product_type: 'Air Fryers & Kitchen Appliances',
-        product_type_ckb: 'قلاوەرسی هەوایی و ئامێرەکانی چێشتخانە',
-        product_type_ar: 'القلايات الهوائية',
+        product_type_ckb: 'ئێرفرایەر (ئامێر و پێداویستییەکانی چێشتخانە)',
+        product_type_ar: 'القلايات الهوائية وأجهزة المطبخ',
         target_location: 'Erbil',
         target_location_ckb: 'هەولێر',
         target_location_ar: 'أربيل',
@@ -62,7 +62,7 @@ export const AISearchBox: React.FC<AISearchBoxProps> = ({ onSearchSubmit, isSear
         extracted_preferences: ['Delivery Included'],
         explanation: {
           en: 'Identified air fryers available from registered merchants in Erbil.',
-          ckb: 'دۆزینەوەی قلاوەرسی هەوایی لە دووکانە تۆمارکراوەکانی هەولێر بە گەیاندن.',
+          ckb: 'دۆزینەوەی ئێرفرایەر لە دووکانە تۆمارکراوەکانی هەولێر بە گەیاندن.',
           ar: 'البحث عن قلايات هوائية متوفرة في أربيل مع التوصيل.',
         },
       },

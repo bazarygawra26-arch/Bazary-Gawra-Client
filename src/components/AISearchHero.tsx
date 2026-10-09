@@ -44,7 +44,7 @@ export const AISearchHero: React.FC<AISearchHeroProps> = ({ onSearchSubmit, isSe
 
   const handlePromptClick = (promptText: string, promptMeta: typeof samplePrompts[0]) => {
     setQuery(promptText);
-    const mockInterpretation: AISearchInterpretation = {
+    const quickInterpretation: AISearchInterpretation = {
       query: promptText,
       detected_language: language,
       product_type: promptMeta.category,
@@ -58,8 +58,8 @@ export const AISearchHero: React.FC<AISearchHeroProps> = ({ onSearchSubmit, isSe
         ar: `حدد الذكاء الاصطناعي أنك تبحث عن ${promptMeta.category} في ${promptMeta.location} بميزانية حتى ${promptMeta.budget.toLocaleString()} دينار.`,
       },
     };
-    setActiveInterpretation(mockInterpretation);
-    onSearchSubmit(promptText, mockInterpretation);
+    setActiveInterpretation(quickInterpretation);
+    onSearchSubmit(promptText, quickInterpretation);
   };
 
   const handleSubmit = (e: React.FormEvent) => {

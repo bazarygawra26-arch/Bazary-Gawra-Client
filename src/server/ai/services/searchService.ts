@@ -13,7 +13,8 @@ import { localizeProduct } from '../../../lib/i18nData';
 
 export async function processAiSearch(
   query: string,
-  language: string = 'ku'
+  language: string = 'ku',
+  previousContext?: { previousQuery?: string; previousProducts?: string[] }
 ): Promise<AiSearchComprehensiveResult> {
   const startTime = Date.now();
   const normLang = language === 'ar' ? 'ar' : language === 'en' ? 'en' : 'ckb';
@@ -21,18 +22,90 @@ export async function processAiSearch(
   const isCkb = normLang === 'ckb';
   const isAr = normLang === 'ar';
 
-  const prompt = buildSearchPrompt(query, language);
-  const parsed = await generateJson<any>(prompt);
+  const cleanQuery = (query || '').trim();
 
-  const productTerm = parsed?.product || parsed?.product_type || query.trim();
+  // Edge case: empty or invalid query
+  if (!cleanQuery || cleanQuery.length < 2) {
+    const defaultText = isCkb
+      ? 'تکایە ناوی بەرهەم یان تایبەتمەندی بنووسە بۆ گەڕان (بۆ نموونە: ئێرفرایەر، قاوەساز، هەنگوینی شاخ).'
+      : isAr
+      ? 'يرجى كتابة اسم المنتج أو المواصفات للبحث (مثال: قلاية هوائية، ماكينة قهوة، عسل جبلي).'
+      : 'Please enter a product name or preference to search (e.g., air fryer, coffee machine, mountain honey).';
+
+    return {
+      request: {
+        product: '',
+        category: 'General',
+        location: 'Kurdistan',
+        max_price: null,
+        min_price: null,
+        currency: 'IQD',
+        preferences: [],
+        language: normLang,
+      },
+      interpretation: {
+        query: cleanQuery,
+        detected_language: normLang,
+        product_type: isCkb ? 'دیاری نەکراوە' : isAr ? 'غير محدد' : 'Unspecified',
+        target_location: 'Kurdistan',
+        budget_max: null,
+        currency: 'IQD',
+        extracted_preferences: [],
+        explanation: { en: defaultText, ckb: defaultText, ar: defaultText },
+      },
+      products: [],
+      information_gaps: [],
+      recommendation: defaultText,
+      seller_questions: [],
+      language: normLang,
+    };
+  }
+
+  // Detect conversational refinement
+  let mergedQueryForPrompt = cleanQuery;
+  const prevQ = previousContext?.previousQuery?.trim();
+  if (prevQ && prevQ !== cleanQuery) {
+    const isRefinementWord =
+      /^(تەنها|تەنیا|فقط|only|under|less|لە|في|in|بە|with|without|cheaper|هەرزانتر|أرخص)/i.test(cleanQuery) ||
+      cleanQuery.includes('گەرەنتی') ||
+      cleanQuery.includes('ضمان') ||
+      cleanQuery.includes('warranty') ||
+      cleanQuery.includes('گەیاندن') ||
+      cleanQuery.includes('توصيل') ||
+      cleanQuery.includes('delivery');
+
+    if (isRefinementWord) {
+      mergedQueryForPrompt = `${prevQ} (${cleanQuery})`;
+    }
+  }
+
+  // 1. Attempt Gemini 3.8 Flash structured search interpretation
+  let parsed: any = null;
+  try {
+    const prompt = buildSearchPrompt(cleanQuery, language, prevQ);
+    parsed = await generateJson<any>(prompt);
+  } catch (err) {
+    console.warn('Gemini generateJson call failed, using deterministic fallback parser:', err);
+  }
+
+  // 2. Deterministic Fallback Extractor if Gemini is 503 / offline / rate-limited
+  if (!parsed || !parsed.product) {
+    parsed = extractDeterministicCriteria(mergedQueryForPrompt, normLang);
+  }
+
+  const productTerm = parsed?.product || parsed?.product_type || cleanQuery;
   const categoryTerm = parsed?.category || 'General';
   const targetLocation = parsed?.location || parsed?.target_location || 'Kurdistan Region';
   const budgetMax = typeof parsed?.max_price === 'number' ? parsed.max_price : typeof parsed?.budget_max === 'number' ? parsed.budget_max : null;
   const budgetMin = typeof parsed?.min_price === 'number' ? parsed.min_price : null;
-  const preferences: string[] = Array.isArray(parsed?.preferences) ? parsed.preferences : Array.isArray(parsed?.extracted_preferences) ? parsed.extracted_preferences : [];
+  const preferences: string[] = Array.isArray(parsed?.preferences)
+    ? parsed.preferences
+    : Array.isArray(parsed?.extracted_preferences)
+    ? parsed.extracted_preferences
+    : [];
 
   const interpretation: AISearchInterpretation = {
-    query,
+    query: cleanQuery,
     detected_language: parsed?.detected_language || normLang,
     product_type: productTerm,
     target_location: targetLocation,
@@ -46,19 +119,19 @@ export async function processAiSearch(
     },
   };
 
-  // 1. Query Supabase products using deterministic criteria
+  // 3. Query Supabase products using deterministic criteria
   let rawProducts = await findProducts({
-    search: productTerm,
+    search: productTerm !== 'General' ? productTerm : undefined,
     city: targetLocation !== 'Kurdistan Region' && targetLocation !== 'Kurdistan' ? targetLocation : undefined,
     maxPrice: budgetMax || undefined,
     minPrice: budgetMin || undefined,
     lang: dbLang,
   });
 
-  // If strict city search returned 0 results, expand city to show nearby Kurdistan merchants while preserving the gap notice
+  // If strict city search returned 0 results, expand city to show nearby Kurdistan merchants
   if (rawProducts.length === 0 && (targetLocation !== 'Kurdistan Region' && targetLocation !== 'Kurdistan')) {
     rawProducts = await findProducts({
-      search: productTerm,
+      search: productTerm !== 'General' ? productTerm : undefined,
       maxPrice: budgetMax || undefined,
       minPrice: budgetMin || undefined,
       lang: dbLang,
@@ -66,16 +139,50 @@ export async function processAiSearch(
   }
 
   // If search was very narrow, fetch relevant fallback category items
-  if (rawProducts.length === 0) {
+  if (rawProducts.length === 0 && categoryTerm !== 'General') {
     rawProducts = await findProducts({
-      category: categoryTerm !== 'General' ? categoryTerm : undefined,
+      category: categoryTerm,
       maxPrice: budgetMax || undefined,
       lang: dbLang,
     });
   }
 
+  // Conversational Refinement filters (e.g. "only with warranty")
+  const requiresWarranty = preferences.some(
+    (p) => p.toLowerCase().includes('warranty') || p.includes('گەرەنتی') || p.includes('ضمان')
+  );
+  if (requiresWarranty) {
+    const withW = rawProducts.filter(
+      (p) => p.warranty && p.warranty !== 'Information unavailable' && p.warranty !== 'Not provided'
+    );
+    if (withW.length > 0) {
+      rawProducts = withW;
+    }
+  }
+
+  const requiresDelivery = preferences.some(
+    (p) => p.toLowerCase().includes('delivery') || p.includes('گەیاندن') || p.includes('توصيل')
+  );
+  if (requiresDelivery) {
+    const withD = rawProducts.filter((p) => p.delivery_info && p.delivery_info !== 'Not provided');
+    if (withD.length > 0) {
+      rawProducts = withD;
+    }
+  }
+
   // Localize product attributes according to active user language
   const products: Product[] = rawProducts.map((p) => localizeProduct(p, normLang));
+
+  // If products is 0, find real alternatives from the database (never hallucinating outside shops)
+  let alternatives: Product[] | undefined = undefined;
+  if (products.length === 0) {
+    const allDbFallback = await findProducts({ lang: dbLang });
+    const catAlternatives = allDbFallback.filter(
+      (p) => p.category.toLowerCase().includes((categoryTerm || '').toLowerCase())
+    );
+    const chosenAlt = catAlternatives.length > 0 ? catAlternatives : allDbFallback;
+    alternatives = chosenAlt.slice(0, 3).map((p) => localizeProduct(p, normLang));
+  }
 
   // 2. Perform Trust & Information Gap Analysis for each found product
   const information_gaps: DetailedInformationGap[] = products.map((p) => {
@@ -279,10 +386,10 @@ export async function processAiSearch(
       : `"${p.name}" from "${p.seller_name}" (${p.location}) matches your exact request at ${p.price.toLocaleString()} ${p.currency}.`;
   } else {
     recommendation = isCkb
-      ? `هیچ بەرهەمێک بە تەواوی هاوتای ئەم مەرجانە لە داتابەیسی ئێستادا نەدۆزرایەوە. تکایە بودجەکەت فراوانتر بکە یان شارێکی تر هەڵبژێرە.`
+      ? `هیچ بەرهەمێک بە تەواوی هاوتای ئەم مەرجانە (لە ${targetLocation}${budgetMax ? ` بە کەمتر لە ${budgetMax.toLocaleString()} دینار` : ''}) لە داتابەیسدا نەدۆزرایەوە. پێشنیار دەکەین بودجەکەت کەمێک بەرزتر بکەیتەوە یان شارێکی تر هەڵبژێریت. دەتوانیت سەیری بەرهەمە ڕاستەقینەکانی تری کەتەلۆگ بکەیت لەم پۆلەدا.`
       : isAr
-      ? `لم يتم العثور على منتجات مطابقة تماماً لهذه الشروط في قاعدة البيانات الحالية. يرجى تعديل الميزانية أو اختيار مدينة أخرى.`
-      : `No products matching these exact criteria were found in the current database. Try broadening your budget or location filter.`;
+      ? `لم يتم العثور على منتجات مطابقة تماماً لهذه الشروط (في ${targetLocation}${budgetMax ? ` بأقل من ${budgetMax.toLocaleString()} دينار` : ''}) في قاعدة البيانات. نقترح تعديل الميزانية أو اختيار مدينة أخرى. يمكنك الاطلاع على البدائل المتوفرة فعلياً في الكتالوج.`
+      : `No products matching these exact criteria (in ${targetLocation}${budgetMax ? ` under ${budgetMax.toLocaleString()} IQD` : ''}) were found in the database. Suggestions: Consider raising your budget or selecting a different city. Real catalogue alternatives are available below.`;
   }
 
   const latencyMs = Date.now() - startTime;
@@ -313,10 +420,175 @@ export async function processAiSearch(
     },
     interpretation,
     products,
+    alternatives,
     comparison,
     information_gaps,
     recommendation,
     seller_questions,
     language: normLang,
+  };
+}
+
+// Rule-based deterministic extractor for Kurdish, Arabic, and English queries (Zero-failure fallback when Gemini is 503 or offline)
+function extractDeterministicCriteria(query: string, lang: string = 'ku'): any {
+  const qLower = query.toLowerCase();
+
+  // 1. Detect language
+  let detectedLang = 'ckb';
+  if (/[\u0600-\u06FF]/.test(query)) {
+    if (
+      query.includes('أريد') ||
+      query.includes('ابحث') ||
+      query.includes('التي') ||
+      query.includes('سعر') ||
+      query.includes('أربيل') ||
+      query.includes('السليمانية')
+    ) {
+      detectedLang = 'ar';
+    } else {
+      detectedLang = 'ckb';
+    }
+  } else {
+    detectedLang = 'en';
+  }
+
+  // 2. City extraction
+  let city = 'Kurdistan Region';
+  if (
+    query.includes('سلێمانی') ||
+    query.includes('السليمانية') ||
+    qLower.includes('sulaymaniyah') ||
+    qLower.includes('slemani')
+  ) {
+    city = 'Sulaymaniyah';
+  } else if (
+    query.includes('هەولێر') ||
+    query.includes('أربيل') ||
+    qLower.includes('erbil') ||
+    qLower.includes('hawler')
+  ) {
+    city = 'Erbil';
+  } else if (
+    query.includes('دهۆک') ||
+    query.includes('دهوك') ||
+    qLower.includes('duhok')
+  ) {
+    city = 'Duhok';
+  } else if (
+    query.includes('هەڵەبجە') ||
+    query.includes('حلبجة') ||
+    qLower.includes('halabja')
+  ) {
+    city = 'Halabja';
+  }
+
+  // 3. Price / Budget extraction (converts Eastern Arabic numerals and words like هەزار / ألف)
+  let maxPrice: number | null = null;
+  const normalizedNumbers = query.replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
+
+  const thousandMatch = normalizedNumbers.match(/(\d+)\s*(هەزار|الف|ألف|k)/i);
+  if (thousandMatch) {
+    maxPrice = parseInt(thousandMatch[1], 10) * 1000;
+  } else {
+    const rawNumMatch = normalizedNumbers.match(
+      /(?:کەمتر لە|أقل من|under|less than|up to|بۆ|بە|budget)?\s*(\d{1,3}(?:[,\.]\d{3})+|\d{4,9})/i
+    );
+    if (rawNumMatch) {
+      const cleaned = rawNumMatch[1].replace(/[,\.]/g, '');
+      const parsed = parseInt(cleaned, 10);
+      if (parsed > 1000) maxPrice = parsed;
+    }
+  }
+
+  // 4. Product keyword & Category
+  let product = 'General';
+  let category = 'General';
+  if (
+    query.includes('ئێرفرایەر') ||
+    query.includes('قلاية') ||
+    qLower.includes('air fryer') ||
+    qLower.includes('airfryer')
+  ) {
+    product = 'air fryer';
+    category = 'Kitchen Appliances & Supplies';
+  } else if (
+    query.includes('قاوە') ||
+    query.includes('قهوة') ||
+    qLower.includes('coffee') ||
+    qLower.includes('espresso')
+  ) {
+    product = 'coffee';
+    category = 'Kitchen Appliances & Supplies';
+  } else if (
+    query.includes('خەڵاتە') ||
+    query.includes('خلاط') ||
+    qLower.includes('blender')
+  ) {
+    product = 'blender';
+    category = 'Kitchen Appliances & Supplies';
+  } else if (
+    query.includes('جارووبەرەقی') ||
+    query.includes('مكنسة') ||
+    qLower.includes('vacuum')
+  ) {
+    product = 'vacuum';
+    category = 'Home Appliances';
+  } else if (
+    query.includes('هەنگوین') ||
+    query.includes('عسل') ||
+    qLower.includes('honey')
+  ) {
+    product = 'honey';
+    category = 'Local Food & Products';
+  } else if (
+    query.includes('بەرمای') ||
+    query.includes('کەلەپوور') ||
+    query.includes('سجاد') ||
+    qLower.includes('rug') ||
+    qLower.includes('craft')
+  ) {
+    product = 'rug';
+    category = 'Handmade & Heritage';
+  } else if (
+    query.includes('جەزوە') ||
+    query.includes('دلة') ||
+    qLower.includes('copper')
+  ) {
+    product = 'copper';
+    category = 'Handmade & Heritage';
+  } else if (
+    query.includes('کتێب') ||
+    query.includes('پەرتووک') ||
+    query.includes('کتاب') ||
+    query.includes('کتب') ||
+    query.includes('ڕۆمان') ||
+    query.includes('شێعر') ||
+    query.includes('مەم و زین') ||
+    query.includes('نالی') ||
+    qLower.includes('book') ||
+    qLower.includes('novel') ||
+    qLower.includes('poetry')
+  ) {
+    product = 'book';
+    category = 'Books';
+  }
+
+  // 5. Preferences
+  const preferences: string[] = [];
+  if (query.includes('گەرەنتی') || query.includes('ضمان') || qLower.includes('warranty')) {
+    preferences.push('warranty required');
+  }
+  if (query.includes('گەیاندن') || query.includes('توصيل') || qLower.includes('delivery')) {
+    preferences.push('local delivery');
+  }
+
+  return {
+    product,
+    category,
+    location: city,
+    max_price: maxPrice,
+    min_price: null,
+    preferences,
+    detected_language: detectedLang,
   };
 }

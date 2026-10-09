@@ -10,8 +10,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.format() }, { status: 400 });
     }
 
-    const { query, language } = parsed.data;
-    const result = await processAiSearch(query, language);
+    const { query, language, previousQuery, previousProducts } = parsed.data;
+    const result = await processAiSearch(query, language, { previousQuery, previousProducts });
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('API /api/ai/search error:', error);

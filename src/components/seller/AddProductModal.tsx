@@ -78,6 +78,15 @@ const PRESET_IMAGES = [
       'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80',
     ],
   },
+  {
+    label: 'Books & Literature',
+    url: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=800&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80',
+    ],
+  },
 ];
 
 export const AddProductModal: React.FC<AddProductModalProps> = ({
@@ -120,16 +129,14 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   if (!isOpen) return null;
 
   const categories = [
-    { en: 'Kitchen & Home', ku: 'چێشتخانە و ماڵ' },
-    { en: 'Coffee & Espresso', ku: 'قاوە و قاوەساز' },
-    { en: 'Home Appliances', ku: 'کەلوپەلی کارەبایی ماڵ' },
-    { en: 'Smart Home & Tech', ku: 'ماڵی ژیر و تەکنەلۆجیا' },
-    { en: 'Local Food & Honey', ku: 'هەنگوین و بەرهەمی خۆماڵی' },
-    { en: 'Cookware & Kitchen', ku: 'مەنجەڵ و پێداویستی چێشتخانە' },
-    { en: 'Handmade & Heritage', ku: 'دەستکرد و کەلەپوور' },
-    { en: 'Vacuum Cleaners', ku: 'جاڕووبەرقی' },
-    { en: 'Cooling & Fans', ku: 'فێنککەرەوە و پانکە' },
-    { en: 'Electronics & Accessories', ku: 'ئەلیکترۆنیات و بەشەکان' },
+    { en: 'Local Food & Products', ku: 'خۆراک و بەرهەمی خۆماڵی', ar: 'الأغذية والمنتجات المحلية' },
+    { en: 'Handmade & Heritage', ku: 'دەستکرد و کەلەپوور', ar: 'الحرف اليدوية والتراث' },
+    { en: 'Kitchen Appliances & Supplies', ku: 'ئامێر و پێداویستییەکانی چێشتخانە', ar: 'أجهزة ومستلزمات المطبخ' },
+    { en: 'Home Appliances', ku: 'ئامێرەکانی ماڵ', ar: 'الأجهزة المنزلية' },
+    { en: 'Electronics', ku: 'ئەلیکترۆنیات', ar: 'الإلكترونيات' },
+    { en: 'Beauty & Personal Care', ku: 'جوانی و چاودێری کەسی', ar: 'الجمال والعناية الشخصية' },
+    { en: 'Books', ku: 'کتێب', ar: 'الكتب' },
+    { en: 'Other', ku: 'هی تر', ar: 'أخرى' },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -313,7 +320,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                     required
                     value={nameCkb}
                     onChange={(e) => setNameCkb(e.target.value)}
-                    placeholder={isKu ? 'نموونە: قلاێنەری هەوایی نینجا ٨ لیتر' : 'e.g. Ninja Airfryer 8L'}
+                    placeholder={isKu ? 'نموونە: ئێرفرایەری نینجا ٨ لیتر' : 'e.g. Ninja Airfryer 8L'}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-[#EAE7DF] focus:outline-none focus:border-[#F4B942] bg-white"
                   />
                 </div>

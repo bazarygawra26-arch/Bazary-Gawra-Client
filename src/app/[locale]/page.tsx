@@ -12,6 +12,7 @@ import { WhyBazaryGawra } from '../../components/WhyBazaryGawra';
 import { SearchResultsView } from '../../components/SearchResultsView';
 import { ProductComparisonDrawer } from '../../components/ProductComparisonDrawer';
 import { ProductDetailModal } from '../../components/ProductDetailModal';
+import { ProductCard } from '../../components/product/ProductCard';
 import { CompareTray } from '../../components/compare/CompareTray';
 import { KurdishPatternBg } from '../../components/ui/KurdishPatternBg';
 import { Product, Category, Seller, AISearchInterpretation, AiSearchComprehensiveResult } from '../../types';
@@ -29,6 +30,7 @@ export default function LocaleHomePage() {
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [aiSearchResult, setAiSearchResult] = useState<AiSearchComprehensiveResult | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [selectedProductForModal, setSelectedProductForModal] = useState<Product | null>(null);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -84,7 +86,12 @@ export default function LocaleHomePage() {
       const res = await fetch('/api/ai/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, language: langParam }),
+        body: JSON.stringify({
+          query,
+          language: langParam,
+          previousQuery: activeQuery && activeQuery !== query ? activeQuery : undefined,
+          previousProducts: searchResults.length > 0 ? searchResults.map((p) => p.id) : undefined,
+        }),
       });
 
       if (res.ok) {
@@ -109,11 +116,142 @@ export default function LocaleHomePage() {
     setActiveInterpretation(null);
     setSearchResults([]);
     setAiSearchResult(null);
+    setSelectedCategory(null);
+    setSelectedSubcategory(null);
   };
 
-  const displayedProducts = selectedCategory
-    ? products.filter((p) => p.category.toLowerCase().includes(selectedCategory.toLowerCase()))
-    : products;
+  const displayedProducts = React.useMemo(() => {
+    if (!selectedCategory && !selectedSubcategory) return products;
+
+    return products.filter((p) => {
+      const pCat = (p.category || '').toLowerCase();
+      const pName = (p.name || '').toLowerCase();
+
+      // If specific subcategory is selected
+      if (selectedSubcategory) {
+        if (selectedSubcategory === 'coffee-machines') {
+          return (
+            pCat.includes('coffee') ||
+            pCat.includes('قاوە') ||
+            pName.includes('coffee') ||
+            pName.includes('espresso') ||
+            pName.includes('قاوە')
+          );
+        }
+        if (selectedSubcategory === 'air-fryers') {
+          return (
+            pCat.includes('air fryer') ||
+            pCat.includes('ئێرفرایەر') ||
+            pName.includes('air fryer') ||
+            pName.includes('ئێر فرایەر') ||
+            pName.includes('fryer') ||
+            pName.includes('ninja')
+          );
+        }
+        if (selectedSubcategory === 'blenders') {
+          return (
+            pCat.includes('blender') ||
+            pCat.includes('خەڵاتە') ||
+            pName.includes('blender') ||
+            pName.includes('braun') ||
+            pName.includes('میکسەر')
+          );
+        }
+        if (selectedSubcategory === 'vacuum-cleaners') {
+          return (
+            pCat.includes('vacuum') ||
+            pCat.includes('جارووبەرەقی') ||
+            pCat.includes('جاڕوو') ||
+            pName.includes('vacuum') ||
+            pName.includes('dyson')
+          );
+        }
+        return (
+          pCat.includes(selectedSubcategory.toLowerCase()) ||
+          pName.includes(selectedSubcategory.toLowerCase())
+        );
+      }
+
+      // If parent category is selected
+      if (
+        selectedCategory === 'kitchen-home' ||
+        selectedCategory?.toLowerCase().includes('kitchen')
+      ) {
+        return (
+          pCat.includes('kitchen') ||
+          pCat.includes('coffee') ||
+          pCat.includes('espresso') ||
+          pCat.includes('air fryer') ||
+          pCat.includes('blender') ||
+          pCat.includes('چێشتخانە') ||
+          pCat.includes('قاوە') ||
+          pCat.includes('ئێرفرایەر') ||
+          pCat.includes('خەڵاتە') ||
+          pName.includes('coffee') ||
+          pName.includes('espresso') ||
+          pName.includes('fryer') ||
+          pName.includes('blender')
+        );
+      }
+      if (
+        selectedCategory === 'home-appliances' ||
+        selectedCategory?.toLowerCase().includes('appliances')
+      ) {
+        return (
+          pCat.includes('appliance') ||
+          pCat.includes('vacuum') ||
+          pCat.includes('ماڵ') ||
+          pCat.includes('جاڕوو') ||
+          pCat.includes('جاروو') ||
+          pName.includes('vacuum') ||
+          pName.includes('dyson')
+        );
+      }
+      if (
+        selectedCategory === 'local-food-honey' ||
+        selectedCategory?.toLowerCase().includes('honey') ||
+        selectedCategory?.toLowerCase().includes('food')
+      ) {
+        return (
+          pCat.includes('honey') ||
+          pCat.includes('food') ||
+          pCat.includes('هەنگوین') ||
+          pCat.includes('خۆراک') ||
+          pCat.includes('خۆماڵی') ||
+          pName.includes('honey') ||
+          pName.includes('هەنگوین')
+        );
+      }
+      if (
+        selectedCategory === 'handmade-crafts' ||
+        selectedCategory?.toLowerCase().includes('handmade') ||
+        selectedCategory?.toLowerCase().includes('craft')
+      ) {
+        return (
+          pCat.includes('handmade') ||
+          pCat.includes('craft') ||
+          pCat.includes('heritage') ||
+          pCat.includes('دەستکرد') ||
+          pCat.includes('کەلەپوور') ||
+          pName.includes('kelim') ||
+          pName.includes('rug') ||
+          pName.includes('دەستچن') ||
+          pName.includes('jazwa')
+        );
+      }
+      if (selectedCategory === 'electronics') {
+        return pCat.includes('electronics') || pCat.includes('ئەلیکترۆنیات');
+      }
+      if (
+        selectedCategory === 'beauty-personal-care' ||
+        selectedCategory === 'beauty'
+      ) {
+        return pCat.includes('beauty') || pCat.includes('جوانی');
+      }
+
+      return pCat.includes(selectedCategory!.toLowerCase());
+    });
+  }, [products, selectedCategory, selectedSubcategory]);
 
   // Hospitality Greeting
   const greeting =
@@ -174,8 +312,67 @@ export default function LocaleHomePage() {
         <CategoryList
           categories={categories}
           selectedCategory={selectedCategory}
-          onSelectCategory={(cat) => setSelectedCategory(cat)}
+          selectedSubcategory={selectedSubcategory}
+          onSelectCategory={(catSlug, subSlug) => {
+            setSelectedCategory(catSlug);
+            setSelectedSubcategory(subSlug || null);
+          }}
         />
+      )}
+
+      {/* 4.5 Filtered Category Products Grid if a category is selected */}
+      {selectedCategory && (
+        <section id="category-products-section" className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full animate-fadeIn">
+          <div className="flex items-center justify-between mb-6 pb-3 border-b border-[#EAE7DF]">
+            <div>
+              <h3 className="text-xl sm:text-2xl font-black text-neutral-900">
+                {language === 'ku'
+                  ? `بەرهەمەکانی ئەم پۆلە (${displayedProducts.length})`
+                  : language === 'ar'
+                  ? `منتجات هذا التصنيف (${displayedProducts.length})`
+                  : `Category Products (${displayedProducts.length})`}
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
+                {language === 'ku'
+                  ? 'بەرهەمە بەردەستەکان بەپێی پۆلی دیاریکراو'
+                  : language === 'ar'
+                  ? 'المنتجات المتوفرة حسب التصنيف المحدد'
+                  : 'Available listings matching your selected category'}
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setSelectedCategory(null);
+                setSelectedSubcategory(null);
+              }}
+              className="text-xs font-bold text-neutral-500 hover:text-neutral-900 border border-[#EAE7DF] bg-white px-3 py-1.5 rounded-full cursor-pointer hover:bg-neutral-50"
+            >
+              ✕ {t('clearFilter')}
+            </button>
+          </div>
+
+          {displayedProducts.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayedProducts.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  onViewProduct={(prod) => setSelectedProductForModal(prod)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="py-12 text-center text-neutral-500 bg-white rounded-2xl border border-[#EAE7DF] p-8">
+              <p className="text-sm font-semibold">
+                {language === 'ku'
+                  ? 'هیچ بەرهەمێک لەم پۆلەدا نەدۆزرایەوە.'
+                  : language === 'ar'
+                  ? 'لم يتم العثور على منتجات في هذا التصنيف.'
+                  : 'No products found in this category yet.'}
+              </p>
+            </div>
+          )}
+        </section>
       )}
 
       {/* 5. "AI Picks" Product Row */}

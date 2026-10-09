@@ -11,7 +11,7 @@ export async function generateJson<T>(prompt: string, options?: { systemInstruct
     return null;
   }
 
-  const model = env.GEMINI_MODEL || 'gemini-2.5-flash';
+  const model = env.GEMINI_MODEL || 'gemini-3.8-flash';
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   const contents: any[] = [];
@@ -27,32 +27,33 @@ export async function generateJson<T>(prompt: string, options?: { systemInstruct
     parts: [{ text: prompt }],
   });
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents,
-      generationConfig: {
-        responseMimeType: 'application/json',
-        temperature: 0.1,
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Gemini API Error:', response.status, errorText);
-    return null;
-  }
-
-  const result = await response.json();
-  const textOutput = result.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!textOutput) return null;
-
   try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(4000),
+      body: JSON.stringify({
+        contents,
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.1,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.warn('Gemini API Error (falling back to deterministic parser):', response.status, errorText.slice(0, 100));
+      return null;
+    }
+
+    const result = await response.json();
+    const textOutput = result.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!textOutput) return null;
+
     return JSON.parse(textOutput) as T;
-  } catch (err) {
-    console.error('Failed to parse Gemini JSON output:', err, textOutput);
+  } catch (err: any) {
+    console.warn('Gemini API call timed out or failed (falling back to deterministic parser):', err?.message || err);
     return null;
   }
 }
@@ -71,48 +72,49 @@ export async function generateMultimodalJson<T>(
     return null;
   }
 
-  const model = env.GEMINI_MODEL || 'gemini-2.5-flash';
+  const model = env.GEMINI_MODEL || 'gemini-3.8-flash';
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: prompt },
-            {
-              inlineData: {
-                mimeType,
-                data: base64Image,
-              },
-            },
-          ],
-        },
-      ],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        temperature: 0.2,
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Gemini Multimodal Vision Error:', response.status, errorText);
-    return null;
-  }
-
-  const result = await response.json();
-  const textOutput = result.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!textOutput) return null;
-
   try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(6000),
+      body: JSON.stringify({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: prompt },
+              {
+                inlineData: {
+                  mimeType,
+                  data: base64Image,
+                },
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.2,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.warn('Gemini Multimodal Vision Error (falling back):', response.status, errorText.slice(0, 100));
+      return null;
+    }
+
+    const result = await response.json();
+    const textOutput = result.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!textOutput) return null;
+
     return JSON.parse(textOutput) as T;
-  } catch (err) {
-    console.error('Failed to parse Gemini Vision JSON output:', err, textOutput);
+  } catch (err: any) {
+    console.warn('Gemini Multimodal call failed (falling back):', err?.message || err);
     return null;
   }
 }
