@@ -45,25 +45,44 @@ export default function LocaleHomePage() {
         setIsLoading(true);
         const langParam = language === 'ckb' ? 'ku' : language;
 
-        const [prodRes, catRes, sellerRes] = await Promise.all([
-          fetch(`/api/products?lang=${langParam}`, { cache: 'no-store' }),
-          fetch(`/api/categories?lang=${langParam}`, { cache: 'no-store' }),
-          fetch(`/api/sellers?lang=${langParam}`, { cache: 'no-store' }),
+        // Fetch products, categories, and sellers independently so no endpoint blocks another
+        await Promise.allSettled([
+          fetch(`/api/products?lang=${langParam}`, { cache: 'no-store' })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+              if (isMounted && data) {
+                setProducts(Array.isArray(data) ? data : data.products || []);
+              }
+            })
+            .catch((err) => console.warn('Failed to load products:', err)),
+
+          fetch(`/api/categories?lang=${langParam}`, { cache: 'no-store' })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+              if (isMounted && data) {
+                setCategories(Array.isArray(data) ? data : data.categories || []);
+              }
+            })
+            .catch((err) => console.warn('Failed to load categories:', err)),
+
+          fetch(`/api/sellers?lang=${langParam}`, { cache: 'no-store' })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+              if (isMounted && data) {
+                const rawSellers = Array.isArray(data) ? data : data.sellers || [];
+                // Sort to display top verified Kurdistan merchants with logos first in the 1x4 row
+                const sortedSellers = [...rawSellers].sort((a, b) => {
+                  if (a.verification_status === 'verified' && b.verification_status !== 'verified') return -1;
+                  if (b.verification_status === 'verified' && a.verification_status !== 'verified') return 1;
+                  if (a.logo_url && !b.logo_url) return -1;
+                  if (b.logo_url && !a.logo_url) return 1;
+                  return 0;
+                });
+                setSellers(sortedSellers);
+              }
+            })
+            .catch((err) => console.warn('Failed to load sellers:', err)),
         ]);
-
-        if (prodRes.ok && catRes.ok && sellerRes.ok) {
-          const [prodsData, catsData, sellersData] = await Promise.all([
-            prodRes.json(),
-            catRes.json(),
-            sellerRes.json(),
-          ]);
-
-          if (isMounted) {
-            setProducts(Array.isArray(prodsData) ? prodsData : prodsData.Products || []);
-            setCategories(Array.isArray(catsData) ? catsData : []);
-            setSellers(Array.isArray(sellersData) ? sellersData : []);
-          }
-        }
       } catch (err) {
         console.error('Failed to load dynamic Supabase data:', err);
       } finally {

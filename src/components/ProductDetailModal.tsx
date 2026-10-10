@@ -18,11 +18,13 @@ import {
   Send,
   MessageSquare,
   AlertTriangle,
+  ShoppingBag,
 } from 'lucide-react';
 import { TrustSignals } from './TrustSignals';
 import { localizeProduct } from '../lib/i18nData';
 import { Gallery } from './product/Gallery';
 import { ProductFeedbackSection } from './ProductFeedbackSection';
+import { OrderModal } from './order/OrderModal';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -36,6 +38,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
   const [chatLog, setChatLog] = useState<{ q: string; a: string }[]>([]);
   const [isAsking, setIsAsking] = useState(false);
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [liveProduct, setLiveProduct] = useState<Product | null>(product);
 
   useEffect(() => {
@@ -261,11 +264,27 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="pt-3 flex items-center gap-3">
+              {/* Actions: Buy Now + Compare */}
+              <div className="pt-3 space-y-2.5">
                 <button
+                  type="button"
+                  onClick={() => setIsOrderModalOpen(true)}
+                  className="w-full py-3.5 px-4 rounded-xl text-sm font-black bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 shadow-xs hover:shadow transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                >
+                  <ShoppingBag className="w-4 h-4 text-neutral-950" />
+                  <span>
+                    {isKu
+                      ? 'کڕینی دەستبەجێ (داواکردنی کاڵا)'
+                      : isAr
+                      ? 'الشراء المباشر (طلب المنتج)'
+                      : 'Buy Now (Direct Order)'}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => (compared ? removeFromCompare(currentProduct.id) : addToCompare(currentProduct))}
-                  className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold border transition-colors flex items-center justify-center gap-2 ${
+                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold border transition-colors flex items-center justify-center gap-2 cursor-pointer ${
                     compared
                       ? 'bg-[#657A52] border-[#657A52] text-white'
                       : 'bg-white border-[#EAE7DF] text-neutral-800 hover:bg-neutral-50'
@@ -400,6 +419,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
           <ProductFeedbackSection productId={product.id} productName={displayName} />
         </div>
       </div>
+
+      {/* Direct Order Checkout Modal */}
+      <OrderModal
+        product={currentProduct}
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+      />
     </div>
   );
 };

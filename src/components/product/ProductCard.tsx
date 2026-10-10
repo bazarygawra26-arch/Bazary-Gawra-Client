@@ -15,19 +15,23 @@ import {
   AlertCircle,
   Eye,
   Sparkles,
+  ShoppingBag,
 } from 'lucide-react';
 import { localizeProduct } from '../../lib/i18nData';
+import { OrderModal } from '../order/OrderModal';
 
 interface ProductCardProps {
   product: Product;
   onViewProduct?: (product: Product) => void;
+  onBuyProduct?: (product: Product) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct, onBuyProduct }) => {
   const { language, t } = useLanguage();
   const isKu = language === 'ku' || language === 'ckb';
   const { addToCompare, removeFromCompare, isCompared } = useComparison();
   const [isFavorited, setIsFavorited] = useState(false);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
   const lp = localizeProduct(product, language);
   const compared = isCompared(lp.id);
@@ -168,40 +172,73 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-4 pt-3 border-t border-[#EAE7DF] flex items-center gap-2">
-          {onViewProduct ? (
-            <button
-              type="button"
-              onClick={() => onViewProduct(product)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-black text-white hover:text-white transition-all shadow-xs hover:shadow whitespace-nowrap group cursor-pointer"
-            >
-              <Eye className="w-3.5 h-3.5 text-[#F4B942] group-hover:scale-110 transition-transform" />
-              <span>{t('viewProduct')}</span>
-            </button>
-          ) : (
-            <Link
-              href={`/products/${product.slug || product.id}`}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-black text-white hover:text-white transition-all shadow-xs hover:shadow whitespace-nowrap group cursor-pointer"
-            >
-              <Eye className="w-3.5 h-3.5 text-[#F4B942] group-hover:scale-110 transition-transform" />
-              <span>{t('viewProduct')}</span>
-            </Link>
-          )}
-
+        <div className="mt-4 pt-3 border-t border-[#EAE7DF] flex flex-col gap-2">
+          {/* Primary Buy Product CTA */}
           <button
             type="button"
-            onClick={() => (compared ? removeFromCompare(product.id) : addToCompare(product))}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold border transition-all whitespace-nowrap cursor-pointer ${
-              compared
-                ? 'bg-[#657A52] border-[#657A52] text-white shadow-2xs'
-                : 'bg-white border-[#E0DCD1] text-neutral-700 hover:bg-[#FAF9F6] hover:border-neutral-400 hover:text-neutral-950'
-            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onBuyProduct) {
+                onBuyProduct(product);
+              } else {
+                setIsOrderModalOpen(true);
+              }
+            }}
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-black bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 transition-all shadow-2xs hover:shadow-xs active:scale-[0.99] cursor-pointer"
           >
-            <ArrowLeftRight className="w-3.5 h-3.5" />
-            <span>{compared ? t('addedToCompare') : t('compareButton')}</span>
+            <ShoppingBag className="w-3.5 h-3.5 text-neutral-950 shrink-0" />
+            <span>
+              {isKu
+                ? 'کڕینی دەستبەجێ'
+                : language === 'ar'
+                ? 'شراء فوري'
+                : 'Buy Now'}
+            </span>
           </button>
+
+          {/* Secondary Row: View Details & Compare */}
+          <div className="flex items-center gap-2">
+            {onViewProduct ? (
+              <button
+                type="button"
+                onClick={() => onViewProduct(product)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-black text-white hover:text-white transition-all shadow-2xs hover:shadow whitespace-nowrap group cursor-pointer"
+              >
+                <Eye className="w-3.5 h-3.5 text-[#F4B942] group-hover:scale-110 transition-transform shrink-0" />
+                <span className="truncate">{t('viewProduct')}</span>
+              </button>
+            ) : (
+              <Link
+                href={`/products/${product.slug || product.id}`}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-black text-white hover:text-white transition-all shadow-2xs hover:shadow whitespace-nowrap group cursor-pointer"
+              >
+                <Eye className="w-3.5 h-3.5 text-[#F4B942] group-hover:scale-110 transition-transform shrink-0" />
+                <span className="truncate">{t('viewProduct')}</span>
+              </Link>
+            )}
+
+            <button
+              type="button"
+              onClick={() => (compared ? removeFromCompare(product.id) : addToCompare(product))}
+              className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold border transition-all whitespace-nowrap cursor-pointer ${
+                compared
+                  ? 'bg-[#657A52] border-[#657A52] text-white shadow-2xs'
+                  : 'bg-white border-[#E0DCD1] text-neutral-700 hover:bg-[#FAF9F6] hover:border-neutral-400 hover:text-neutral-950'
+              }`}
+            >
+              <ArrowLeftRight className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{compared ? t('addedToCompare') : t('compareButton')}</span>
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Direct Order Checkout Modal */}
+      <OrderModal
+        product={product}
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+      />
     </div>
   );
 };
