@@ -49,6 +49,7 @@ export interface Product {
     cautions: string[];
   };
   is_promoted?: boolean;
+  is_sponsored?: boolean;
   promotion_expires_at?: string;
   view_count?: number;
 }
