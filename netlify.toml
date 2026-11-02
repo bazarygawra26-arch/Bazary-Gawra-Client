@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # The Supabase project URL and anon key are public by design: NEXT_PUBLIC_* values
+  # are inlined into the browser bundle, which trips Netlify's secrets scanner.
+  # SUPABASE_SERVICE_ROLE_KEY and GEMINI_API_KEY are still scanned.
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,SUPABASE_URL,SUPABASE_ANON_KEY"
