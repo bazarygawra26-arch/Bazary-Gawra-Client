@@ -91,6 +91,7 @@ export async function getCategories(): Promise<Category[]> {
   return [];
 }
 
+
 /**
  * Call custom PostgreSQL function calculate_transparency_score
  */
