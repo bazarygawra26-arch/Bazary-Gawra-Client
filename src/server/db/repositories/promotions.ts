@@ -33,7 +33,7 @@ export const fallbackPromotions: Promotion[] = [
     badge_ku: 'داشکاندنی گەورە',
     badge_ar: 'عروض خاصة',
     image_url: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1600&q=85',
-    link_url: '/ku?category=kitchen-home',
+    link_url: '/exhibition/kitchen-appliances-super-deals',
     is_active: true,
     sort_order: 2,
   },

@@ -50,11 +50,24 @@ export const PromotionalBanners: React.FC<PromotionalBannersProps> = ({ promotio
   const subtitle = isKu ? current.subtitle_ku : isAr ? current.subtitle_ar : current.subtitle_en;
   const badge = isKu ? current.badge_ku : isAr ? current.badge_ar : current.badge_en;
 
-  const handlePrev = () => {
+  const currentLocale = language === 'ckb' ? 'ku' : language || 'ku';
+  const getResolvedUrl = (url: string) => {
+    if (!url) return `/${currentLocale}`;
+    if (url.startsWith('http')) return url;
+    // Strip leading /ku, /ar, /en if present
+    const cleanPath = url.replace(/^\/(ku|ar|en)(\/|$)/, '/');
+    return `/${currentLocale}${cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`}`;
+  };
+
+  const targetUrl = getResolvedUrl(current.link_url);
+
+  const handlePrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setCurrentIndex((prev) => (prev - 1 + promotions.length) % promotions.length);
   };
 
-  const handleNext = () => {
+  const handleNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setCurrentIndex((prev) => (prev + 1) % promotions.length);
   };
 
@@ -65,14 +78,14 @@ export const PromotionalBanners: React.FC<PromotionalBannersProps> = ({ promotio
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="relative overflow-hidden rounded-3xl bg-neutral-900 border border-[#EAE7DF] shadow-xl min-h-[280px] sm:min-h-[320px] md:min-h-[360px] lg:min-h-[400px] xl:min-h-[420px] flex items-center w-full">
+      <div className="relative group overflow-hidden rounded-3xl bg-neutral-900 border border-[#EAE7DF] shadow-xl min-h-[280px] sm:min-h-[320px] md:min-h-[360px] lg:min-h-[400px] xl:min-h-[420px] flex items-center w-full">
         {/* Background Image with Dark Gradient Overlay */}
         <div className="absolute inset-0 z-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={current.image_url}
             alt={title}
-            className="w-full h-full object-cover object-center transition-all duration-700 scale-105"
+            className="w-full h-full object-cover object-center transition-all duration-700 scale-105 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/75 to-black/30 rtl:bg-gradient-to-l" />
         </div>
@@ -96,9 +109,9 @@ export const PromotionalBanners: React.FC<PromotionalBannersProps> = ({ promotio
             </p>
           )}
 
-          <div className="flex items-center gap-3">
+          <div className="relative z-20 flex items-center gap-3">
             <Link
-              href={current.link_url}
+              href={targetUrl}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] active:scale-95 text-neutral-950 font-black text-xs sm:text-sm shadow-md transition-all cursor-pointer"
             >
               <span>{isKu ? 'ببینە و بگەڕێ' : isAr ? 'استكشف العرض' : 'Explore Offer'}</span>
@@ -106,6 +119,14 @@ export const PromotionalBanners: React.FC<PromotionalBannersProps> = ({ promotio
             </Link>
           </div>
         </div>
+
+        {/* Clickable Card Overlay */}
+        <Link
+          href={targetUrl}
+          aria-label={title}
+          className="absolute inset-0 z-[11] cursor-pointer"
+          tabIndex={-1}
+        />
 
         {/* Carousel Arrows */}
         {promotions.length > 1 && (
