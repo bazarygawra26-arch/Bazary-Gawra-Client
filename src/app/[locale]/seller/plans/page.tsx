@@ -307,11 +307,19 @@ export default function SellerPlansPage() {
                   : 'Up to 50 active listings with product promotion eligibility.'}
               </p>
 
-              <div className="flex items-baseline gap-1 mb-6 pb-6 border-b border-[#EAE7DF]">
-                <span className="text-4xl font-black text-neutral-950">25,000</span>
-                <span className="text-xs font-black text-[#8C5E00]">
-                  {isKu ? 'دیناری عێراقی / مانگانە' : isAr ? 'د.ع / شهرياً' : 'IQD / month'}
-                </span>
+              <div className="flex flex-col gap-1 mb-6 pb-6 border-b border-[#EAE7DF]">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm line-through text-neutral-400 font-bold">25,000 IQD</span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black">
+                    {isKu ? 'داشکاندنی ٦٠٪ تایبەت' : isAr ? 'خصم 60% خاص' : '60% OFF Special'}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-4xl font-black text-neutral-950">10,000</span>
+                  <span className="text-xs font-black text-[#8C5E00]">
+                    {isKu ? 'دیناری عێراقی / مانگانە' : isAr ? 'د.ع / شهرياً' : 'IQD / month'}
+                  </span>
+                </div>
               </div>
 
               {/* Features list */}
@@ -352,7 +360,7 @@ export default function SellerPlansPage() {
 
             <button
               type="button"
-              onClick={() => handleSelectPlan({ slug: 'pro', price_iqd: 25000, name_en: 'Pro Merchant' } as any)}
+              onClick={() => handleSelectPlan({ slug: 'pro', price_iqd: 10000, name_en: 'Pro Merchant' } as any)}
               disabled={currentPlanSlug === 'pro'}
               className="w-full py-3.5 rounded-2xl bg-[#F4B942] hover:bg-[#E2A732] active:scale-95 text-neutral-950 font-black text-xs sm:text-sm shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
             >
@@ -398,7 +406,10 @@ export default function SellerPlansPage() {
                     {isKu ? 'نرخی مانگانە' : 'Monthly Price'}
                   </td>
                   <td className="py-3.5 px-4 text-center font-bold text-neutral-900">0 IQD</td>
-                  <td className="py-3.5 px-4 text-center font-black text-neutral-950 bg-[#FFF5DD]/20">25,000 IQD</td>
+                  <td className="py-3.5 px-4 text-center font-black text-neutral-950 bg-[#FFF5DD]/20">
+                    <span className="line-through text-neutral-400 text-xs me-1.5">25,000</span>
+                    <span>10,000 IQD</span>
+                  </td>
                 </tr>
                 <tr>
                   <td className="py-3.5 px-4 font-semibold text-neutral-800">
@@ -487,7 +498,7 @@ export default function SellerPlansPage() {
               ? `فرۆشگا: ${selectedShopObj?.name || 'فرۆشگاکەم'}`
               : `Merchant: ${selectedShopObj?.name || 'My Shop'}`
           }
-          priceIqd={25000}
+          priceIqd={10000}
           billingTerm={isKu ? '١ مانگ (٣٠ ڕۆژ)' : '1 Month (30 Days)'}
           type="subscription"
           onConfirmSuccess={async (method) => {

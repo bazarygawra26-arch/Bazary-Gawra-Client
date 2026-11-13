@@ -144,8 +144,8 @@ export const PromoteProductModal: React.FC<PromoteProductModalProps> = ({
                 </div>
                 <p className="leading-relaxed">
                   {isKu
-                    ? 'لە پلانی بێبەرامبەردا (Free Starter) مافی سپۆنسەرکردنی کاڵاکان بەردەست نییە. بۆ چالاککردنی ڕیکلامی بەرهەم و زیاترکردنی کاڵاکانت بۆ ٥٠ دانە، تکایە بەشداری لە پلانی Pro بکە (٢٥،٠٠٠ دینار / مانگانە).'
-                    : 'The Free Starter plan does not include product promotion rights. Upgrade to Pro Merchant (25,000 IQD/month) to sponsor listings and unlock 50 products capacity.'}
+                    ? 'لە پلانی بێبەرامبەردا (Free Starter) مافی سپۆنسەرکردنی کاڵاکان بەردەست نییە. بۆ چالاککردنی ڕیکلامی بەرهەم و زیاترکردنی کاڵاکانت بۆ ٥٠ دانە، تکایە بەشداری لە پلانی Pro بکە (بە نرخی داشکێندراوی ١٠،٠٠٠ دینار / مانگانە).'
+                    : 'The Free Starter plan does not include product promotion rights. Upgrade to Pro Merchant (reduced rate: 10,000 IQD/month) to sponsor listings and unlock 50 products capacity.'}
                 </p>
               </div>
 

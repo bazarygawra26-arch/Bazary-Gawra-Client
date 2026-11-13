@@ -77,11 +77,11 @@ export const ExhibitionFloorPlan: React.FC<ExhibitionFloorPlanProps> = ({
   return (
     <div
       id="floor-plan-section"
-      className="p-5 sm:p-8 rounded-3xl bg-neutral-900 text-white border border-neutral-800 shadow-xl mb-10"
+      className="p-5 sm:p-8 rounded-3xl bg-white text-neutral-900 border border-[#EAE7DF] shadow-md mb-10"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-5 border-b border-neutral-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-5 border-b border-[#EAE7DF]">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-[#F4B942] uppercase tracking-wider mb-1">
+          <div className="flex items-center gap-2 text-xs font-black text-[#8C5E00] uppercase tracking-wider mb-1">
             <Navigation className="w-4 h-4" />
             <span>
               {isCkb
@@ -91,7 +91,7 @@ export const ExhibitionFloorPlan: React.FC<ExhibitionFloorPlanProps> = ({
                 : 'Interactive Hall & Booth Floor Plan'}
             </span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-black text-white">
+          <h2 className="text-xl sm:text-2xl font-black text-neutral-950">
             {isCkb
               ? 'کلیک لەسەر هەر غەرفەیەک بکە بۆ بینینی شوێن و بەرهەمەکانی'
               : isAr
@@ -100,7 +100,7 @@ export const ExhibitionFloorPlan: React.FC<ExhibitionFloorPlanProps> = ({
           </h2>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-300">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-600 font-medium">
           <span className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-md bg-[#8C5E00]" />
             <span>Zone A (Coffee)</span>
@@ -118,11 +118,11 @@ export const ExhibitionFloorPlan: React.FC<ExhibitionFloorPlanProps> = ({
 
       <div className="space-y-6">
         {/* Hall 1 Container */}
-        <div className="p-4 sm:p-6 rounded-2xl bg-neutral-950/80 border border-neutral-800">
+        <div className="p-4 sm:p-6 rounded-2xl bg-[#FAF9F6] border border-[#EAE7DF] shadow-2xs">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-amber-400" />
-              <h3 className="text-sm sm:text-base font-black text-neutral-100">
+              <span className="w-3 h-3 rounded-full bg-amber-500" />
+              <h3 className="text-sm sm:text-base font-black text-neutral-900">
                 {isCkb
                   ? 'هۆڵی سەرەکی ١ - قاوە و ئامێرە زیرەکەکان'
                   : isAr
@@ -130,7 +130,7 @@ export const ExhibitionFloorPlan: React.FC<ExhibitionFloorPlanProps> = ({
                   : 'Main Hall 1 - Coffee, Barista & Smart Kitchen'}
               </h3>
             </div>
-            <span className="text-xs text-neutral-400">
+            <span className="text-xs text-neutral-500">
               {isCkb ? 'دەروازەی سەرەکی بەردەم پارک' : 'Main Entrance Pavilion'}
             </span>
           </div>
@@ -138,7 +138,7 @@ export const ExhibitionFloorPlan: React.FC<ExhibitionFloorPlanProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Zone A: Coffee */}
             <div className="space-y-3">
-              <div className="px-3 py-1.5 rounded-xl bg-[#8C5E00]/20 border border-[#8C5E00]/40 text-[#F4B942] text-xs font-bold flex items-center justify-between">
+              <div className="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-[#8C5E00] text-xs font-bold flex items-center justify-between">
                 <span>{isCkb ? 'Zone A: بەشی قاوە و باریستا' : 'Zone A: Espresso & Specialty Coffee'}</span>
                 <span className="text-[11px] opacity-80">{zoneAShops.length} {isCkb ? 'غەرفە' : 'Booths'}</span>
               </div>
@@ -149,7 +149,7 @@ export const ExhibitionFloorPlan: React.FC<ExhibitionFloorPlanProps> = ({
 
             {/* Zone B: Smart Kitchen */}
             <div className="space-y-3">
-              <div className="px-3 py-1.5 rounded-xl bg-[#D97706]/20 border border-[#D97706]/40 text-amber-300 text-xs font-bold flex items-center justify-between">
+              <div className="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold flex items-center justify-between">
                 <span>{isCkb ? 'Zone B: بەشی ئامێرە زیرەکەکان و فرایەر' : 'Zone B: Smart Kitchen & Fryers'}</span>
                 <span className="text-[11px] opacity-80">{zoneBShops.length} {isCkb ? 'غەرفە' : 'Booths'}</span>
               </div>
@@ -161,11 +161,11 @@ export const ExhibitionFloorPlan: React.FC<ExhibitionFloorPlanProps> = ({
         </div>
 
         {/* Hall 2 Container */}
-        <div className="p-4 sm:p-6 rounded-2xl bg-neutral-950/80 border border-neutral-800">
+        <div className="p-4 sm:p-6 rounded-2xl bg-[#FAF9F6] border border-[#EAE7DF] shadow-2xs">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-orange-500" />
-              <h3 className="text-sm sm:text-base font-black text-neutral-100">
+              <h3 className="text-sm sm:text-base font-black text-neutral-900">
                 {isCkb
                   ? 'هۆڵی ٢ - کەلوپەلی پیشەسازی و هۆتێل و نانەواخانەکان (HoReCa)'
                   : isAr
@@ -173,13 +173,13 @@ export const ExhibitionFloorPlan: React.FC<ExhibitionFloorPlanProps> = ({
                   : 'Hall 2 - Industrial HoReCa & Commercial Bakery Pavilion'}
               </h3>
             </div>
-            <span className="text-xs text-neutral-400">
+            <span className="text-xs text-neutral-500">
               {isCkb ? 'ناوچەی کۆمپانیاکان' : 'Commercial Sector'}
             </span>
           </div>
 
           <div className="space-y-3">
-            <div className="px-3 py-1.5 rounded-xl bg-[#B45309]/20 border border-[#B45309]/40 text-orange-300 text-xs font-bold flex items-center justify-between">
+            <div className="px-3 py-1.5 rounded-xl bg-orange-50 border border-orange-200 text-orange-900 text-xs font-bold flex items-center justify-between">
               <span>{isCkb ? 'Zone C: پیشەسازی خواردنگە و کافێ' : 'Zone C: Heavy Commercial Lines'}</span>
               <span className="text-[11px] opacity-80">{zoneCShops.length} {isCkb ? 'باڤیلیۆن' : 'Pavilion'}</span>
             </div>

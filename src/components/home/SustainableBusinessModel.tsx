@@ -114,14 +114,15 @@ export const SustainableBusinessModel: React.FC = () => {
               </h3>
               <p className="text-xs text-neutral-600 leading-relaxed">
                 {isKu
-                  ? 'فرۆشیارە چالاکەکان بە ٢٥،٠٠٠ دیناری مانگانە پانتایی ٥٠ کاڵا، ئامرازی ژیری دەستکرد و شیکاری تەواو وەردەگرن.'
+                  ? 'فرۆشیارە چالاکەکان بە تەنها ١٠،٠٠٠ دیناری مانگانە (داشکێندراو لە ٢٥،٠٠٠) پانتایی ٥٠ کاڵا، ئامرازی ژیری دەستکرد و شیکاری تەواو وەردەگرن.'
                   : isAr
-                  ? 'اشتراك شهري بقيمة 25,000 دينار يمنح المتجر سعة 50 منتجاً وتحليلات وأدوات ذكاء اصطناعي احترافية.'
-                  : 'Active merchants pay 25,000 IQD/month to list up to 50 items, access store analytics, and use AI studios.'}
+                  ? 'اشتراك شهري مخفض بقيمة 10,000 دينار فقط يمنح المتجر سعة 50 منتجاً وتحليلات وأدوات ذكاء اصطناعي احترافية.'
+                  : 'Active merchants pay a reduced 10,000 IQD/month (down from 25,000) to list up to 50 items, access store analytics, and use AI studios.'}
               </p>
             </div>
-            <div className="pt-2 border-t border-[#EAE7DF] text-[11px] font-black text-[#8C5E00]">
-              {isKu ? '٢٥،٠٠٠ دینار / مانگانە' : '25,000 IQD / Month'}
+            <div className="pt-2 border-t border-[#EAE7DF] text-[11px] font-black text-[#8C5E00] flex items-center justify-between">
+              <span>{isKu ? '١٠،٠٠٠ دینار / مانگانە' : '10,000 IQD / Month'}</span>
+              <span className="line-through text-neutral-400 font-normal">25,000 IQD</span>
             </div>
           </div>
 

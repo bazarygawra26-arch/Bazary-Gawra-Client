@@ -57,7 +57,7 @@ INSERT INTO seller_plans (
     'Pro Merchant',
     'فرۆشیاری پێشکەوتوو (Pro)',
     'التاجر المحترف (Pro)',
-    25000,
+    10000,
     'monthly',
     50,
     true,

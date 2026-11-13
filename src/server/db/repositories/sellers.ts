@@ -493,3 +493,132 @@ function mapCardToProduct(row: any): Product {
     },
   };
 }
+
+export interface CreateSellerInput {
+  name: string;
+  name_ku?: string;
+  name_en?: string;
+  name_ar?: string;
+  owner_name?: string;
+  phone: string;
+  whatsapp?: string;
+  location?: string;
+  city?: string;
+  address?: string;
+  description?: string;
+  description_ku?: string;
+  plan_slug?: 'free' | 'pro';
+}
+
+export async function createSeller(input: CreateSellerInput): Promise<Seller> {
+  const sellerId = crypto.randomUUID();
+  const baseName = input.name_en || input.name || 'local-merchant';
+  const cleanSlug =
+    baseName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') || 'shop';
+  const slug = `${cleanSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+  const nameKu = input.name_ku || input.name;
+  const nameEn = input.name_en || input.name;
+  const nameAr = input.name_ar || input.name;
+  const locationName = input.location || input.city || 'Sulaymaniyah';
+  const address = input.address || `${locationName}, Kurdistan`;
+  const phone = input.phone;
+  const whatsapp = input.whatsapp || input.phone;
+  const description = input.description_ku || input.description || 'فرۆشگای پەسەندکراو لە بازاڕی گەورە';
+
+  const newSeller: Seller = {
+    id: sellerId,
+    slug: slug,
+    name: nameKu,
+    location: locationName,
+    productCount: 0,
+    delivery_info: 'گەیاندنی خێرا لە ناو شار و تەواوی کوردستان',
+    warranty_support: 'گەرەنتی فەرمی و پشتیوانی ڕاستەوخۆ',
+    return_window: '٣ بۆ ٧ ڕۆژ گۆڕینەوە',
+    phone_placeholder: phone,
+    phone: phone,
+    whatsapp: whatsapp,
+    logo_url: undefined,
+    verification_status: 'verified',
+    is_demo: false,
+    avatar_bg: 'from-amber-500 to-amber-700',
+    description: description,
+  };
+
+  if (supabaseAdmin) {
+    try {
+      let locationId: string | null = null;
+      try {
+        const { data: locData } = await (supabaseAdmin as any)
+          .from('locations')
+          .select('id')
+          .or(`name_en.ilike.%${locationName}%,name_ku.ilike.%${locationName}%`)
+          .limit(1)
+          .maybeSingle();
+        if (locData?.id) {
+          locationId = locData.id;
+        }
+      } catch {
+        // Location table or lookup optional
+      }
+
+      const insertPayload: any = {
+        id: sellerId,
+        slug: slug,
+        name_en: nameEn,
+        name_ku: nameKu,
+        name_ar: nameAr,
+        description_en: input.description || description,
+        description_ku: input.description_ku || description,
+        description_ar: input.description || description,
+        address: address,
+        phone: phone,
+        whatsapp: whatsapp,
+        verification_status: 'verified',
+        is_demo: false,
+        is_active: true,
+      };
+
+      if (locationId) {
+        insertPayload.location_id = locationId;
+      }
+
+      // Fallback columns for different schema migrations
+      insertPayload.name = nameKu;
+      insertPayload.location = locationName;
+      insertPayload.phone_placeholder = phone;
+
+      const { data: inserted, error: insErr } = await (supabaseAdmin as any)
+        .from('sellers')
+        .insert(insertPayload)
+        .select('*')
+        .maybeSingle();
+
+      if (!insErr && inserted) {
+        // Create initial subscription record
+        const chosenPlanId = input.plan_slug === 'pro' ? 'plan_pro' : 'plan_free';
+        try {
+          await (supabaseAdmin as any)
+            .from('seller_subscriptions')
+            .insert({
+              seller_id: sellerId,
+              plan_id: chosenPlanId,
+              status: 'active',
+              is_demo: false,
+            });
+        } catch (subErr) {
+          console.warn('[sellers] Failed to create seller subscription in DB:', subErr);
+        }
+      } else if (insErr) {
+        console.warn('[sellers] Error inserting seller to DB:', insErr);
+      }
+    } catch (err) {
+      console.warn('[sellers] createSeller database error:', err);
+    }
+  }
+
+  return newSeller;
+}

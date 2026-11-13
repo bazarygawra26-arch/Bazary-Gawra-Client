@@ -33,6 +33,7 @@ export const Header: React.FC = () => {
   const isScanner = pathname?.includes('/scanner');
   const isShop = pathname?.includes('/seller/dashboard');
   const isPlans = pathname?.includes('/seller/plans');
+  const isRegister = pathname?.includes('/seller/register');
 
   return (
     <header className="sticky top-0 z-40 bg-[#FAF9F6]/95 backdrop-blur-md border-b border-[#EAE7DF] transition-all">
@@ -131,6 +132,16 @@ export const Header: React.FC = () => {
                       ? 'خطط التجار'
                       : 'Plans'}
                 </span>
+              </Link>
+              <Link
+                href="/seller/register"
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer ${
+                  isRegister
+                    ? 'bg-[#FFF5DD] text-[#8C5E00] font-bold border border-[#F4B942]/50'
+                    : 'text-neutral-700 hover:text-neutral-950 hover:bg-[#EAE7DF]/30'
+                }`}
+              >
+                <span>{isKu ? 'تۆمارکردنی فرۆشگا' : language === 'ar' ? 'تسجيل بائع' : 'Join as Seller'}</span>
               </Link>
               <Link
                 href="/seller/dashboard"
@@ -245,6 +256,17 @@ export const Header: React.FC = () => {
                 <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#FFF5DD] text-[#8C5E00] border border-[#F4B942]/40">
                   {isKu ? 'نوێ' : 'PRO'}
                 </span>
+              </Link>
+
+              <Link
+                href="/seller/register"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all ${
+                  isRegister ? 'bg-[#FFF5DD] text-[#8C5E00]' : 'text-neutral-800 hover:bg-white'
+                }`}
+              >
+                <Store className="w-4 h-4 text-[#8C5E00]" />
+                <span>{isKu ? 'تۆمارکردنی فرۆشگای نوێ' : language === 'ar' ? 'تسجيل حساب بائع جديد' : 'Register New Seller Shop'}</span>
               </Link>
 
               <Link

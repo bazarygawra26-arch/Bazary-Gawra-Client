@@ -64,30 +64,30 @@ export const ExhibitionShopCard: React.FC<ExhibitionShopCardProps> = ({
         }`}
     >
       {/* 1. Golden Booth Number Top Banner */}
-      <div className="bg-gradient-to-r from-neutral-900 via-neutral-900 to-amber-950 text-white p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-gradient-to-r from-[#FFF5DD] via-[#FAF9F6] to-[#FFF0D4] border-b border-[#EAE7DF] text-neutral-900 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="px-3.5 py-1.5 rounded-xl bg-[#F4B942] text-neutral-950 font-black text-sm sm:text-base tracking-wide shadow-md flex items-center gap-1.5">
+          <div className="px-3.5 py-1.5 rounded-xl bg-[#F4B942] text-neutral-950 font-black text-sm sm:text-base tracking-wide shadow-xs flex items-center gap-1.5">
             <span className="text-[11px] font-bold uppercase opacity-80">{isCkb ? 'غەرفەی' : 'Booth'}</span>
             <span>{shop.booth.booth_number}</span>
           </div>
 
           <div>
-            <div className="text-xs sm:text-sm font-bold text-neutral-100 flex items-center gap-1.5">
+            <div className="text-xs sm:text-sm font-bold text-neutral-950 flex items-center gap-1.5">
               <span>{hall}</span>
-              <span className="text-amber-400">•</span>
-              <span className="text-amber-300">{zoneName}</span>
+              <span className="text-[#8C5E00]">•</span>
+              <span className="text-[#8C5E00]">{zoneName}</span>
             </div>
-            <div className="text-[11px] text-neutral-400 mt-0.5 line-clamp-1">{locationHint}</div>
+            <div className="text-[11px] text-neutral-600 mt-0.5 line-clamp-1">{locationHint}</div>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>{isCkb ? 'کراوەیە ئێستا' : isAr ? 'مفتوح الآن' : 'Live Booth'}</span>
           </span>
 
-          <span className="text-xs text-neutral-400 font-semibold hidden sm:inline">
+          <span className="text-xs text-neutral-600 font-semibold hidden sm:inline">
             {shop.booth.size_meters}
           </span>
         </div>

@@ -6,6 +6,7 @@ import { Header } from '../../../../components/layout/Header';
 import { Footer } from '../../../../components/layout/Footer';
 import { AddProductModal } from '../../../../components/seller/AddProductModal';
 import { PromoteProductModal } from '../../../../components/seller/PromoteProductModal';
+import { RegisterSellerModal } from '../../../../components/seller/RegisterSellerModal';
 import { useLanguage } from '../../../../context/LanguageContext';
 import { Product, Seller, SellerSubscription, ProductPromotion } from '../../../../types';
 import {
@@ -74,6 +75,7 @@ export default function SellerDashboardPage() {
   const [activeTab, setActiveTab] = useState<'products' | 'promotions' | 'orders' | 'admin'>('products');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [productToPromote, setProductToPromote] = useState<Product | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -318,6 +320,16 @@ export default function SellerDashboardPage() {
                   ))}
                 </select>
               </div>
+
+              {/* Create Seller Account CTA Button */}
+              <button
+                type="button"
+                onClick={() => setIsRegisterModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-800 font-black text-xs transition-all shadow-2xs cursor-pointer"
+              >
+                <PlusCircle className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{isKu ? 'تۆمارکردنی فرۆشگا' : isAr ? 'تسجيل متجر' : 'New Seller Account'}</span>
+              </button>
 
               {/* Upgrade Plan CTA Button */}
               <Link
@@ -975,7 +987,7 @@ export default function SellerDashboardPage() {
                             {p.seller_name || p.seller_id?.substring(0, 8)}
                           </td>
                           <td className="py-3 px-3 text-neutral-700">
-                            {p.notes || (p.amount_iqd === 25000 ? 'Pro Subscription' : '7-Day Promotion')}
+                            {p.notes || (p.amount_iqd === 10000 || p.amount_iqd === 25000 ? 'Pro Subscription' : '7-Day Promotion')}
                           </td>
                           <td className="py-3 px-3 font-black text-neutral-900">
                             {Number(p.amount_iqd).toLocaleString()} IQD
@@ -1048,6 +1060,27 @@ export default function SellerDashboardPage() {
           sellerName={selectedShop.name}
           canPromote={canPromote}
           onPromotionCreated={handlePromotionCreated}
+        />
+      )}
+
+      {/* Register Seller Modal */}
+      {isRegisterModalOpen && (
+        <RegisterSellerModal
+          isOpen={isRegisterModalOpen}
+          onClose={() => setIsRegisterModalOpen(false)}
+          onSellerCreated={(newSeller) => {
+            const mapped = {
+              id: newSeller.id,
+              slug: newSeller.slug || newSeller.id,
+              name: newSeller.name,
+              name_ckb: newSeller.name,
+              location: newSeller.location,
+              location_ckb: newSeller.location,
+              phone: newSeller.phone || '+964 770 000 0000',
+            };
+            setShops((prev) => [mapped, ...prev]);
+            setSelectedShop(mapped);
+          }}
         />
       )}
 
