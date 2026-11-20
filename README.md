@@ -75,7 +75,6 @@ The project is currently a **prototype**, demonstrating how AI can improve local
 - Covers local sellers across:
   - Sulaymaniyah
   - Erbil
-  - Penjwen
 - Helps users discover local merchants and explore available marketplace information.
 
 ---
@@ -90,7 +89,6 @@ The project is currently a **prototype**, demonstrating how AI can improve local
 | Google Gemini API | AI reasoning and multimodal vision |
 | Lucide React | Icon library |
 | Inter | Primary typography |
-| Noto Sans Arabic | Kurdish and Arabic typography |
 | Netlify | Demo deployment |
 
 ### Design System
