@@ -175,7 +175,7 @@ const translationsData = {
     heroBadge: '✨ بازاڕی ناوخۆیی کوردستان • سلێمانی • هەولێر • دهۆک',
     heroHeadline: 'بەرهەمە ناوخۆییەکان بە ئاسانی بدۆزەرەوە.',
     heroSubheadline: 'بەرهەمەکانی فرۆشیارانی کوردستان بگەڕێ، نرخ و تایبەتمەندییەکانیان بەراورد بکە، و بە یارمەتی ژیری دەستکرد هەڵبژاردنی گونجاو بکە.',
-    searchPlaceholder: 'چی بەدوایدا دەگەڕێیت؟',
+    searchPlaceholder: 'بەدوای چیدا دەگەڕێیت',
     searchButton: 'گەڕان بە یارمەتی ژیری دەستکرد',
     localMarketplaceNotice: 'پەیوەندی ڕاستەوخۆی کڕیاران بە فرۆشیارە ناوخۆییەکانی سلێمانی، هەولێر و دهۆک',
     navHome: 'سەرەکی',
@@ -485,7 +485,7 @@ const translations: Record<SupportedLanguage, Record<string, string>> = {
 
 const LanguageContext = createContext<LanguageContextType>({
   language: 'ku',
-  setLanguage: () => {},
+  setLanguage: () => { },
   dir: 'rtl',
   t: (key: string) => key,
   isKurdish: true,
