@@ -323,11 +323,12 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         }),
       });
 
+      const responseBody = await res.json();
       if (!res.ok) {
-        throw new Error('Failed to create product');
+        throw new Error(responseBody.error || 'Failed to create product');
       }
 
-      const newProduct = (await res.json()) as Product;
+      const newProduct = responseBody as Product;
       setCreatedProduct(newProduct);
       if (onProductCreated) {
         onProductCreated(newProduct);
@@ -354,9 +355,13 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             <div>
               <h2 className="font-extrabold text-neutral-900 text-base leading-tight">
                 {createdProduct
-                  ? isKu
-                    ? 'بەرهەمەکە بڵاوکرایەوە'
-                    : 'Product Published!'
+                  ? createdProduct.status === 'pending'
+                    ? isKu
+                      ? 'بەرهەمەکە نێردرا بۆ پێداچوونەوە'
+                      : 'Product submitted for review'
+                    : isKu
+                      ? 'بەرهەمەکە بڵاوکرایەوە'
+                      : 'Product Published!'
                   : isKu
                   ? 'زیادکردنی بەرهەمی نوێ بۆ فرۆشگاکەم'
                   : 'Add New Product to My Shop'}
@@ -387,14 +392,22 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
 
               <div>
                 <h3 className="text-xl font-black text-neutral-900 mb-1">
-                  {isKu
-                    ? 'بەرهەمەکەت بە سەرکەوتوویی زیادکرا بۆ فرۆشگاکەت!'
-                    : 'Product successfully added to your shop!'}
+                  {createdProduct.status === 'pending'
+                    ? isKu
+                      ? 'بەرهەمەکەت نێردرا و چاوەڕێی پەسەندکردنە.'
+                      : 'Your product was submitted and is awaiting approval.'
+                    : isKu
+                      ? 'بەرهەمەکەت بە سەرکەوتوویی زیادکرا بۆ فرۆشگاکەت!'
+                      : 'Product successfully added to your shop!'}
                 </h3>
                 <p className="text-xs text-neutral-500 max-w-md mx-auto">
-                  {isKu
-                    ? 'ئێستا ئەم بەرهەمە لە لاپەڕەی فرۆشگاکەت و لە کەتەلۆکی گشتی بازاڕی گەورەدا ڕاستەوخۆ دەبینرێت.'
-                    : 'The product is now live on your shopfront and visible to buyers in the marketplace.'}
+                  {createdProduct.status === 'pending'
+                    ? isKu
+                      ? 'کاتێک پەسەند کرا لە کەتەلۆکی گشتی بازاڕدا دەردەکەوێت.'
+                      : 'It will appear in the public marketplace after approval.'
+                    : isKu
+                      ? 'ئێستا ئەم بەرهەمە لە لاپەڕەی فرۆشگاکەت و لە کەتەلۆکی گشتی بازاڕی گەورەدا ڕاستەوخۆ دەبینرێت.'
+                      : 'The product is now live on your shopfront and visible to buyers in the marketplace.'}
                 </p>
               </div>
 
@@ -422,13 +435,19 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto pt-2">
-                <a
-                  href={`/products/${createdProduct.slug || createdProduct.id}`}
-                  className="w-full sm:w-auto flex-1 py-3 px-4 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-colors"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>{isKu ? 'بینینی بەرهەم لە بازاڕدا' : 'View Live in Marketplace'}</span>
-                </a>
+                {createdProduct.status === 'pending' ? (
+                  <span className="w-full sm:w-auto flex-1 py-3 px-4 rounded-xl bg-amber-50 text-amber-800 font-bold text-xs text-center">
+                    {isKu ? 'چاوەڕێی پەسەندکردن' : 'Awaiting approval'}
+                  </span>
+                ) : (
+                  <a
+                    href={`/products/${createdProduct.slug || createdProduct.id}`}
+                    className="w-full sm:w-auto flex-1 py-3 px-4 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-colors"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>{isKu ? 'بینینی بەرهەم لە بازاڕدا' : 'View Live in Marketplace'}</span>
+                  </a>
+                )}
 
                 <button
                   onClick={() => {

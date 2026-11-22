@@ -28,6 +28,7 @@ export interface Product {
   seller_phone?: string;
   seller_whatsapp?: string;
   seller_verification?: 'unverified' | 'pending' | 'verified';
+  status?: string;
   is_demo?: boolean;
   brand?: string;
   original_price?: number;

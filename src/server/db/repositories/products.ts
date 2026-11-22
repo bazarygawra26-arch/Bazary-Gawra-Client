@@ -552,7 +552,7 @@ export async function createProduct(
       status: options.publish ? 'active' : 'pending',
       is_demo: false,
     })
-    .select('id')
+    .select('id, created_at')
     .single();
 
   if (insertError || !inserted) {
@@ -608,6 +608,7 @@ export async function createProduct(
     seller_location: seller.address || '',
     seller_id: seller.id,
     seller_slug: seller.slug,
+    status: options.publish ? 'active' : 'pending',
     seller_phone: seller.phone || undefined,
     seller_whatsapp: seller.whatsapp || undefined,
     warranty: input.warranty?.trim() || undefined,
@@ -621,7 +622,7 @@ export async function createProduct(
     discount_percent: discountPercent,
     image_url: input.image_url,
     images,
-    created_at: new Date().toISOString(),
+    created_at: inserted.created_at,
     is_demo: false,
   };
 }

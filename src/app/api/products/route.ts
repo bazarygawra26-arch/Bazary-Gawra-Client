@@ -44,6 +44,8 @@ function isOwnedProductImage(url: string, sellerId: string): boolean {
 
     return (
       imageUrl.origin === supabaseUrl.origin &&
+      !imageUrl.username &&
+      !imageUrl.password &&
       !imageUrl.search &&
       !imageUrl.hash &&
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$/i.test(
@@ -86,15 +88,22 @@ export async function GET(req: NextRequest) {
 
     // Default for existing callers: return products array directly with pagination headers
     return NextResponse.json(paginatedResult.products, { headers: responseHeaders });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('API /api/products GET error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: 'Request body must be valid JSON.' }, { status: 400 });
+    }
+
     const parsed = createProductSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
@@ -127,7 +136,7 @@ export async function POST(req: NextRequest) {
       { publish: authorization.sellerIsActive }
     );
     return NextResponse.json(created, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('API /api/products POST error:', error);
     const message = error instanceof Error ? error.message : 'Failed to create product.';
     const isInvalidCategory = message === 'Selected category was not found.';
