@@ -25,6 +25,7 @@ const ComparisonContext = createContext<ComparisonContextType>({
   sessionKey: '',
 });
 
+
 export const ComparisonProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [comparedProducts, setComparedProducts] = useState<Product[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
