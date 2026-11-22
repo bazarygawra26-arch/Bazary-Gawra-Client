@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Product, Category } from '../../types';
+import { getSupabaseAuthHeaders } from '../../lib/supabase/authHeaders';
 import {
   X,
   PlusCircle,
@@ -216,6 +217,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
 
       const res = await fetch('/api/upload', {
         method: 'POST',
+        headers: await getSupabaseAuthHeaders(),
         body: formData,
       });
 
@@ -291,7 +293,10 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       setIsSubmitting(true);
       const res = await fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...await getSupabaseAuthHeaders(),
+        },
         body: JSON.stringify({
           name: name.trim(),
           name_ckb: nameCkb.trim() || name.trim(),

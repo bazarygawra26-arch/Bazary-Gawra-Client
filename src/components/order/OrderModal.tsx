@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Product } from '../../types';
+import { getSupabaseAuthHeaders } from '../../lib/supabase/authHeaders';
 import {
   X,
   CheckCircle2,
@@ -75,7 +76,10 @@ export const OrderModal: React.FC<OrderModalProps> = ({ product, isOpen, onClose
       setIsSubmitting(true);
       const res = await fetch('/api/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...await getSupabaseAuthHeaders(),
+        },
         body: JSON.stringify({
           product_id: product.id,
           product_name: product.name,

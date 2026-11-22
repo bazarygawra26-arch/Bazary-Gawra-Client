@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Header } from '../../../../components/layout/Header';
 import { Footer } from '../../../../components/layout/Footer';
 import { useLanguage } from '../../../../context/LanguageContext';
+import { getSupabaseAuthHeaders } from '../../../../lib/supabase/authHeaders';
 import {
   Store,
   CheckCircle2,
@@ -70,7 +71,10 @@ export default function SellerRegisterPage() {
 
       const res = await fetch('/api/sellers', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...await getSupabaseAuthHeaders(),
+        },
         body: JSON.stringify({
           name: nameKu.trim() || nameEn.trim(),
           name_ku: nameKu.trim() || nameEn.trim(),

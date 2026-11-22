@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useLanguage } from '../../context/LanguageContext';
 import { DemoCheckoutModal } from './DemoCheckoutModal';
 import { Product, ProductPromotion } from '../../types';
+import { getSupabaseAuthHeaders } from '../../lib/supabase/authHeaders';
 import {
   X,
   Sparkles,
@@ -78,7 +79,10 @@ export const PromoteProductModal: React.FC<PromoteProductModalProps> = ({
     try {
       const res = await fetch('/api/seller/promotions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...await getSupabaseAuthHeaders(),
+        },
         body: JSON.stringify({
           productId: targetProduct.id,
           sellerId,

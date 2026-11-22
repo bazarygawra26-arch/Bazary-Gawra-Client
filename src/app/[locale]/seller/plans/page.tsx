@@ -7,6 +7,7 @@ import { Footer } from '../../../../components/layout/Footer';
 import { useLanguage } from '../../../../context/LanguageContext';
 import { DemoCheckoutModal } from '../../../../components/seller/DemoCheckoutModal';
 import { SellerPlan, Seller } from '../../../../types';
+import { getSupabaseAuthHeaders } from '../../../../lib/supabase/authHeaders';
 import {
   Check,
   X,
@@ -76,7 +77,9 @@ export default function SellerPlansPage() {
     if (!selectedShopId) return;
     async function checkSub() {
       try {
-        const res = await fetch(`/api/seller/subscription?sellerId=${encodeURIComponent(selectedShopId)}`);
+        const res = await fetch(`/api/seller/subscription?sellerId=${encodeURIComponent(selectedShopId)}`, {
+          headers: await getSupabaseAuthHeaders(),
+        });
         if (res.ok) {
           const data = await res.json();
           if (data.subscription?.plan?.slug) {
@@ -107,7 +110,10 @@ export default function SellerPlansPage() {
     try {
       const res = await fetch('/api/seller/subscription', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...await getSupabaseAuthHeaders(),
+        },
         body: JSON.stringify({
           sellerId: selectedShopId,
           plan: planSlug,

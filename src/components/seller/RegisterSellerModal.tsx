@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Seller } from '../../types';
+import { getSupabaseAuthHeaders } from '../../lib/supabase/authHeaders';
 import {
   X,
   Store,
@@ -79,7 +80,10 @@ export const RegisterSellerModal: React.FC<RegisterSellerModalProps> = ({
 
       const res = await fetch('/api/sellers', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...await getSupabaseAuthHeaders(),
+        },
         body: JSON.stringify({
           name: nameKu.trim() || nameEn.trim(),
           name_ku: nameKu.trim() || nameEn.trim(),

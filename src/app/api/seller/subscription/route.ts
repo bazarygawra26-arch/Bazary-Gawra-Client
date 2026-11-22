@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSellerSubscription, updateSellerSubscription } from '../../../../server/db/repositories/monetization';
+import { authorizeSellerRequest } from '../../../../server/auth/authorization';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -14,7 +15,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'sellerId query parameter is required' }, { status: 400 });
     }
 
-    const data = await getSellerSubscription(sellerId, lang);
+    const authorization = await authorizeSellerRequest(req, sellerId);
+    if (!authorization.ok) {
+      return NextResponse.json({ error: authorization.message }, { status: authorization.status });
+    }
+
+    const data = await getSellerSubscription(authorization.sellerId, lang);
     return NextResponse.json(data, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate',
@@ -35,7 +41,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'sellerId and plan are required' }, { status: 400 });
     }
 
-    const result = await updateSellerSubscription(sellerId, plan, paymentMethod || 'demo_checkout');
+    const authorization = await authorizeSellerRequest(req, sellerId);
+    if (!authorization.ok) {
+      return NextResponse.json({ error: authorization.message }, { status: authorization.status });
+    }
+
+    if (plan !== 'free' && plan !== 'pro') {
+      return NextResponse.json({ error: 'Invalid subscription plan.' }, { status: 400 });
+    }
+
+    const supportedPaymentMethods = ['fib', 'fastpay', 'zaincash'];
+    if (plan === 'pro' && !supportedPaymentMethods.includes(paymentMethod)) {
+      return NextResponse.json({ error: 'Invalid demo payment method.' }, { status: 400 });
+    }
+
+    const result = await updateSellerSubscription(
+      authorization.sellerId,
+      plan,
+      plan === 'free' ? 'free_instant' : paymentMethod
+    );
     if (!result.success) {
       return NextResponse.json({ error: result.error || 'Failed to update subscription' }, { status: 400 });
     }

@@ -9,6 +9,7 @@ import { PromoteProductModal } from '../../../../components/seller/PromoteProduc
 import { RegisterSellerModal } from '../../../../components/seller/RegisterSellerModal';
 import { useLanguage } from '../../../../context/LanguageContext';
 import { Product, Seller, SellerSubscription, ProductPromotion } from '../../../../types';
+import { getSupabaseAuthHeaders } from '../../../../lib/supabase/authHeaders';
 import {
   Store,
   PlusCircle,
@@ -34,42 +35,32 @@ import {
   Layers,
 } from 'lucide-react';
 
-const DEMO_SHOPS = [
-  {
-    id: '1ef9d0e1-dc94-437e-a1a9-e478055d3f73',
-    slug: 'sulaymaniyah-home-tech',
-    name: 'Sulaymaniyah Home Tech',
-    name_ckb: 'ماڵی تەکنەلۆجی سلێمانی',
-    location: 'Sulaymaniyah, Ashti District',
-    location_ckb: 'سلێمانی، گەڕەکی ئاشتی',
-    phone: '+964 770 123 4567',
-  },
-  {
-    id: '581ec98e-637a-4653-9ac5-16ef19ebdedc',
-    slug: 'erbil-modern-appliances',
-    name: 'Erbil Modern Appliances',
-    name_ckb: 'کەلوپەلی مۆدێرنی هەولێر',
-    location: 'Erbil, Gulan Street & Empire',
-    location_ckb: 'هەولێر، شەقامی گوڵان و ئیمپایەر',
-    phone: '+964 750 234 5678',
-  },
-  {
-    id: '4542abe5-2b58-44bf-8705-6322658f779b',
-    slug: 'hawraman-heritage-crafts',
-    name: 'Hawraman Heritage Crafts',
-    name_ckb: 'کەلەپوور و دەستکردی هەورامان',
-    location: 'Sulaymaniyah (Qaisari Bazaar)',
-    location_ckb: 'سلێمانی (بازاڕی قەیسەری)',
-    phone: '+964 771 987 6543',
-  },
-];
+interface DashboardShop {
+  id: string;
+  slug: string;
+  name: string;
+  name_ckb: string;
+  location: string;
+  location_ckb: string;
+  phone: string;
+}
+
+const EMPTY_SHOP: DashboardShop = {
+  id: '',
+  slug: '',
+  name: '',
+  name_ckb: '',
+  location: '',
+  location_ckb: '',
+  phone: '',
+};
 
 export default function SellerDashboardPage() {
   const { language, isKu } = useLanguage();
   const isAr = language === 'ar';
 
-  const [shops, setShops] = useState(DEMO_SHOPS);
-  const [selectedShop, setSelectedShop] = useState(DEMO_SHOPS[0]);
+  const [shops, setShops] = useState<DashboardShop[]>([]);
+  const [selectedShop, setSelectedShop] = useState<DashboardShop>(EMPTY_SHOP);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'products' | 'promotions' | 'orders' | 'admin'>('products');
@@ -92,7 +83,9 @@ export default function SellerDashboardPage() {
   const loadAdminSummary = async () => {
     try {
       setIsLoadingAdmin(true);
-      const res = await fetch('/api/admin/monetization');
+      const res = await fetch('/api/admin/monetization', {
+        headers: await getSupabaseAuthHeaders(),
+      });
       if (res.ok) {
         const data = await res.json();
         setAdminSummary(data);
@@ -122,34 +115,31 @@ export default function SellerDashboardPage() {
   useEffect(() => {
     async function loadShops() {
       try {
-        const langParam = language === 'ckb' ? 'ku' : language;
-        const res = await fetch(`/api/sellers?lang=${langParam}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            const mapped = data.map((s: any) => ({
-              id: s.id,
-              slug: s.slug || s.id,
-              name: s.name,
-              name_ckb: s.name,
-              location: s.location,
-              location_ckb: s.location,
-              phone: s.phone || s.phone_placeholder || '+964 770 000 0000',
-            }));
-            setShops(mapped);
-            // Retain currently selected shop if found
-            setSelectedShop((prev) => {
-              const matched = mapped.find((m) => m.slug === prev.slug || m.id === prev.id);
-              return matched || mapped[0];
-            });
-          }
-        }
+        const res = await fetch('/api/seller/profile', {
+          headers: await getSupabaseAuthHeaders(),
+        });
+        if (!res.ok) throw new Error('Your seller profile could not be loaded.');
+
+        const seller = await res.json();
+        const mapped: DashboardShop = {
+          id: seller.id,
+          slug: seller.slug || seller.id,
+          name: seller.name_en || seller.name_ku || '',
+          name_ckb: seller.name_ku || seller.name_en || '',
+          location: seller.address || '',
+          location_ckb: seller.address || '',
+          phone: seller.phone || '',
+        };
+        setShops([mapped]);
+        setSelectedShop(mapped);
       } catch (e) {
-        console.error('Failed to load dynamic sellers:', e);
+        console.error('Failed to load the authenticated seller:', e);
+        setShops([]);
+        setSelectedShop(EMPTY_SHOP);
       }
     }
     loadShops();
-  }, [language]);
+  }, []);
 
   // Load shop products
   const loadProducts = async () => {
@@ -174,8 +164,12 @@ export default function SellerDashboardPage() {
     if (!selectedShop?.id) return;
     try {
       const [subRes, promoRes] = await Promise.all([
-        fetch(`/api/seller/subscription?sellerId=${encodeURIComponent(selectedShop.id)}&lang=${language}`),
-        fetch(`/api/seller/promotions?sellerId=${encodeURIComponent(selectedShop.id)}`),
+        fetch(`/api/seller/subscription?sellerId=${encodeURIComponent(selectedShop.id)}&lang=${language}`, {
+          headers: await getSupabaseAuthHeaders(),
+        }),
+        fetch(`/api/seller/promotions?sellerId=${encodeURIComponent(selectedShop.id)}`, {
+          headers: await getSupabaseAuthHeaders(),
+        }),
       ]);
 
       if (subRes.ok) {
@@ -197,7 +191,9 @@ export default function SellerDashboardPage() {
   // Load orders
   const loadOrders = async () => {
     try {
-      const res = await fetch('/api/orders');
+      const res = await fetch('/api/orders', {
+        headers: await getSupabaseAuthHeaders(),
+      });
       if (res.ok) {
         const data = await res.json();
         setOrders(Array.isArray(data) ? data : []);
@@ -1078,7 +1074,7 @@ export default function SellerDashboardPage() {
               location_ckb: newSeller.location,
               phone: newSeller.phone || '+964 770 000 0000',
             };
-            setShops((prev) => [mapped, ...prev]);
+            setShops([mapped]);
             setSelectedShop(mapped);
           }}
         />

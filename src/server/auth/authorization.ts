@@ -20,6 +20,10 @@ type AuthorizationResult =
   | ({ ok: true } & AuthenticatedUser)
   | AuthorizationFailure;
 
+type SellerAuthorizationResult =
+  | ({ ok: true } & AuthenticatedUser & { sellerId: string })
+  | AuthorizationFailure;
+
 const publicRoles: readonly MarketplaceRole[] = [
   'buyer',
   'seller',
@@ -81,7 +85,7 @@ export async function authorizeRequest(
 export async function authorizeSellerRequest(
   request: NextRequest,
   requestedSellerId?: string | null
-): Promise<AuthorizationResult & { sellerId?: string }> {
+): Promise<SellerAuthorizationResult> {
   const authorization = await authorizeRequest(request, ['seller']);
   if (!authorization.ok) return authorization;
 
