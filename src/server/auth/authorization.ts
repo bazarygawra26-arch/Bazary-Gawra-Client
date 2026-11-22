@@ -21,7 +21,12 @@ type AuthorizationResult =
   | AuthorizationFailure;
 
 type SellerAuthorizationResult =
-  | ({ ok: true } & AuthenticatedUser & { sellerId: string })
+  | ({
+      ok: true;
+    } & AuthenticatedUser & {
+      sellerId: string;
+      sellerIsActive: boolean;
+    })
   | AuthorizationFailure;
 
 const publicRoles: readonly MarketplaceRole[] = [
@@ -91,7 +96,7 @@ export async function authorizeSellerRequest(
 
   let query = authorization.client
     .from('sellers')
-    .select('id')
+    .select('id, is_active')
     .eq('owner_id', authorization.id);
 
   if (requestedSellerId) {
@@ -108,5 +113,9 @@ export async function authorizeSellerRequest(
     return { ok: false, status: 403, message: 'You do not own this seller account.' };
   }
 
-  return { ...authorization, sellerId: seller.id };
+  return {
+    ...authorization,
+    sellerId: seller.id,
+    sellerIsActive: seller.is_active,
+  };
 }

@@ -227,6 +227,22 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['products']['Row']>;
         Relationships: [];
       };
+      product_images: {
+        Row: {
+          id: string;
+          product_id: string;
+          url: string;
+          sort_order: number;
+          is_primary: boolean;
+          created_at: string;
+        };
+        Insert: Partial<Database['public']['Tables']['product_images']['Row']> & {
+          product_id: string;
+          url: string;
+        };
+        Update: Partial<Database['public']['Tables']['product_images']['Row']>;
+        Relationships: [];
+      };
       product_translations: {
         Row: {
           id: string;

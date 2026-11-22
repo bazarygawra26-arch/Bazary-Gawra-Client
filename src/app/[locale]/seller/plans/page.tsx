@@ -33,6 +33,7 @@ export default function SellerPlansPage() {
   const [selectedShopId, setSelectedShopId] = useState<string>('');
   const [currentPlanSlug, setCurrentPlanSlug] = useState<string>('free');
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Modal checkout state
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
@@ -44,9 +45,10 @@ export default function SellerPlansPage() {
       try {
         setIsLoading(true);
         const langParam = language === 'ckb' ? 'ku' : language;
+        const authHeaders = await getSupabaseAuthHeaders();
         const [plansRes, sellersRes] = await Promise.all([
           fetch(`/api/seller/plans?lang=${langParam}`),
-          fetch(`/api/sellers?lang=${langParam}`),
+          fetch('/api/seller/profile', { headers: authHeaders }),
         ]);
 
         if (plansRes.ok) {
@@ -57,14 +59,33 @@ export default function SellerPlansPage() {
         }
 
         if (sellersRes.ok) {
-          const sellersData = await sellersRes.json();
-          if (Array.isArray(sellersData) && sellersData.length > 0) {
-            setShops(sellersData);
-            setSelectedShopId(sellersData[0].id);
-          }
+          const seller = await sellersRes.json();
+          const mappedSeller: Seller = {
+            id: seller.id,
+            slug: seller.slug,
+            name: seller.name_en || seller.name_ku || '',
+            location: seller.address || '',
+            productCount: 0,
+            phone: seller.phone || undefined,
+            whatsapp: seller.whatsapp || undefined,
+            logo_url: seller.logo_url || undefined,
+            verification_status: seller.verification_status === 'verified'
+              ? 'verified'
+              : seller.verification_status === 'pending'
+                ? 'pending'
+                : 'unverified',
+            is_demo: seller.is_demo,
+            description: seller.description_en || undefined,
+          };
+          setShops([mappedSeller]);
+          setSelectedShopId(mappedSeller.id);
+        } else {
+          const data = await sellersRes.json().catch(() => null);
+          setErrorMessage(data?.error || 'Sign in with a seller account to manage your plan.');
         }
       } catch (err) {
         console.error('Failed to load plans:', err);
+        setErrorMessage(err instanceof Error ? err.message : 'Failed to load your seller plan.');
       } finally {
         setIsLoading(false);
       }
@@ -85,6 +106,9 @@ export default function SellerPlansPage() {
           if (data.subscription?.plan?.slug) {
             setCurrentPlanSlug(data.subscription.plan.slug);
           }
+        } else {
+          const data = await res.json().catch(() => null);
+          setErrorMessage(data?.error || 'Your subscription could not be loaded.');
         }
       } catch (e) {
         console.warn('Subscription fetch error:', e);
@@ -95,6 +119,10 @@ export default function SellerPlansPage() {
 
   const handleSelectPlan = (plan: SellerPlan) => {
     if (plan.slug === currentPlanSlug) return;
+    if (!selectedShopId) {
+      setErrorMessage('Sign in with a seller account before changing plans.');
+      return;
+    }
 
     if (plan.slug === 'free') {
       // Free plan works without payment
@@ -120,11 +148,13 @@ export default function SellerPlansPage() {
           paymentMethod: method,
         }),
       });
-      if (res.ok) {
-        setCurrentPlanSlug(planSlug);
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update the subscription.');
+      setCurrentPlanSlug(planSlug);
+      setErrorMessage('');
     } catch (e) {
       console.error('Activate plan error:', e);
+      setErrorMessage(e instanceof Error ? e.message : 'Failed to update the subscription.');
     }
   };
 
@@ -135,6 +165,11 @@ export default function SellerPlansPage() {
       <Header />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 w-full">
+        {errorMessage && (
+          <p role="alert" className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {errorMessage}
+          </p>
+        )}
         {/* Top Hero / Heading */}
         <div className="text-center max-w-3xl mx-auto space-y-4 mb-12">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFF5DD] border border-[#F4B942]/60 text-[#8C5E00] text-xs font-black shadow-2xs">

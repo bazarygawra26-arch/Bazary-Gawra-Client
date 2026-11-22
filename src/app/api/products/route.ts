@@ -1,10 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { env } from '../../../config/env';
 import { productFilterSchema } from '../../../lib/schemas/product';
 import { findProductsPaginated, createProduct } from '../../../server/db/repositories/products';
 import { authorizeSellerRequest } from '../../../server/auth/authorization';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+const createProductSchema = z
+  .object({
+    name: z.string().trim().min(1).max(160),
+    name_ckb: z.string().trim().max(160).optional(),
+    name_ar: z.string().trim().max(160).optional(),
+    category: z.string().trim().min(1).max(100),
+    price: z.coerce.number().finite().positive(),
+    original_price: z.coerce.number().finite().positive().optional(),
+    image_url: z.url(),
+    images: z.array(z.url()).max(5).optional(),
+    seller_id: z.string().optional(),
+    warranty: z.string().trim().max(500).optional(),
+    delivery_info: z.string().trim().max(500).optional(),
+    return_policy: z.string().trim().max(1000).optional(),
+    capacity: z.string().trim().max(100).optional(),
+    power: z.string().trim().max(100).optional(),
+    brand: z.string().trim().max(100).optional(),
+    description: z.string().trim().max(5000).optional(),
+  })
+  .refine(
+    ({ price, original_price }) =>
+      original_price === undefined || original_price > price,
+    { path: ['original_price'], message: 'Original price must be greater than the current price.' }
+  );
+
+function isOwnedProductImage(url: string, sellerId: string): boolean {
+  try {
+    const imageUrl = new URL(url);
+    const supabaseUrl = new URL(env.SUPABASE_URL);
+    const prefix = `/storage/v1/object/public/product-images/${sellerId}/`;
+    const filename = imageUrl.pathname.startsWith(prefix)
+      ? imageUrl.pathname.slice(prefix.length)
+      : '';
+
+    return (
+      imageUrl.origin === supabaseUrl.origin &&
+      !imageUrl.search &&
+      !imageUrl.hash &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$/i.test(
+        filename
+      )
+    );
+  } catch {
+    return false;
+  }
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -46,22 +95,45 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    if (!body || typeof body !== 'object' || typeof body.name !== 'string' || !Number.isFinite(Number(body.price)) || Number(body.price) <= 0) {
-      return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
+    const parsed = createProductSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || 'Invalid product details.' },
+        { status: 400 }
+      );
     }
 
     const authorization = await authorizeSellerRequest(
       req,
-      typeof body.seller_id === 'string' ? body.seller_id : null
+      parsed.data.seller_id
     );
     if (!authorization.ok) {
       return NextResponse.json({ error: authorization.message }, { status: authorization.status });
     }
 
-    const created = await createProduct({ ...body, seller_id: authorization.sellerId });
+    const imageUrls = Array.from(new Set([parsed.data.image_url, ...(parsed.data.images || [])]));
+    if (
+      imageUrls.length > 5 ||
+      imageUrls.some((url) => !isOwnedProductImage(url, authorization.sellerId))
+    ) {
+      return NextResponse.json(
+        { error: 'Images must be uploaded to your seller account before creating a product.' },
+        { status: 400 }
+      );
+    }
+
+    const created = await createProduct(
+      { ...parsed.data, images: imageUrls, seller_id: authorization.sellerId },
+      { publish: authorization.sellerIsActive }
+    );
     return NextResponse.json(created, { status: 201 });
   } catch (error: any) {
     console.error('API /api/products POST error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to create product' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to create product.';
+    const isInvalidCategory = message === 'Selected category was not found.';
+    return NextResponse.json(
+      { error: isInvalidCategory ? message : 'Failed to create product.' },
+      { status: isInvalidCategory ? 400 : 500 }
+    );
   }
 }

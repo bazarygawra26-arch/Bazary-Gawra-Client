@@ -474,136 +474,154 @@ export async function getProductsForComparison(productIds: string[], lang: 'en' 
   return all.filter((p) => productIds.includes(p.id));
 }
 
-export async function createProduct(input: Partial<Product>): Promise<Product> {
-  const newId = `prod-${Date.now().toString().slice(-6)}`;
-  const slug = input.slug || input.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || newId;
+export interface CreateProductInput {
+  name: string;
+  name_ckb?: string;
+  name_ar?: string;
+  category: string;
+  price: number;
+  original_price?: number;
+  image_url: string;
+  images: string[];
+  seller_id: string;
+  warranty?: string;
+  delivery_info?: string;
+  return_policy?: string;
+  capacity?: string;
+  power?: string;
+  brand?: string;
+  description?: string;
+}
 
-  const newProd: Product = {
-    id: newId,
-    slug: slug,
-    name: input.name || 'New Product',
-    name_ckb: input.name_ckb || input.name,
-    name_ar: input.name_ar || input.name,
-    category: input.category || 'Kitchen & Home',
-    price: Number(input.price) || 0,
-    currency: 'IQD',
-    location: input.location || 'Sulaymaniyah',
-    seller_name: input.seller_name || 'Sulaymaniyah Home Tech',
-    seller_location: input.seller_location || input.location || 'Sulaymaniyah',
-    seller_phone: input.seller_phone || '+964 770 123 4567',
-    seller_whatsapp: input.seller_whatsapp || '+964 770 123 4567',
-    seller_id: input.seller_id || 'seller-01',
-    seller_slug: input.seller_slug || 'sulaymaniyah-home-tech',
-    warranty: input.warranty || '١٢ مانگ گەرەنتی فەرمی ناوخۆیی',
-    delivery_info: input.delivery_info || 'گەیاندنی خێرا لە سەرتاسەری کوردستان',
-    return_policy: input.return_policy || '٧ ڕۆژ مافی پشکنین و گەڕاندنەوە',
-    capacity: input.capacity,
-    power: input.power,
-    brand: input.brand,
-    description: input.description || '',
-    original_price: input.original_price ? Number(input.original_price) : undefined,
-    discount_percent:
-      input.original_price && Number(input.original_price) > (Number(input.price) || 0)
-        ? Math.round(((Number(input.original_price) - (Number(input.price) || 0)) / Number(input.original_price)) * 100)
-        : undefined,
-    image_url:
-      input.image_url ||
-      'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
-    images: input.images && input.images.length > 0
-      ? input.images
-      : [input.image_url || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80'],
-    created_at: new Date().toISOString(),
-    information_signals: {
-      has_location: true,
-      has_warranty: Boolean(input.warranty),
-      has_delivery: Boolean(input.delivery_info),
-      has_return_policy: Boolean(input.return_policy),
-      has_specifications: Boolean(input.capacity || input.power),
-      missing_points: [],
-    },
-    ai_match: {
-      score: 95,
-      match_reason: 'Listed with transparent specifications by local merchant.',
-      highlights: [input.location || 'Kurdistan', `${Number(input.price || 0).toLocaleString()} IQD`],
-      cautions: [],
-    },
-  };
-
-  if (supabaseAdmin) {
-    try {
-      // Resolve category_id and seller_id from database safely
-      const isUuidStr = (val?: string | null) =>
-        !!val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
-
-      const catLookupPromise = newProd.category
-        ? (isUuidStr(newProd.category)
-            ? supabaseAdmin.from('categories').select('id').eq('id', newProd.category).maybeSingle()
-            : supabaseAdmin.from('categories').select('id').or(`slug.eq.${newProd.category},name_en.eq.${newProd.category}`).maybeSingle())
-        : Promise.resolve({ data: null });
-
-      const sellerLookupPromise = newProd.seller_id && isUuidStr(newProd.seller_id)
-        ? supabaseAdmin.from('sellers').select('id').eq('id', newProd.seller_id).maybeSingle()
-        : newProd.seller_slug
-        ? supabaseAdmin.from('sellers').select('id').eq('slug', newProd.seller_slug).maybeSingle()
-        : Promise.resolve({ data: null });
-
-      const [catLookup, sellerLookup] = await Promise.all([catLookupPromise, sellerLookupPromise]);
-
-      const catId = (catLookup?.data as any)?.id || null;
-      const sellerId = (sellerLookup?.data as any)?.id || null;
-
-      const { data: inserted, error: insErr } = await (supabaseAdmin as any)
-        .from('products')
-        .insert({
-          slug: newProd.slug,
-          category_id: catId,
-          seller_id: sellerId,
-          price: newProd.price,
-          original_price: newProd.original_price || null,
-          currency: newProd.currency,
-          brand: newProd.brand,
-          capacity: newProd.capacity,
-          power_watts: newProd.power ? parseInt(newProd.power.replace(/[^0-9]/g, ''), 10) || null : null,
-          warranty_applicable: Boolean(newProd.warranty),
-          warranty_details: newProd.warranty,
-          delivery_available: Boolean(newProd.delivery_info),
-          delivery_info: newProd.delivery_info,
-          return_policy: newProd.return_policy,
-          image_url: newProd.image_url,
-          status: 'active',
-          is_demo: false,
-        })
-        .select('id')
-        .maybeSingle();
-
-      if (!insErr && inserted?.id) {
-        newProd.id = inserted.id;
-        // Insert multilingual records into product_translations
-        await (supabaseAdmin as any).from('product_translations').insert([
-          {
-            product_id: inserted.id,
-            lang: 'en',
-            name: newProd.name,
-            description: newProd.description || '',
-          },
-          {
-            product_id: inserted.id,
-            lang: 'ku',
-            name: newProd.name_ckb || newProd.name,
-            description: newProd.description || '',
-          },
-          {
-            product_id: inserted.id,
-            lang: 'ar',
-            name: newProd.name_ar || newProd.name,
-            description: newProd.description || '',
-          },
-        ]);
-      }
-    } catch (err) {
-      console.warn('Database insert error in createProduct:', err);
-    }
+export async function createProduct(
+  input: CreateProductInput,
+  options: { publish: boolean }
+): Promise<Product> {
+  if (!supabaseAdmin) {
+    throw new Error('Product storage is not configured.');
   }
 
-  return newProd;
+  const [{ data: seller, error: sellerError }, { data: category, error: categoryError }] =
+    await Promise.all([
+      supabaseAdmin
+        .from('sellers')
+        .select('id, slug, name_en, name_ku, name_ar, address, phone, whatsapp')
+        .eq('id', input.seller_id)
+        .maybeSingle(),
+      supabaseAdmin
+        .from('categories')
+        .select('id, slug')
+        .eq('slug', input.category)
+        .maybeSingle(),
+    ]);
+
+  if (sellerError) throw new Error(`Could not load the seller: ${sellerError.message}`);
+  if (!seller) throw new Error('Seller profile was not found.');
+  if (categoryError) throw new Error(`Could not load the category: ${categoryError.message}`);
+  if (!category) throw new Error('Selected category was not found.');
+
+  const name = input.name.trim();
+  const price = input.price;
+  const originalPrice = input.original_price;
+  const slugBase = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'product';
+  const slug = `${slugBase}-${crypto.randomUUID().slice(0, 8)}`;
+  const images = Array.from(new Set([input.image_url, ...input.images]));
+  const description = input.description?.trim() || null;
+  const powerWatts = input.power
+    ? Number.parseInt(input.power.replace(/[^0-9]/g, ''), 10) || null
+    : null;
+
+  const { data: inserted, error: insertError } = await supabaseAdmin
+    .from('products')
+    .insert({
+      slug,
+      category_id: category.id,
+      seller_id: seller.id,
+      price,
+      original_price: originalPrice ?? null,
+      currency: 'IQD',
+      brand: input.brand?.trim() || null,
+      capacity: input.capacity?.trim() || null,
+      power_watts: powerWatts,
+      warranty_applicable: Boolean(input.warranty?.trim()),
+      warranty_details: input.warranty?.trim() || null,
+      delivery_available: Boolean(input.delivery_info?.trim()),
+      delivery_info: input.delivery_info?.trim() || null,
+      return_policy: input.return_policy?.trim() || null,
+      image_url: input.image_url,
+      status: options.publish ? 'active' : 'pending',
+      is_demo: false,
+    })
+    .select('id')
+    .single();
+
+  if (insertError || !inserted) {
+    throw new Error(`Could not create product: ${insertError?.message || 'No product returned.'}`);
+  }
+
+  const translations = await supabaseAdmin.from('product_translations').insert([
+    { product_id: inserted.id, lang: 'en', name, description },
+    { product_id: inserted.id, lang: 'ku', name: input.name_ckb?.trim() || name, description },
+    { product_id: inserted.id, lang: 'ar', name: input.name_ar?.trim() || name, description },
+  ]);
+  if (translations.error) {
+    const { error: cleanupError } = await supabaseAdmin
+      .from('products')
+      .delete()
+      .eq('id', inserted.id);
+    if (cleanupError) console.error('Failed to clean up product after translation error:', cleanupError);
+    throw new Error(`Could not save product translations: ${translations.error.message}`);
+  }
+
+  const imageRows = images.map((url, sort_order) => ({
+    product_id: inserted.id,
+    url,
+    sort_order,
+    is_primary: url === input.image_url,
+  }));
+  const imageInsert = await supabaseAdmin.from('product_images').insert(imageRows);
+  if (imageInsert.error) {
+    const { error: cleanupError } = await supabaseAdmin
+      .from('products')
+      .delete()
+      .eq('id', inserted.id);
+    if (cleanupError) console.error('Failed to clean up product after image error:', cleanupError);
+    throw new Error(`Could not save product images: ${imageInsert.error.message}`);
+  }
+
+  const discountPercent =
+    originalPrice && originalPrice > price
+      ? Math.round(((originalPrice - price) / originalPrice) * 100)
+      : undefined;
+
+  return {
+    id: inserted.id,
+    slug,
+    name,
+    name_ckb: input.name_ckb?.trim() || name,
+    name_ar: input.name_ar?.trim() || name,
+    category: category.slug,
+    price,
+    currency: 'IQD',
+    location: seller.address || '',
+    seller_name: seller.name_en || seller.name_ku || '',
+    seller_location: seller.address || '',
+    seller_id: seller.id,
+    seller_slug: seller.slug,
+    seller_phone: seller.phone || undefined,
+    seller_whatsapp: seller.whatsapp || undefined,
+    warranty: input.warranty?.trim() || undefined,
+    delivery_info: input.delivery_info?.trim() || undefined,
+    return_policy: input.return_policy?.trim() || undefined,
+    capacity: input.capacity?.trim() || undefined,
+    power: input.power?.trim() || undefined,
+    brand: input.brand?.trim() || undefined,
+    description: description || '',
+    original_price: originalPrice,
+    discount_percent: discountPercent,
+    image_url: input.image_url,
+    images,
+    created_at: new Date().toISOString(),
+    is_demo: false,
+  };
 }
