@@ -495,6 +495,7 @@ function mapCardToProduct(row: any): Product {
 }
 
 export interface CreateSellerInput {
+  owner_id: string;
   name: string;
   name_ku?: string;
   name_en?: string;
@@ -511,14 +512,13 @@ export interface CreateSellerInput {
 }
 
 export async function createSeller(input: CreateSellerInput): Promise<Seller> {
-  const sellerId = crypto.randomUUID();
   const baseName = input.name_en || input.name || 'local-merchant';
   const cleanSlug =
     baseName
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '') || 'shop';
-  const slug = `${cleanSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
+  const generatedSlug = `${cleanSlug}-${crypto.randomUUID().slice(0, 8)}`;
 
   const nameKu = input.name_ku || input.name;
   const nameEn = input.name_en || input.name;
@@ -527,98 +527,70 @@ export async function createSeller(input: CreateSellerInput): Promise<Seller> {
   const address = input.address || `${locationName}, Kurdistan`;
   const phone = input.phone;
   const whatsapp = input.whatsapp || input.phone;
-  const description = input.description_ku || input.description || 'فرۆشگای پەسەندکراو لە بازاڕی گەورە';
+  const description = input.description_ku || input.description || null;
 
-  const newSeller: Seller = {
-    id: sellerId,
-    slug: slug,
-    name: nameKu,
-    location: locationName,
-    productCount: 0,
-    delivery_info: 'گەیاندنی خێرا لە ناو شار و تەواوی کوردستان',
-    warranty_support: 'گەرەنتی فەرمی و پشتیوانی ڕاستەوخۆ',
-    return_window: '٣ بۆ ٧ ڕۆژ گۆڕینەوە',
-    phone_placeholder: phone,
-    phone: phone,
-    whatsapp: whatsapp,
-    logo_url: undefined,
-    verification_status: 'verified',
-    is_demo: false,
-    avatar_bg: 'from-amber-500 to-amber-700',
-    description: description,
-  };
-
-  if (supabaseAdmin) {
-    try {
-      let locationId: string | null = null;
-      try {
-        const { data: locData } = await (supabaseAdmin as any)
-          .from('locations')
-          .select('id')
-          .or(`name_en.ilike.%${locationName}%,name_ku.ilike.%${locationName}%`)
-          .limit(1)
-          .maybeSingle();
-        if (locData?.id) {
-          locationId = locData.id;
-        }
-      } catch {
-        // Location table or lookup optional
-      }
-
-      const insertPayload: any = {
-        id: sellerId,
-        slug: slug,
-        name_en: nameEn,
-        name_ku: nameKu,
-        name_ar: nameAr,
-        description_en: input.description || description,
-        description_ku: input.description_ku || description,
-        description_ar: input.description || description,
-        address: address,
-        phone: phone,
-        whatsapp: whatsapp,
-        verification_status: 'verified',
-        is_demo: false,
-        is_active: true,
-      };
-
-      if (locationId) {
-        insertPayload.location_id = locationId;
-      }
-
-      // Fallback columns for different schema migrations
-      insertPayload.name = nameKu;
-      insertPayload.location = locationName;
-      insertPayload.phone_placeholder = phone;
-
-      const { data: inserted, error: insErr } = await (supabaseAdmin as any)
-        .from('sellers')
-        .insert(insertPayload)
-        .select('*')
-        .maybeSingle();
-
-      if (!insErr && inserted) {
-        // Create initial subscription record
-        const chosenPlanId = input.plan_slug === 'pro' ? 'plan_pro' : 'plan_free';
-        try {
-          await (supabaseAdmin as any)
-            .from('seller_subscriptions')
-            .insert({
-              seller_id: sellerId,
-              plan_id: chosenPlanId,
-              status: 'active',
-              is_demo: false,
-            });
-        } catch (subErr) {
-          console.warn('[sellers] Failed to create seller subscription in DB:', subErr);
-        }
-      } else if (insErr) {
-        console.warn('[sellers] Error inserting seller to DB:', insErr);
-      }
-    } catch (err) {
-      console.warn('[sellers] createSeller database error:', err);
-    }
+  if (!supabaseAdmin) {
+    throw new Error('Seller storage is not configured.');
   }
 
-  return newSeller;
+  const { data: existing, error: lookupError } = await supabaseAdmin
+    .from('sellers')
+    .select('id, slug, verification_status')
+    .eq('owner_id', input.owner_id)
+    .maybeSingle();
+
+  if (lookupError) {
+    throw new Error(`Could not load the seller profile: ${lookupError.message}`);
+  }
+
+  const profileFields = {
+    name_en: nameEn,
+    name_ku: nameKu,
+    name_ar: nameAr,
+    description_en: input.description || description,
+    description_ku: input.description_ku || description,
+    description_ar: input.description || description,
+    address,
+    phone,
+    whatsapp,
+    is_demo: false,
+  };
+
+  const saveResult = existing
+    ? await supabaseAdmin
+        .from('sellers')
+        .update(profileFields)
+        .eq('id', existing.id)
+        .select('id, slug, verification_status')
+        .single()
+    : await supabaseAdmin
+        .from('sellers')
+        .insert({
+          owner_id: input.owner_id,
+          slug: generatedSlug,
+          ...profileFields,
+          verification_status: 'pending',
+          is_active: false,
+        })
+        .select('id, slug, verification_status')
+        .single();
+
+  if (saveResult.error || !saveResult.data) {
+    throw new Error(`Could not save the seller profile: ${saveResult.error?.message || 'No profile returned.'}`);
+  }
+
+  const locationLabel = address || locationName;
+  return {
+    id: saveResult.data.id,
+    slug: saveResult.data.slug,
+    name: nameKu,
+    location: locationLabel,
+    productCount: 0,
+    phone_placeholder: phone,
+    phone,
+    whatsapp,
+    verification_status: saveResult.data.verification_status as Seller['verification_status'],
+    is_demo: false,
+    description: description || undefined,
+  };
 }

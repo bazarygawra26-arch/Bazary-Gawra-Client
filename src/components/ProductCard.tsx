@@ -137,11 +137,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewProduct
           </div>
 
           {/* Social Proof Rating */}
-          <div className="flex items-center gap-1 text-[11px] text-neutral-500 mb-3">
-            <span className="text-[#F4B942]">★</span>
-            <span className="font-bold text-neutral-800">{lp.rating || 4.8}</span>
-            <span className="text-neutral-400">({lp.review_count || 12} {language === 'ckb' || language === 'ku' ? 'بۆچوون' : language === 'ar' ? 'تقييم' : 'reviews'})</span>
-          </div>
+          {lp.rating !== undefined && lp.review_count !== undefined && lp.review_count > 0 && (
+            <div className="mb-3 flex items-center gap-1 text-[11px] text-neutral-500">
+              <span className="text-[#F4B942]" aria-hidden="true">★</span>
+              <span className="font-bold text-neutral-800">{lp.rating}</span>
+              <span className="text-neutral-400">({lp.review_count} {language === 'ckb' || language === 'ku' ? 'بۆچوون' : language === 'ar' ? 'تقييم' : 'reviews'})</span>
+            </div>
+          )}
 
           {/* Transparent Trust & Information Signals */}
           <div className="space-y-1.5 pt-2 border-t border-[#EAE7DF] text-xs">

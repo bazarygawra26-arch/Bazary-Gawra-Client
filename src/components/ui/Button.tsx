@@ -18,7 +18,7 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const base =
-    'inline-flex items-center justify-center font-bold rounded-xl transition-all active:scale-[0.98] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed';
+    'inline-flex items-center justify-center font-bold rounded-xl transition-all active:scale-[0.98] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8C5E00] focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed';
 
   const variants = {
     primary: 'bg-[#F4B942] hover:bg-[#E2A732] text-neutral-950 shadow-sm',
@@ -37,11 +37,15 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <button
       disabled={disabled || isLoading}
+      aria-busy={isLoading || undefined}
       className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {isLoading ? (
-        <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin me-2" />
+        <span
+          aria-hidden="true"
+          className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin me-2"
+        />
       ) : null}
       {children}
     </button>

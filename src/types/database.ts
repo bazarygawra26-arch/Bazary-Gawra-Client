@@ -7,10 +7,29 @@ export type Json =
   | Json[];
 
 export type LangCode = 'en' | 'ku' | 'ar';
+export type MarketplaceRole = 'buyer' | 'seller' | 'retailer' | 'supplier' | 'admin';
 
 export interface Database {
   public: {
+    Views: Record<string, never>;
     Tables: {
+      profiles: {
+        Row: {
+          id: string;
+          full_name: string | null;
+          avatar_url: string | null;
+          phone: string | null;
+          role: MarketplaceRole;
+          preferred_language: LangCode | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database['public']['Tables']['profiles']['Row']> & {
+          id: string;
+        };
+        Update: Partial<Database['public']['Tables']['profiles']['Row']>;
+        Relationships: [];
+      };
       categories: {
         Row: {
           id: string;
@@ -33,6 +52,7 @@ export interface Database {
           name_ar: string;
         };
         Update: Partial<Database['public']['Tables']['categories']['Row']>;
+        Relationships: [];
       };
       sellers: {
         Row: {
@@ -61,6 +81,91 @@ export interface Database {
           name_en: string;
         };
         Update: Partial<Database['public']['Tables']['sellers']['Row']>;
+        Relationships: [];
+      };
+      suppliers: {
+        Row: {
+          id: string;
+          owner_id: string;
+          business_name: string;
+          business_type: 'manufacturer' | 'wholesaler' | 'distributor' | 'importer' | 'supplier';
+          contact_person: string | null;
+          email: string | null;
+          phone: string;
+          country: string;
+          city: string;
+          address: string | null;
+          description: string | null;
+          category_slugs: string[];
+          website: string | null;
+          logo_url: string | null;
+          verification_status: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database['public']['Tables']['suppliers']['Row']> & {
+          owner_id: string;
+          business_name: string;
+          business_type: Database['public']['Tables']['suppliers']['Row']['business_type'];
+          phone: string;
+          country: string;
+          city: string;
+        };
+        Update: Partial<Database['public']['Tables']['suppliers']['Row']>;
+        Relationships: [];
+      };
+      product_feedback: {
+        Row: {
+          id: string;
+          product_id: string;
+          rating: number;
+          customer_name: string;
+          customer_city: string | null;
+          comment: string;
+          is_verified: boolean;
+          created_at: string;
+        };
+        Insert: Partial<Database['public']['Tables']['product_feedback']['Row']> & {
+          product_id: string;
+          rating: number;
+          customer_name: string;
+          comment: string;
+        };
+        Update: Partial<Database['public']['Tables']['product_feedback']['Row']>;
+        Relationships: [];
+      };
+      promotions: {
+        Row: {
+          id: string;
+          slug: string;
+          title_en: string;
+          title_ku: string;
+          title_ar: string;
+          subtitle_en: string | null;
+          subtitle_ku: string | null;
+          subtitle_ar: string | null;
+          badge_en: string | null;
+          badge_ku: string | null;
+          badge_ar: string | null;
+          image_url: string;
+          link_url: string;
+          seller_id: string | null;
+          is_active: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database['public']['Tables']['promotions']['Row']> & {
+          slug: string;
+          title_en: string;
+          title_ku: string;
+          title_ar: string;
+          image_url: string;
+          link_url: string;
+        };
+        Update: Partial<Database['public']['Tables']['promotions']['Row']>;
+        Relationships: [];
       };
       locations: {
         Row: {
@@ -82,6 +187,7 @@ export interface Database {
           name_ar: string;
         };
         Update: Partial<Database['public']['Tables']['locations']['Row']>;
+        Relationships: [];
       };
       products: {
         Row: {
@@ -119,6 +225,7 @@ export interface Database {
           price: number;
         };
         Update: Partial<Database['public']['Tables']['products']['Row']>;
+        Relationships: [];
       };
       product_translations: {
         Row: {
@@ -134,6 +241,7 @@ export interface Database {
           name: string;
         };
         Update: Partial<Database['public']['Tables']['product_translations']['Row']>;
+        Relationships: [];
       };
       ai_requests: {
         Row: {
@@ -159,6 +267,7 @@ export interface Database {
           feature: string;
         };
         Update: Partial<Database['public']['Tables']['ai_requests']['Row']>;
+        Relationships: [];
       };
       ai_chat_sessions: {
         Row: {
@@ -173,6 +282,7 @@ export interface Database {
         };
         Insert: Partial<Database['public']['Tables']['ai_chat_sessions']['Row']>;
         Update: Partial<Database['public']['Tables']['ai_chat_sessions']['Row']>;
+        Relationships: [];
       };
       ai_chat_messages: {
         Row: {
@@ -190,6 +300,7 @@ export interface Database {
           content: string;
         };
         Update: Partial<Database['public']['Tables']['ai_chat_messages']['Row']>;
+        Relationships: [];
       };
       ai_comparisons: {
         Row: {
@@ -208,6 +319,7 @@ export interface Database {
           result: Json;
         };
         Update: Partial<Database['public']['Tables']['ai_comparisons']['Row']>;
+        Relationships: [];
       };
       ai_image_analyses: {
         Row: {
@@ -232,6 +344,7 @@ export interface Database {
         };
         Insert: Partial<Database['public']['Tables']['ai_image_analyses']['Row']>;
         Update: Partial<Database['public']['Tables']['ai_image_analyses']['Row']>;
+        Relationships: [];
       };
     };
     Functions: {
@@ -316,5 +429,10 @@ export interface Database {
         Returns: boolean;
       };
     };
+    Enums: {
+      user_role: MarketplaceRole;
+      lang_code: LangCode;
+    };
+    CompositeTypes: Record<string, never>;
   };
 }

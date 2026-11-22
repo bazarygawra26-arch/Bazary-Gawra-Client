@@ -18,6 +18,9 @@ import {
   Home,
   Tag,
   ShoppingBag,
+  BriefcaseBusiness,
+  LogIn,
+  UserPlus,
 } from 'lucide-react';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
@@ -30,6 +33,7 @@ export const Header: React.FC = () => {
   const isHome = pathname === '/' || pathname === `/${language}`;
   const isCategories = pathname?.includes('#categories') || pathname?.includes('/categories');
   const isProducts = pathname?.includes('/products');
+  const isB2b = pathname?.includes('/b2b');
   const isScanner = pathname?.includes('/scanner');
   const isShop = pathname?.includes('/seller/dashboard');
   const isPlans = pathname?.includes('/seller/plans');
@@ -98,6 +102,17 @@ export const Header: React.FC = () => {
                 }`}
               >
                 {t('navProducts')}
+              </Link>
+              <Link
+                href="/b2b"
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer ${
+                  isB2b
+                    ? 'bg-[#EAE7DF]/60 text-neutral-950 font-bold'
+                    : 'hover:text-neutral-950 hover:bg-[#EAE7DF]/30'
+                }`}
+              >
+                <BriefcaseBusiness className="w-3.5 h-3.5 text-[#657A52]" />
+                <span>{isKu ? 'بازاڕی بازرگانی' : language === 'ar' ? 'السوق التجاري' : 'B2B Marketplace'}</span>
               </Link>
               <Link
                 href="/scanner"
@@ -173,6 +188,23 @@ export const Header: React.FC = () => {
               )}
             </button>
 
+            <div className="hidden xl:flex items-center gap-1">
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-xs font-bold text-neutral-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8C5E00]"
+              >
+                <LogIn className="h-4 w-4" />
+                {isKu ? 'چوونەژوورەوە' : language === 'ar' ? 'تسجيل الدخول' : 'Sign in'}
+              </Link>
+              <Link
+                href="/register"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#F4B942] px-3 py-2 text-xs font-black text-neutral-950 hover:bg-[#E2A732] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8C5E00] focus-visible:ring-offset-2"
+              >
+                <UserPlus className="h-4 w-4" />
+                {isKu ? 'دروستکردنی هەژمار' : language === 'ar' ? 'إنشاء حساب' : 'Create account'}
+              </Link>
+            </div>
+
             {/* Language Switcher */}
             <LanguageSwitcher />
 
@@ -243,6 +275,17 @@ export const Header: React.FC = () => {
               </Link>
 
               <Link
+                href="/b2b"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all ${
+                  isB2b ? 'bg-[#F4B942]/20 text-[#8C5E00]' : 'text-neutral-800 hover:bg-white'
+                }`}
+              >
+                <BriefcaseBusiness className="w-4 h-4 text-[#657A52]" />
+                <span>{isKu ? 'بازاڕی بازرگانی' : language === 'ar' ? 'السوق التجاري' : 'B2B Marketplace'}</span>
+              </Link>
+
+              <Link
                 href="/seller/plans"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all ${
@@ -279,6 +322,25 @@ export const Header: React.FC = () => {
                 <Store className="w-4 h-4 text-[#657A52]" />
                 <span>{isKu ? 'داشبۆردی فرۆشیار (دانانی کاڵا)' : language === 'ar' ? 'لوحة تحكم البائع (إضافة منتج)' : 'Seller Dashboard'}</span>
               </Link>
+
+              <div className="grid grid-cols-2 gap-2 border-t border-[#EAE7DF] pt-3">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-[#EAE7DF] bg-white px-3 py-2.5 text-xs font-bold text-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8C5E00]"
+                >
+                  <LogIn className="h-4 w-4" />
+                  {isKu ? 'چوونەژوورەوە' : language === 'ar' ? 'تسجيل الدخول' : 'Sign in'}
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-[#F4B942] px-3 py-2.5 text-xs font-black text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8C5E00]"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  {isKu ? 'دروستکردنی هەژمار' : language === 'ar' ? 'إنشاء حساب' : 'Create account'}
+                </Link>
+              </div>
 
               <button
                 onClick={() => {

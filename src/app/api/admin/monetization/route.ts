@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminMonetizationSummary } from '../../../../server/db/repositories/monetization';
+import { authorizeRequest } from '../../../../server/auth/authorization';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
+  const authorization = await authorizeRequest(req, ['admin']);
+  if (!authorization.ok) {
+    return NextResponse.json({ error: authorization.message }, { status: authorization.status });
+  }
+
   try {
     const summary = await getAdminMonetizationSummary();
     return NextResponse.json(summary, {

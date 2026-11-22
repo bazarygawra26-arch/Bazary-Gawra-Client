@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createOrder, getOrders } from '../../../server/db/repositories/orders';
+import { authorizeSellerRequest } from '../../../server/auth/authorization';
 
 export async function GET(req: NextRequest) {
+  const requestedSellerId = new URL(req.url).searchParams.get('seller_id');
+  const authorization = await authorizeSellerRequest(req, requestedSellerId);
+  if (!authorization.ok) {
+    return NextResponse.json({ error: authorization.message }, { status: authorization.status });
+  }
+
   try {
-    const { searchParams } = new URL(req.url);
-    const sellerId = searchParams.get('seller_id') || undefined;
-    const orders = await getOrders(sellerId);
+    const orders = await getOrders(authorization.sellerId);
     return NextResponse.json(orders);
   } catch (err: any) {
     console.error('API /api/orders GET error:', err);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../server/db/supabaseAdmin';
+import { authorizeRequest } from '../../../../server/auth/authorization';
 
 export const dynamic = 'force-dynamic';
 
@@ -414,6 +415,10 @@ function generateSlug(text: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  const authorization = await authorizeRequest(req, ['admin']);
+  if (!authorization.ok) {
+    return NextResponse.json({ error: authorization.message }, { status: authorization.status });
+  }
   if (!supabaseAdmin) {
     return NextResponse.json({ error: 'Supabase admin not initialized' }, { status: 500 });
   }

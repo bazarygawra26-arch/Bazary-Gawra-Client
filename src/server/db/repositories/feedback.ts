@@ -9,7 +9,7 @@ export async function findProductFeedback(productId: string): Promise<ProductFee
   if (supabaseAdmin) {
     try {
       const { data, error } = await supabaseAdmin
-        .from('product_feedback' as any)
+        .from('product_feedback')
         .select('*')
         .eq('product_id', productId)
         .order('created_at', { ascending: false });

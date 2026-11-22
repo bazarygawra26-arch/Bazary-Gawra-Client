@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findSellers, createSeller } from '../../../server/db/repositories/sellers';
+import { authorizeSellerRequest } from '../../../server/auth/authorization';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -24,6 +25,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const authorization = await authorizeSellerRequest(req);
+    if (!authorization.ok) {
+      return NextResponse.json({ error: authorization.message }, { status: authorization.status });
+    }
+
     const body = await req.json();
     if (!body || (!body.name && !body.name_ku && !body.name_en)) {
       return NextResponse.json({ error: 'Store name is required' }, { status: 400 });
@@ -33,6 +39,7 @@ export async function POST(req: NextRequest) {
     }
 
     const newSeller = await createSeller({
+      owner_id: authorization.id,
       name: body.name || body.name_ku || body.name_en,
       name_ku: body.name_ku,
       name_en: body.name_en,

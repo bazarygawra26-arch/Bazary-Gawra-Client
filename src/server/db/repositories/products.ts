@@ -3,6 +3,12 @@ import { supabaseAdmin } from '../supabaseAdmin';
 import { Product, PaginatedProductsResult } from '../../../types';
 import { localizeProduct } from '../../../lib/i18nData';
 
+function finiteNumberOrUndefined(value: unknown): number | undefined {
+  if (value === null || value === undefined || value === '') return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 // Map a Supabase row (either from search_products RPC or get_product_context_by_slug) to domain Product
 function mapDbProductToDomain(row: any, lang: 'en' | 'ku' | 'ar' = 'ku'): Product {
   const id = row.product_id || row.id;
@@ -28,8 +34,7 @@ function mapDbProductToDomain(row: any, lang: 'en' | 'ku' | 'ar' = 'ku'): Produc
   if (!hasReturn) missingList.push(lang === 'ku' ? 'مەرجی گەڕاندنەوە دیاری نەکراوە' : lang === 'ar' ? 'سياسة الإرجاع غير محددة' : 'No return policy');
   if (!hasSpecs) missingList.push(lang === 'ku' ? 'تایبەتمەندی تەکنیکی ناتەواوە' : lang === 'ar' ? 'المواصفات الفنية ناقصة' : 'Missing specifications');
 
-  let defaultWarranty = lang === 'ku' ? 'گەرەنتی ستانداردی ناوخۆیی' : lang === 'ar' ? 'ضمان قياسي محلي' : 'Standard Warranty';
-  let warrantyText = typeof row.warranty === 'string' ? row.warranty : (row.warranty?.details || defaultWarranty);
+  let warrantyText = typeof row.warranty === 'string' ? row.warranty : (row.warranty?.details || undefined);
   const months = row.warranty_months || (typeof row.warranty === 'object' ? row.warranty?.months : undefined);
   if (months) {
     if (lang === 'ku') warrantyText = `${months} مانگ گەرەنتی فەرمی ناوخۆیی`;
@@ -89,8 +94,8 @@ function mapDbProductToDomain(row: any, lang: 'en' | 'ku' | 'ar' = 'ku'): Produc
     price: price,
     original_price: origPrice,
     discount_percent: discountPercent,
-    rating: row.rating ? Number(row.rating) : 4.8,
-    review_count: row.review_count ? Number(row.review_count) : 12,
+    rating: finiteNumberOrUndefined(row.rating),
+    review_count: finiteNumberOrUndefined(row.review_count),
     currency: (row.currency === 'USD' ? 'USD' : 'IQD') as 'IQD' | 'USD',
     location: location,
     seller_name: seller,
@@ -128,7 +133,7 @@ function mapDbProductToDomain(row: any, lang: 'en' | 'ku' | 'ar' = 'ku'): Produc
     is_promoted: Boolean(row.is_promoted || row.specs?.is_promoted || row.is_sponsored || row.specs?.is_sponsored),
     is_sponsored: Boolean(row.is_sponsored || row.specs?.is_sponsored || row.is_promoted || row.specs?.is_promoted),
     promotion_expires_at: row.promotion_expires_at || row.specs?.promotion_expires_at,
-    view_count: Number(row.view_count || row.specs?.view_count || 24),
+    view_count: finiteNumberOrUndefined(row.view_count ?? row.specs?.view_count),
   };
 }
 
@@ -228,7 +233,7 @@ export async function findProductsPaginated(filters?: {
       }
 
       // If RPC is unavailable, perform direct table query from Supabase
-      let query = supabaseAdmin.from('products').select('*', { count: 'exact' }).neq('status', 'archived');
+      let query = supabaseAdmin.from('products').select('*', { count: 'exact' }).eq('status', 'active');
       if (filters?.category) {
         query = query.ilike('category_slug', `%${filters.category}%`);
       }
@@ -338,6 +343,7 @@ export async function findProductById(id: string, lang: 'en' | 'ku' | 'ar' = 'ku
         .from('products')
         .select('*')
         .eq('id', id)
+        .eq('status', 'active')
         .maybeSingle();
 
       if (directData) {

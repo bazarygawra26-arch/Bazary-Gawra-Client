@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { productFilterSchema } from '../../../lib/schemas/product';
 import { findProductsPaginated, createProduct } from '../../../server/db/repositories/products';
+import { authorizeSellerRequest } from '../../../server/auth/authorization';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -45,11 +46,19 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    if (!body || !body.name || !body.price) {
+    if (!body || typeof body !== 'object' || typeof body.name !== 'string' || !Number.isFinite(Number(body.price)) || Number(body.price) <= 0) {
       return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
     }
 
-    const created = await createProduct(body);
+    const authorization = await authorizeSellerRequest(
+      req,
+      typeof body.seller_id === 'string' ? body.seller_id : null
+    );
+    if (!authorization.ok) {
+      return NextResponse.json({ error: authorization.message }, { status: authorization.status });
+    }
+
+    const created = await createProduct({ ...body, seller_id: authorization.sellerId });
     return NextResponse.json(created, { status: 201 });
   } catch (error: any) {
     console.error('API /api/products POST error:', error);

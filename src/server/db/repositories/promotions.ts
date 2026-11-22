@@ -60,7 +60,7 @@ export async function findPromotions(): Promise<Promotion[]> {
   if (supabaseAdmin) {
     try {
       const { data, error } = await supabaseAdmin
-        .from('promotions' as any)
+        .from('promotions')
         .select('*')
         .eq('is_active', true)
         .order('sort_order', { ascending: true });

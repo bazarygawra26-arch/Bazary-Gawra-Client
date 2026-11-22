@@ -1,13 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../../types/database';
-import { env } from '../../config/env';
+import { publicEnv } from '../../config/publicEnv';
 
 /**
  * Browser-side Supabase client using public environment variables from .env.local
  */
 export function createBrowserClient() {
-  const url = (env.SUPABASE_URL || '').trim();
-  const key = (env.SUPABASE_ANON_KEY || '').trim();
+  const { SUPABASE_URL: url, SUPABASE_ANON_KEY: key } = publicEnv;
 
   if (!url || !key || !url.startsWith('http')) {
     return null;
