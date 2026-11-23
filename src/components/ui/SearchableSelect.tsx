@@ -43,6 +43,13 @@ const labelClassName = 'mb-1.5 block text-sm font-semibold text-neutral-700';
 const inputClassName =
   'w-full rounded-xl border border-[#EAE7DF] bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition focus-visible:border-[#8C5E00] focus-visible:ring-2 focus-visible:ring-[#8C5E00]/20 disabled:cursor-not-allowed disabled:bg-neutral-100';
 
+function normalizeSearchText(value: string, locale: string) {
+  return value
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLocaleLowerCase(locale);
+}
+
 export function SearchableSelect({
   id,
   label,
@@ -66,11 +73,10 @@ export function SearchableSelect({
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const selectedOption = options.find((option) => option.value === value);
-  const normalizedQuery = query.trim().toLocaleLowerCase(locale);
+  const normalizedQuery = normalizeSearchText(query.trim(), locale);
   const matchingOptions = normalizedQuery
     ? options.filter((option) =>
-        `${option.label} ${option.searchText || ''} ${option.value}`
-          .toLocaleLowerCase(locale)
+        normalizeSearchText(`${option.label} ${option.searchText || ''} ${option.value}`, locale)
           .includes(normalizedQuery)
       )
     : options;
@@ -227,10 +233,9 @@ export function SearchableMultiSelect({
   const listId = `${id}-options`;
   const errorId = `${id}-error`;
   const [query, setQuery] = useState('');
-  const normalizedQuery = query.trim().toLocaleLowerCase(locale);
+  const normalizedQuery = normalizeSearchText(query.trim(), locale);
   const visibleOptions = options.filter((option) =>
-    `${option.label} ${option.searchText || ''} ${option.value}`
-      .toLocaleLowerCase(locale)
+    normalizeSearchText(`${option.label} ${option.searchText || ''} ${option.value}`, locale)
       .includes(normalizedQuery)
   );
 

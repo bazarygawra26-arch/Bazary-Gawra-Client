@@ -66,18 +66,35 @@ export function LocationFields({
   onPhoneChange,
   onValidityChange,
 }: LocationFieldsProps) {
-  const [countries, setCountries] = useState<LocationResponse['countries']>([]);
-  const [governorates, setGovernorates] = useState<LocationResponse['governorates']>([]);
-  const [cities, setCities] = useState<LocationResponse['cities']>([]);
+  const [countries, setCountries] = useState<NonNullable<LocationResponse['countries']>>([]);
+  const [countriesLocale, setCountriesLocale] = useState('');
+  const [countryLoadFailure, setCountryLoadFailure] = useState<{ locale: string; message: string } | null>(null);
+  const [governorates, setGovernorates] = useState<NonNullable<LocationResponse['governorates']>>([]);
+  const [cities, setCities] = useState<NonNullable<LocationResponse['cities']>>([]);
   const [phoneCode, setPhoneCode] = useState('');
   const [customCityAllowed, setCustomCityAllowed] = useState(false);
-  const [isLoadingCountries, setIsLoadingCountries] = useState(true);
-  const [isLoadingOptions, setIsLoadingOptions] = useState(false);
-  const [loadError, setLoadError] = useState('');
+  const [locationDataKey, setLocationDataKey] = useState('');
+  const [locationLoadFailure, setLocationLoadFailure] = useState<{ key: string; message: string } | null>(null);
+  const locationRequestKey = `${locale}:${countryCode}:${governorateCode}`;
+  const hasCurrentLocationData = Boolean(countryCode && locationDataKey === locationRequestKey);
+  const isLoadingCountries = countriesLocale !== locale && countryLoadFailure?.locale !== locale;
+  const isLoadingOptions = Boolean(countryCode) &&
+    !hasCurrentLocationData &&
+    locationLoadFailure?.key !== locationRequestKey;
+  const loadError =
+    countryLoadFailure?.locale === locale
+      ? countryLoadFailure.message
+      : locationLoadFailure?.key === locationRequestKey
+        ? locationLoadFailure.message
+        : '';
+  const countryOptions = countriesLocale === locale ? countries : [];
+  const governorateOptions = hasCurrentLocationData ? governorates : [];
+  const cityOptions = hasCurrentLocationData ? cities : [];
+  const currentPhoneCode = hasCurrentLocationData ? phoneCode : '';
+  const currentCustomCityAllowed = hasCurrentLocationData && customCityAllowed;
 
   useEffect(() => {
     const controller = new AbortController();
-    setIsLoadingCountries(true);
 
     async function loadCountries() {
       try {
@@ -89,18 +106,17 @@ export function LocationFields({
         if (!response.ok || !Array.isArray(result.countries)) {
           throw new Error(result.error || labels.locationUnavailable);
         }
+        if (controller.signal.aborted) return;
         setCountries(result.countries);
-        setLoadError('');
+        setCountriesLocale(locale);
+        setCountryLoadFailure(null);
       } catch (loadFailure) {
         if (!controller.signal.aborted) {
-          setPhoneCode('');
-          setGovernorates([]);
-          setCities([]);
-          setCustomCityAllowed(false);
-          setLoadError(loadFailure instanceof Error ? loadFailure.message : labels.locationUnavailable);
+          setCountryLoadFailure({
+            locale,
+            message: loadFailure instanceof Error ? loadFailure.message : labels.locationUnavailable,
+          });
         }
-      } finally {
-        if (!controller.signal.aborted) setIsLoadingCountries(false);
       }
     }
 
@@ -111,17 +127,7 @@ export function LocationFields({
   useEffect(() => {
     const controller = new AbortController();
 
-    if (!countryCode) {
-      setGovernorates([]);
-      setCities([]);
-      setPhoneCode('');
-      setCustomCityAllowed(false);
-      setIsLoadingOptions(false);
-      return () => controller.abort();
-    }
-
-    setIsLoadingOptions(true);
-    setLoadError('');
+    if (!countryCode) return () => controller.abort();
 
     async function loadLocationOptions() {
       try {
@@ -135,54 +141,54 @@ export function LocationFields({
         if (!response.ok || !result.country) {
           throw new Error(result.error || labels.locationUnavailable);
         }
+        if (controller.signal.aborted) return;
         setPhoneCode(result.country.phoneCode);
         setGovernorates(result.governorates || []);
         setCities(result.cities || []);
         setCustomCityAllowed(Boolean(result.customCityAllowed));
+        setLocationDataKey(locationRequestKey);
+        setLocationLoadFailure(null);
       } catch (loadFailure) {
         if (!controller.signal.aborted) {
-          setPhoneCode('');
-          setGovernorates([]);
-          setCities([]);
-          setCustomCityAllowed(false);
-          setLoadError(loadFailure instanceof Error ? loadFailure.message : labels.locationUnavailable);
+          setLocationLoadFailure({
+            key: locationRequestKey,
+            message: loadFailure instanceof Error ? loadFailure.message : labels.locationUnavailable,
+          });
         }
-      } finally {
-        if (!controller.signal.aborted) setIsLoadingOptions(false);
       }
     }
 
     void loadLocationOptions();
     return () => controller.abort();
-  }, [countryCode, governorateCode, labels.locationUnavailable, locale]);
+  }, [countryCode, governorateCode, labels.locationUnavailable, locale, locationRequestKey]);
 
   useEffect(() => {
-    const hasValidGovernorate = governorates.length === 0 || Boolean(governorateCode);
-    const hasValidCity = cities.length > 0
-      ? cities.some((option) => option.value === city)
-      : customCityAllowed && city.trim().length >= 2 && city.trim().length <= 100;
+    const hasValidGovernorate = governorateOptions.length === 0 || Boolean(governorateCode);
+    const hasValidCity = hasCurrentLocationData && (
+      cities.length > 0
+        ? cities.some((option) => option.value === city)
+        : currentCustomCityAllowed && city.trim().length >= 2 && city.trim().length <= 100
+    );
 
     onValidityChange(
       !isLoadingCountries &&
       !isLoadingOptions &&
-      Boolean(countryCode && phoneCode && hasValidGovernorate && hasValidCity)
+      Boolean(countryCode && currentPhoneCode && hasValidGovernorate && hasValidCity)
     );
   }, [
     city,
     cities,
     countryCode,
-    customCityAllowed,
+    currentCustomCityAllowed,
+    currentPhoneCode,
     governorateCode,
-    governorates.length,
+    governorateOptions.length,
+    hasCurrentLocationData,
     isLoadingCountries,
     isLoadingOptions,
     onValidityChange,
-    phoneCode,
   ]);
 
-  const countryOptions = countries || [];
-  const governorateOptions = governorates || [];
-  const cityOptions = cities || [];
   const isCityDisabled =
     !countryCode ||
     isLoadingOptions ||
@@ -234,7 +240,7 @@ export function LocationFields({
         />
       )}
 
-      {cityOptions.length > 0 || !customCityAllowed ? (
+      {cityOptions.length > 0 || !currentCustomCityAllowed ? (
         <SearchableSelect
           id={`${idPrefix}-city`}
           label={labels.city}
@@ -251,7 +257,7 @@ export function LocationFields({
           locale={locale === 'ku' ? 'ckb' : locale}
           onChange={onCityChange}
         />
-      ) : customCityAllowed && !isLoadingOptions ? (
+      ) : currentCustomCityAllowed && !isLoadingOptions ? (
         <div>
           <label htmlFor={`${idPrefix}-city`} className={labelClassName}>{labels.city}</label>
           <input
@@ -285,7 +291,7 @@ export function LocationFields({
             className="flex min-w-16 items-center justify-center rounded-xl border border-[#EAE7DF] bg-neutral-50 px-3 text-sm font-semibold text-neutral-700"
             aria-label={labels.phone}
           >
-            {phoneCode ? `+${phoneCode}` : '+'}
+            {currentPhoneCode ? `+${currentPhoneCode}` : '+'}
           </span>
           <input
             id={`${idPrefix}-phone`}

@@ -66,7 +66,8 @@ function normalizedLocale(locale: string): SupportedLocale {
 function displayCountryName(countryCode: string, fallback: string, locale: SupportedLocale) {
   try {
     const language = locale === 'ku' ? 'ckb' : locale;
-    return new Intl.DisplayNames([language], { type: 'region' }).of(countryCode) || fallback;
+    const localizedName = new Intl.DisplayNames([language], { type: 'region' }).of(countryCode);
+    return localizedName && localizedName.toUpperCase() !== countryCode ? localizedName : fallback;
   } catch {
     return fallback;
   }

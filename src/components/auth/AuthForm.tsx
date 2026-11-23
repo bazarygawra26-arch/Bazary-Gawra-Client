@@ -205,17 +205,17 @@ export function AuthForm({ mode }: AuthFormProps) {
         const result = await response.json();
         if (!response.ok) throw new Error('Categories could not be loaded.');
         if (active) {
-          setCategories(
-            Array.isArray(result)
-              ? result.flatMap((category: Category) => [
-                  { slug: category.slug, name: category.name },
-                  ...(category.subcategories || []).map((subcategory) => ({
-                    slug: subcategory.slug,
-                    name: `${category.name} — ${subcategory.name}`,
-                  })),
-                ])
-              : []
-          );
+          const categoryChoices: Array<Pick<Category, 'slug' | 'name'>> = Array.isArray(result)
+            ? result.flatMap((category: Category) => [
+                { slug: category.slug, name: category.name },
+                ...(category.subcategories || []).map((subcategory) => ({
+                  slug: subcategory.slug,
+                  name: `${category.name} — ${subcategory.name}`,
+                })),
+              ])
+            : [];
+          if (categoryChoices.length === 0) throw new Error('No active categories are available.');
+          setCategories(categoryChoices);
           setCategoryLoadError('');
         }
       } catch {
