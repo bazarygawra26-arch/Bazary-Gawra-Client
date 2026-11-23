@@ -123,7 +123,8 @@ export interface Seller {
   phone?: string;
   whatsapp?: string;
   logo_url?: string;
-  verification_status?: 'unverified' | 'pending' | 'verified';
+  verification_status?: 'unverified' | 'pending' | 'verified' | 'rejected' | 'suspended';
+  is_active?: boolean;
   is_demo?: boolean;
   avatar_bg?: string;
   established_since?: string;

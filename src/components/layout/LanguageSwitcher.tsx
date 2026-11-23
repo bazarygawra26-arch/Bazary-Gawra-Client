@@ -7,7 +7,7 @@ import { locales, localeNames, Locale } from '../../lib/i18n/config';
 import { Globe } from 'lucide-react';
 
 export const LanguageSwitcher: React.FC = () => {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, dir } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -23,15 +23,29 @@ export const LanguageSwitcher: React.FC = () => {
   };
 
   const activeLocale = language === 'ckb' || language === 'ku' ? 'ku' : language;
+  const groupLabel =
+    activeLocale === 'ku'
+      ? 'زمانی ڕووکاری هەڵبژێرە'
+      : activeLocale === 'ar'
+        ? 'اختر لغة الواجهة'
+        : 'Choose interface language';
 
   return (
-    <div className="flex items-center bg-white border border-[#EAE7DF] rounded-xl p-0.5 sm:p-1 shadow-2xs text-[11px] sm:text-xs font-semibold shrink-0">
+    <div
+      role="group"
+      aria-label={groupLabel}
+      dir={dir}
+      className="flex shrink-0 items-center rounded-xl border border-[#EAE7DF] bg-white p-0.5 text-[11px] font-semibold shadow-2xs sm:p-1 sm:text-xs"
+    >
       <Globe className="w-3.5 h-3.5 text-neutral-400 mx-1 hidden sm:inline" />
       {locales.map((loc) => {
         const isActive = activeLocale === loc;
         return (
           <button
             key={loc}
+            type="button"
+            aria-pressed={isActive}
+            aria-label={localeNames[loc]}
             onClick={() => handleSelectLanguage(loc)}
             className={`px-1.5 sm:px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
               isActive

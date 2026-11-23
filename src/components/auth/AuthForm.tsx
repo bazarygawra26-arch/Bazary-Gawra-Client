@@ -8,6 +8,7 @@ import { Button } from '../ui/Button';
 import { useLanguage } from '../../context/LanguageContext';
 import { MarketplaceRole } from '../../types/database';
 import { supabaseBrowserClient } from '../../lib/supabase/client';
+import { getSupabaseAuthHeaders } from '../../lib/supabase/authHeaders';
 
 type AccountRole = Exclude<MarketplaceRole, 'admin'>;
 type AuthMode = 'login' | 'register';
@@ -25,27 +26,6 @@ const roles: Array<{
   { value: 'retailer', icon: BriefcaseBusiness },
   { value: 'supplier', icon: Truck },
 ];
-
-async function getAccountRole(userId: string): Promise<AccountRole> {
-  if (!supabaseBrowserClient) {
-    throw new Error('Supabase is not configured.');
-  }
-
-  const { data: profile, error } = await supabaseBrowserClient
-    .from('profiles')
-    .select('role')
-    .eq('id', userId)
-    .maybeSingle();
-
-  if (error) throw error;
-
-  const accountRole = roles.find((item) => item.value === profile?.role)?.value;
-  if (!accountRole) {
-    throw new Error('Your marketplace account type is not available. Contact support.');
-  }
-
-  return accountRole;
-}
 
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
@@ -106,10 +86,21 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   const localizePath = (path: string) => `/${language === 'ckb' ? 'ku' : language}${path}`;
 
-  const getDashboardPath = (accountRole: AccountRole) => {
-    if (accountRole === 'seller') return '/seller/dashboard';
-    if (accountRole === 'supplier') return '/supplier/dashboard';
-    if (accountRole === 'retailer') return '/b2b';
+  const getDashboardPath = async () => {
+    const response = await fetch('/api/account/navigation', {
+      headers: await getSupabaseAuthHeaders(),
+      cache: 'no-store',
+    });
+    const navigation = await response.json();
+    if (!response.ok) {
+      throw new Error(navigation.error || 'Account permissions could not be loaded.');
+    }
+
+    const accountRoles = navigation.roles as MarketplaceRole[];
+    if (accountRoles.includes('seller')) return '/seller/dashboard';
+    if (accountRoles.includes('supplier')) return '/supplier/dashboard';
+    if (accountRoles.includes('retailer')) return '/b2b';
+    if (accountRoles.includes('buyer')) return '/products';
     return '/products';
   };
 
@@ -160,8 +151,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         }
 
         if (!data.user) throw new Error('Sign-up did not return a user.');
-        const accountRole = await getAccountRole(data.user.id);
-        router.replace(localizePath(getDashboardPath(accountRole)));
+        router.replace(localizePath(await getDashboardPath()));
         return;
       }
 
@@ -172,9 +162,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
       if (error) throw error;
       if (!data.user) throw new Error('Sign-in did not return a user.');
-
-      const accountRole = await getAccountRole(data.user.id);
-      router.replace(localizePath(getDashboardPath(accountRole)));
+      router.replace(localizePath(await getDashboardPath()));
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Authentication failed.');
     } finally {

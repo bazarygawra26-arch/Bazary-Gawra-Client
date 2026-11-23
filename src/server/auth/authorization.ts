@@ -89,14 +89,15 @@ export async function authorizeRequest(
 
 export async function authorizeSellerRequest(
   request: NextRequest,
-  requestedSellerId?: string | null
+  requestedSellerId?: string | null,
+  options: { requireActive?: boolean } = {}
 ): Promise<SellerAuthorizationResult> {
-  const authorization = await authorizeRequest(request, ['seller']);
+  const authorization = await authorizeRequest(request);
   if (!authorization.ok) return authorization;
 
   let query = authorization.client
     .from('sellers')
-    .select('id, is_active')
+    .select('id, is_active, verification_status')
     .eq('owner_id', authorization.id);
 
   if (requestedSellerId) {
@@ -113,9 +114,19 @@ export async function authorizeSellerRequest(
     return { ok: false, status: 403, message: 'You do not own this seller account.' };
   }
 
+  const sellerIsActive =
+    seller.is_active && seller.verification_status === 'verified';
+  if (options.requireActive && !sellerIsActive) {
+    return {
+      ok: false,
+      status: 403,
+      message: `Seller account is ${seller.verification_status}. Approval is required for this action.`,
+    };
+  }
+
   return {
     ...authorization,
     sellerId: seller.id,
-    sellerIsActive: seller.is_active,
+    sellerIsActive,
   };
 }

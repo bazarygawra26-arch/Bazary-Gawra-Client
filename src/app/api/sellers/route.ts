@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findSellers, createSeller } from '../../../server/db/repositories/sellers';
-import { authorizeSellerRequest } from '../../../server/auth/authorization';
+import { authorizeRequest } from '../../../server/auth/authorization';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const authorization = await authorizeSellerRequest(req);
+    const authorization = await authorizeRequest(req, ['buyer', 'seller', 'retailer', 'supplier']);
     if (!authorization.ok) {
       return NextResponse.json({ error: authorization.message }, { status: authorization.status });
     }

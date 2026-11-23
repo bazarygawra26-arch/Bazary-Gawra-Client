@@ -4,7 +4,11 @@ import { authorizeSellerRequest } from '../../../server/auth/authorization';
 
 export async function GET(req: NextRequest) {
   const requestedSellerId = new URL(req.url).searchParams.get('seller_id');
-  const authorization = await authorizeSellerRequest(req, requestedSellerId);
+  const authorization = await authorizeSellerRequest(
+    req,
+    requestedSellerId,
+    { requireActive: true }
+  );
   if (!authorization.ok) {
     return NextResponse.json({ error: authorization.message }, { status: authorization.status });
   }

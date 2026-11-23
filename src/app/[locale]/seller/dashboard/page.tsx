@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Header } from '../../../../components/layout/Header';
 import { Footer } from '../../../../components/layout/Footer';
 import { AddProductModal } from '../../../../components/seller/AddProductModal';
 import { PromoteProductModal } from '../../../../components/seller/PromoteProductModal';
 import { RegisterSellerModal } from '../../../../components/seller/RegisterSellerModal';
 import { useLanguage } from '../../../../context/LanguageContext';
-import { Product, Seller, SellerSubscription, ProductPromotion } from '../../../../types';
+import { Product, SellerSubscription, ProductPromotion } from '../../../../types';
 import { getSupabaseAuthHeaders } from '../../../../lib/supabase/authHeaders';
 import {
   Store,
@@ -57,6 +58,7 @@ const EMPTY_SHOP: DashboardShop = {
 
 export default function SellerDashboardPage() {
   const { language, isKu } = useLanguage();
+  const router = useRouter();
   const isAr = language === 'ar';
 
   const [shops, setShops] = useState<DashboardShop[]>([]);
@@ -69,6 +71,10 @@ export default function SellerDashboardPage() {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [productToPromote, setProductToPromote] = useState<Product | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
+  const [sellerAccessState, setSellerAccessState] = useState<
+    'loading' | 'pending' | 'rejected' | 'suspended' | 'approved' | 'unregistered' | 'error'
+  >('loading');
+  const [sellerAccessError, setSellerAccessError] = useState('');
 
   // Monetization Subscription & Promotion state
   const [subscription, setSubscription] = useState<SellerSubscription | null>(null);
@@ -102,7 +108,7 @@ export default function SellerDashboardPage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab');
-      if (tab === 'promotions' || tab === 'orders' || tab === 'admin') {
+      if (tab === 'products' || tab === 'promotions' || tab === 'orders' || tab === 'admin') {
         setActiveTab(tab as any);
         if (tab === 'admin') {
           loadAdminSummary();
@@ -113,14 +119,41 @@ export default function SellerDashboardPage() {
 
   // Dynamically load sellers from database
   useEffect(() => {
+    let active = true;
+
     async function loadShops() {
       try {
         const res = await fetch('/api/seller/profile', {
           headers: await getSupabaseAuthHeaders(),
+          cache: 'no-store',
         });
-        if (!res.ok) throw new Error('Your seller profile could not be loaded.');
+        if (res.status === 401) {
+          router.replace(`/${language === 'ckb' ? 'ku' : language}/login`);
+          return;
+        }
+        if (res.status === 403 || res.status === 404) {
+          if (active) {
+            setSellerAccessState('unregistered');
+            setIsLoading(false);
+          }
+          return;
+        }
+        if (!res.ok) {
+          const result = await res.json();
+          throw new Error(result.error || 'Your seller profile could not be loaded.');
+        }
 
         const seller = await res.json();
+        if (!active) return;
+        const status = seller.verification_status || 'pending';
+        if (!seller.is_active || status !== 'verified') {
+          setSellerAccessState(
+            status === 'rejected' || status === 'suspended' ? status : 'pending'
+          );
+          setIsLoading(false);
+          return;
+        }
+
         const mapped: DashboardShop = {
           id: seller.id,
           slug: seller.slug || seller.id,
@@ -132,14 +165,23 @@ export default function SellerDashboardPage() {
         };
         setShops([mapped]);
         setSelectedShop(mapped);
+        setSellerAccessState('approved');
       } catch (e) {
         console.error('Failed to load the authenticated seller:', e);
-        setShops([]);
-        setSelectedShop(EMPTY_SHOP);
+        if (active) {
+          setSellerAccessError(
+            e instanceof Error ? e.message : 'Your seller profile could not be loaded.'
+          );
+          setSellerAccessState('error');
+          setIsLoading(false);
+        }
       }
     }
-    loadShops();
-  }, []);
+    void loadShops();
+    return () => {
+      active = false;
+    };
+  }, [language, router]);
 
   // Load shop products
   const loadProducts = async () => {
@@ -236,6 +278,63 @@ export default function SellerDashboardPage() {
   const activePromos = promotions.filter((p) => p.status === 'active');
   const planName = subscription?.plan?.name || (canPromote ? 'Pro Merchant' : 'Free Starter');
   const isPro = subscription?.plan?.slug === 'pro' || canPromote;
+
+  if (sellerAccessState !== 'approved') {
+    const applicationTitle =
+      sellerAccessState === 'pending'
+        ? isKu ? 'داواکاری فرۆشگاکەت چاوەڕێی پەسەندکردنە' : isAr ? 'طلب متجرك قيد المراجعة' : 'Your store application is pending review'
+        : sellerAccessState === 'rejected'
+          ? isKu ? 'داواکاری فرۆشگاکەت ڕەتکراوەتەوە' : isAr ? 'تم رفض طلب متجرك' : 'Your store application was rejected'
+          : sellerAccessState === 'suspended'
+            ? isKu ? 'هەژماری فرۆشگاکەت وەستاندراوە' : isAr ? 'تم إيقاف حساب متجرك' : 'Your store account is suspended'
+            : sellerAccessState === 'unregistered'
+              ? isKu ? 'هێشتا داواکاری فرۆشگات تۆمار نەکردووە' : isAr ? 'لم تسجل متجراً بعد' : 'You have not registered a store yet'
+              : sellerAccessState === 'error'
+                ? (sellerAccessError || (isKu ? 'نەتوانرا زانیاری فرۆشگاکەت باربکرێت.' : isAr ? 'تعذر تحميل بيانات المتجر.' : 'Your store information could not be loaded.'))
+                : isKu ? 'زانیاری هەژمار بار دەکرێت...' : isAr ? 'جارٍ تحميل الحساب...' : 'Loading account...';
+    const applicationDescription =
+      sellerAccessState === 'pending'
+        ? isKu ? 'دوای پەسەندکردنی تیمی بازاڕ، بەڕێوەبردنی بەرهەم و داواکارییەکان دەکرێتەوە.' : isAr ? 'ستتم إتاحة إدارة المنتجات والطلبات بعد موافقة فريق السوق.' : 'Product and order management becomes available after marketplace approval.'
+        : sellerAccessState === 'rejected' || sellerAccessState === 'suspended'
+          ? isKu ? 'تکایە بۆ زانیاری زیاتر پەیوەندی بە پشتگیرییەوە بکە.' : isAr ? 'يرجى التواصل مع الدعم لمزيد من المعلومات.' : 'Please contact support for more information.'
+          : sellerAccessState === 'unregistered'
+            ? isKu ? 'بۆ دەستپێکردن داواکاری فرۆشگات بنێرە.' : isAr ? 'أرسل طلب تسجيل متجرك للبدء.' : 'Submit a store application to get started.'
+            : '';
+
+    return (
+      <div className="min-h-screen flex flex-col bg-[#FAF9F6] text-neutral-900">
+        <Header />
+        <main className="mx-auto flex w-full max-w-3xl flex-1 items-center px-4 py-12 sm:px-6">
+          <section className="w-full rounded-3xl border border-[#EAE7DF] bg-white p-6 text-center shadow-sm sm:p-10">
+            <Store className="mx-auto h-10 w-10 text-[#8C5E00]" aria-hidden="true" />
+            <h1 className="mt-4 text-2xl font-black text-neutral-950">{applicationTitle}</h1>
+            {applicationDescription && (
+              <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-neutral-600">
+                {applicationDescription}
+              </p>
+            )}
+            {sellerAccessState === 'unregistered' && (
+              <Link
+                href={`/${language === 'ckb' ? 'ku' : language}/seller/register`}
+                className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-[#F4B942] px-5 py-2.5 text-sm font-bold text-neutral-950 hover:bg-[#E2A732] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8C5E00]"
+              >
+                {isKu ? 'تۆمارکردنی فرۆشگا' : isAr ? 'تسجيل متجر' : 'Register a store'}
+              </Link>
+            )}
+            {sellerAccessState === 'loading' && (
+              <div className="mx-auto mt-6 h-2 w-40 animate-pulse rounded-full bg-[#EAE7DF]" />
+            )}
+            {sellerAccessState !== 'loading' && sellerAccessState !== 'unregistered' && (
+              <Link href={`/${language === 'ckb' ? 'ku' : language}`} className="mt-6 inline-block text-sm font-semibold text-[#704B00] underline underline-offset-4">
+                {isKu ? 'گەڕانەوە بۆ سەرەتا' : isAr ? 'العودة للرئيسية' : 'Return to home'}
+              </Link>
+            )}
+          </section>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF9F6] text-neutral-900">

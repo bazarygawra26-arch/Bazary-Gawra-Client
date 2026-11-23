@@ -114,7 +114,8 @@ export async function POST(req: NextRequest) {
 
     const authorization = await authorizeSellerRequest(
       req,
-      parsed.data.seller_id
+      parsed.data.seller_id,
+      { requireActive: true }
     );
     if (!authorization.ok) {
       return NextResponse.json({ error: authorization.message }, { status: authorization.status });

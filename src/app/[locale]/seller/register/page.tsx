@@ -186,16 +186,30 @@ export default function SellerRegisterPage() {
 
               <div>
                 <h2 className="text-2xl sm:text-3xl font-black text-neutral-950 mb-2">
-                  {isKu
-                    ? 'پیرۆزە! فرۆشگاکەت بە سەرکەوتوویی تۆمارکرا'
-                    : isAr
-                    ? 'تهانينا! تم تسجيل متجرك بنجاح'
-                    : 'Congratulations! Your Shop is Live.'}
+                  {createdSeller.is_active && createdSeller.verification_status === 'verified'
+                    ? isKu
+                      ? 'زانیاری فرۆشگاکەت نوێکرایەوە'
+                      : isAr
+                        ? 'تم تحديث بيانات متجرك'
+                        : 'Your store profile has been updated'
+                    : isKu
+                      ? 'داواکاری فرۆشگاکەت نێردرا و چاوەڕێی پێداچوونەوەیە'
+                      : isAr
+                        ? 'تم إرسال طلب متجرك وهو بانتظار المراجعة.'
+                        : 'Your store application is awaiting review.'}
                 </h2>
                 <p className="text-sm text-neutral-600 max-w-lg mx-auto leading-relaxed">
-                  {isKu
-                    ? 'هەژماری فرۆشگاکەت چالاک کرا. دەتوانیت ڕاستەوخۆ دەستبکەیت بە زیادکردنی کاڵاکان و بەڕێوەبردنی کەتەلۆگ.'
-                    : 'Your seller account has been established. You can now manage your inventory and settings.'}
+                  {createdSeller.is_active && createdSeller.verification_status === 'verified'
+                    ? isKu
+                      ? 'فرۆشگاکەت پەسەندکراوە و زانیارییە نوێکراوەکانت پاشەکەوت کران.'
+                      : isAr
+                        ? 'متجرك معتمد وتم حفظ البيانات الجديدة.'
+                        : 'Your approved store details have been saved.'
+                    : isKu
+                      ? 'کاتێک پەسەند کرا، دەتوانیت بەرهەم و داواکارییەکانی فرۆشگاکەت بەڕێوەببەیت.'
+                      : isAr
+                        ? 'ستتمكن من إدارة منتجات متجرك وطلباته بعد الموافقة.'
+                        : 'You can manage your store products and orders after approval.'}
                 </p>
               </div>
 
@@ -240,7 +254,7 @@ export default function SellerRegisterPage() {
                   className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-[#F4B942] hover:bg-[#E2A732] active:scale-95 text-neutral-950 font-black text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2"
                 >
                   <Store className="w-4 h-4" />
-                  <span>{isKu ? 'چوون بۆ داشبۆردی فرۆشگا' : 'Go to Shop Dashboard'}</span>
+                  <span>{isKu ? 'بینینی دۆخی داواکاری' : isAr ? 'عرض حالة الطلب' : 'View application status'}</span>
                 </Link>
               </div>
             </div>

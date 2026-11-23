@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'sellerId query parameter is required' }, { status: 400 });
     }
 
-    const authorization = await authorizeSellerRequest(req, sellerId);
+    const authorization = await authorizeSellerRequest(req, sellerId, { requireActive: true });
     if (!authorization.ok) {
       return NextResponse.json({ error: authorization.message }, { status: authorization.status });
     }
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'sellerId and plan are required' }, { status: 400 });
     }
 
-    const authorization = await authorizeSellerRequest(req, sellerId);
+    const authorization = await authorizeSellerRequest(req, sellerId, { requireActive: true });
     if (!authorization.ok) {
       return NextResponse.json({ error: authorization.message }, { status: authorization.status });
     }

@@ -31,7 +31,7 @@ function detectImageType(bytes: Buffer): { mimeType: string; extension: string }
 }
 
 export async function POST(req: NextRequest) {
-  const authorization = await authorizeSellerRequest(req);
+  const authorization = await authorizeSellerRequest(req, undefined, { requireActive: true });
   if (!authorization.ok) {
     return NextResponse.json({ error: authorization.message }, { status: authorization.status });
   }

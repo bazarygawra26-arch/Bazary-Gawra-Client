@@ -535,7 +535,7 @@ export async function createSeller(input: CreateSellerInput): Promise<Seller> {
 
   const { data: existing, error: lookupError } = await supabaseAdmin
     .from('sellers')
-    .select('id, slug, verification_status')
+    .select('id, slug, verification_status, is_active')
     .eq('owner_id', input.owner_id)
     .maybeSingle();
 
@@ -561,7 +561,7 @@ export async function createSeller(input: CreateSellerInput): Promise<Seller> {
         .from('sellers')
         .update(profileFields)
         .eq('id', existing.id)
-        .select('id, slug, verification_status')
+        .select('id, slug, verification_status, is_active')
         .single()
     : await supabaseAdmin
         .from('sellers')
@@ -572,7 +572,7 @@ export async function createSeller(input: CreateSellerInput): Promise<Seller> {
           verification_status: 'pending',
           is_active: false,
         })
-        .select('id, slug, verification_status')
+        .select('id, slug, verification_status, is_active')
         .single();
 
   if (saveResult.error || !saveResult.data) {
@@ -590,6 +590,7 @@ export async function createSeller(input: CreateSellerInput): Promise<Seller> {
     phone,
     whatsapp,
     verification_status: saveResult.data.verification_status as Seller['verification_status'],
+    is_active: saveResult.data.is_active,
     is_demo: false,
     description: description || undefined,
   };
