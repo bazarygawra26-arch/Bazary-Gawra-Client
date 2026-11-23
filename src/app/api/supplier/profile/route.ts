@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { authorizeRequest } from '../../../../server/auth/authorization';
 import { supabaseAdmin } from '../../../../server/db/supabaseAdmin';
+import { validateLocation } from '../../../../server/locations';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -10,12 +11,14 @@ const supplierApplicationSchema = z.object({
   business_name: z.string().trim().min(2).max(160),
   business_type: z.enum(['manufacturer', 'wholesaler', 'distributor', 'importer', 'supplier']),
   contact_person: z.string().trim().min(2).max(160),
-  phone: z.string().trim().min(5).max(40),
-  country: z.string().trim().min(2).max(100),
+  phone: z.string().trim().min(5).max(24).regex(/^[0-9().\s-]+$/),
+  country_code: z.string().regex(/^[A-Z]{2}$/),
+  governorate_code: z.string().trim().max(10).default(''),
   city: z.string().trim().min(2).max(100),
-  address: z.string().trim().max(300).optional(),
+  address: z.string().trim().min(2).max(300),
   description: z.string().trim().max(2000).optional(),
   website: z.url().optional().or(z.literal('')),
+  category_slugs: z.array(z.string().trim().min(1).max(100)).min(1).max(50),
 });
 
 export async function GET(request: NextRequest) {
@@ -67,6 +70,23 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const location = validateLocation(
+    parsed.data.country_code,
+    parsed.data.governorate_code,
+    parsed.data.city
+  );
+  if (!location) {
+    return NextResponse.json(
+      { error: 'Choose a country, governorate, and city from the available options.' },
+      { status: 400 }
+    );
+  }
+  const nationalPhoneDigits = parsed.data.phone.replace(/\D/g, '').replace(/^0+/, '');
+  const fullPhone = `+${location.phoneCode}${nationalPhoneDigits}`;
+  if (fullPhone.replace(/\D/g, '').length < 7 || fullPhone.replace(/\D/g, '').length > 15) {
+    return NextResponse.json({ error: 'Enter a valid phone number.' }, { status: 400 });
+  }
+
   const { data: existing, error: lookupError } = await supabaseAdmin
     .from('suppliers')
     .select('id')
@@ -83,10 +103,39 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const categorySlugs = [...new Set(parsed.data.category_slugs)];
+  const { data: activeCategories, error: categoryError } = await supabaseAdmin
+    .from('categories')
+    .select('slug')
+    .in('slug', categorySlugs)
+    .eq('is_active', true);
+  if (categoryError) {
+    console.error('Failed to validate supplier product categories:', categoryError);
+    return NextResponse.json({ error: 'Supplier categories could not be validated.' }, { status: 503 });
+  }
+  if ((activeCategories || []).length !== categorySlugs.length) {
+    return NextResponse.json(
+      { error: 'Choose one or more active product categories.' },
+      { status: 400 }
+    );
+  }
+
   const { data: supplier, error: insertError } = await supabaseAdmin
     .from('suppliers')
     .insert({
-      ...parsed.data,
+      business_name: parsed.data.business_name,
+      business_type: parsed.data.business_type,
+      contact_person: parsed.data.contact_person,
+      phone: fullPhone,
+      country: location.country,
+      country_code: location.countryCode,
+      governorate: location.governorate,
+      governorate_code: location.governorateCode,
+      city: location.city,
+      address: parsed.data.address,
+      description: parsed.data.description,
+      website: parsed.data.website,
+      category_slugs: categorySlugs,
       owner_id: authorization.id,
       verification_status: 'pending',
       is_active: false,

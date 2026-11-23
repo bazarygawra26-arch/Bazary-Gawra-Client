@@ -19,6 +19,11 @@ export interface Database {
           full_name: string | null;
           avatar_url: string | null;
           phone: string | null;
+          country: string | null;
+          country_code: string | null;
+          governorate: string | null;
+          governorate_code: string | null;
+          city: string | null;
           role: MarketplaceRole;
           preferred_language: LangCode | null;
           created_at: string;
@@ -73,6 +78,13 @@ export interface Database {
           verification_status: string;
           is_demo: boolean;
           is_active: boolean;
+          store_category_slug: string | null;
+          website_url: string | null;
+          country: string | null;
+          country_code: string | null;
+          governorate: string | null;
+          governorate_code: string | null;
+          city: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -93,6 +105,9 @@ export interface Database {
           email: string | null;
           phone: string;
           country: string;
+          country_code: string | null;
+          governorate: string | null;
+          governorate_code: string | null;
           city: string;
           address: string | null;
           description: string | null;
@@ -113,6 +128,32 @@ export interface Database {
           city: string;
         };
         Update: Partial<Database['public']['Tables']['suppliers']['Row']>;
+        Relationships: [];
+      };
+      business_buyer_profiles: {
+        Row: {
+          owner_id: string;
+          business_name: string;
+          business_type: 'retail_store' | 'retail_chain' | 'shop' | 'supermarket' | 'distributor' | 'other_business';
+          business_address: string;
+          description: string | null;
+          website: string | null;
+          category_slugs: string[];
+          country: string | null;
+          country_code: string | null;
+          governorate: string | null;
+          governorate_code: string | null;
+          city: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database['public']['Tables']['business_buyer_profiles']['Row']> & {
+          owner_id: string;
+          business_name: string;
+          business_type: Database['public']['Tables']['business_buyer_profiles']['Row']['business_type'];
+          business_address: string;
+        };
+        Update: Partial<Database['public']['Tables']['business_buyer_profiles']['Row']>;
         Relationships: [];
       };
       product_feedback: {

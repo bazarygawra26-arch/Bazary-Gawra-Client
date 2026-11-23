@@ -6,6 +6,9 @@ import { useLanguage } from '../../context/LanguageContext';
 import { getSupabaseAuthHeaders } from '../../lib/supabase/authHeaders';
 import { supabaseBrowserClient } from '../../lib/supabase/client';
 import { Database } from '../../types/database';
+import { Category } from '../../types';
+import { LocationFields } from '../auth/LocationFields';
+import { SearchableMultiSelect, SearchableOption } from '../ui/SearchableSelect';
 
 type Supplier = Database['public']['Tables']['suppliers']['Row'];
 type DashboardState =
@@ -25,11 +28,15 @@ export function SupplierDashboard() {
   const [businessType, setBusinessType] = useState<Supplier['business_type']>('wholesaler');
   const [contactPerson, setContactPerson] = useState('');
   const [phone, setPhone] = useState('');
-  const [country, setCountry] = useState('');
+  const [countryCode, setCountryCode] = useState('');
+  const [governorateCode, setGovernorateCode] = useState('');
   const [city, setCity] = useState('');
+  const [locationValid, setLocationValid] = useState(false);
   const [address, setAddress] = useState('');
   const [description, setDescription] = useState('');
   const [website, setWebsite] = useState('');
+  const [categories, setCategories] = useState<Array<Pick<Category, 'slug' | 'name'>>>([]);
+  const [selectedCategorySlugs, setSelectedCategorySlugs] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applicationError, setApplicationError] = useState('');
 
@@ -47,7 +54,21 @@ export function SupplierDashboard() {
     contactPerson: isKu ? 'کەسی پەیوەندی' : isAr ? 'الشخص المسؤول' : 'Contact person',
     phone: isKu ? 'ژمارەی تەلەفۆن' : isAr ? 'رقم الهاتف' : 'Phone number',
     country: isKu ? 'وڵات' : isAr ? 'الدولة' : 'Country',
+    countryPlaceholder: isKu ? 'وڵات هەڵبژێرە' : isAr ? 'اختر الدولة' : 'Choose a country',
+    countrySearch: isKu ? 'گەڕان بۆ وڵات...' : isAr ? 'ابحث عن دولة...' : 'Search countries...',
+    governorate: isKu ? 'پارێزگا' : isAr ? 'المحافظة' : 'Governorate',
+    governoratePlaceholder: isKu ? 'پارێزگا هەڵبژێرە' : isAr ? 'اختر المحافظة' : 'Choose a governorate',
+    governorateSearch: isKu ? 'گەڕان بۆ پارێزگا...' : isAr ? 'ابحث عن محافظة...' : 'Search governorates...',
     city: isKu ? 'شار' : isAr ? 'المدينة' : 'City',
+    cityPlaceholder: isKu ? 'شار هەڵبژێرە یان بنووسە' : isAr ? 'اختر المدينة أو اكتبها' : 'Choose or enter a city',
+    citySearch: isKu ? 'گەڕان بۆ شار...' : isAr ? 'ابحث عن مدينة...' : 'Search cities...',
+    noCities: isKu ? 'بۆ ئەم شوێنە لیستی شار بەردەست نییە؛ تکایە شارەکەت بنووسە.' : isAr ? 'لا تتوفر قائمة مدن لهذا الموقع؛ أدخل مدينتك.' : 'No city list is available for this location; enter your city.',
+    loadingLocations: isKu ? 'شوێنەکان بار دەکرێن...' : isAr ? 'جارٍ تحميل المواقع...' : 'Loading locations...',
+    moreLocationResults: isKu ? 'زیاتر بنووسە بۆ کەمکردنەوەی ئەنجامەکان.' : isAr ? 'اكتب المزيد لتضييق النتائج.' : 'Type to narrow the results.',
+    noLocationOptions: isKu ? 'هیچ ئەنجامێک نەدۆزرایەوە.' : isAr ? 'لم يتم العثور على نتائج.' : 'No matching options.',
+    clearSelection: isKu ? 'پاککردنەوەی هەڵبژاردە' : isAr ? 'مسح التحديد' : 'Clear selection',
+    locationsUnavailable: isKu ? 'زانیاری شوێن بەردەست نییە.' : isAr ? 'بيانات المواقع غير متاحة.' : 'Location data is unavailable.',
+    invalidLocation: isKu ? 'تکایە وڵات، پارێزگا و شار بە دروستی هەڵبژێرە.' : isAr ? 'يرجى اختيار الدولة والمحافظة والمدينة بشكل صحيح.' : 'Choose a valid country, governorate, and city.',
     location: isKu ? 'شوێن' : isAr ? 'الموقع' : 'Location',
     address: isKu ? 'ناونیشان' : isAr ? 'العنوان' : 'Address',
     description: isKu ? 'دەربارەی بازرگانی' : isAr ? 'نبذة عن النشاط' : 'Business description',
@@ -56,7 +77,17 @@ export function SupplierDashboard() {
     submitting: isKu ? 'داواکاری دەنێردرێت...' : isAr ? 'جارٍ إرسال الطلب...' : 'Submitting application...',
     signOut: isKu ? 'چوونەدەرەوە' : isAr ? 'تسجيل الخروج' : 'Sign out',
     chooseType: isKu ? 'هەڵبژێرە' : isAr ? 'اختر النوع' : 'Select type',
+    suppliedCategories: isKu ? 'بەشەکانی بەرهەمە دابینکراوەکان' : isAr ? 'فئات المنتجات التي توفرها' : 'Product categories supplied',
+    chooseCategories: isKu ? 'لانیکەم یەک بەش هەڵبژێرە' : isAr ? 'اختر فئة واحدة على الأقل' : 'Choose at least one category',
+    categorySearch: isKu ? 'گەڕان لە بەشەکاندا...' : isAr ? 'ابحث في الفئات...' : 'Search categories...',
+    noMatchingCategories: isKu ? 'هیچ بەشێک نەدۆزرایەوە.' : isAr ? 'لم يتم العثور على فئات.' : 'No matching categories.',
+    categoriesUnavailable: isKu ? 'بەشەکان بارنەکران.' : isAr ? 'تعذر تحميل الفئات.' : 'Categories could not be loaded.',
   };
+  const categoryOptions: SearchableOption[] = categories.map((category) => ({
+    value: category.slug,
+    label: category.name,
+    searchText: category.slug,
+  }));
 
   useEffect(() => {
     let active = true;
@@ -96,6 +127,21 @@ export function SupplierDashboard() {
         if (result.supplier) {
           setState({ status: 'ready', supplier: result.supplier as Supplier });
         } else {
+          const categoriesResponse = await fetch(`/api/categories?lang=${locale}`, { cache: 'no-store' });
+          const categoryResult = await categoriesResponse.json();
+          if (!categoriesResponse.ok || !Array.isArray(categoryResult)) {
+            throw new Error(categoryResult.error || text.categoriesUnavailable);
+          }
+          if (!active) return;
+          setCategories(
+            categoryResult.flatMap((category: Category) => [
+              { slug: category.slug, name: category.name },
+              ...(category.subcategories || []).map((subcategory) => ({
+                slug: subcategory.slug,
+                name: `${category.name} — ${subcategory.name}`,
+              })),
+            ])
+          );
           setState({ status: 'application' });
         }
       } catch (error) {
@@ -112,12 +158,27 @@ export function SupplierDashboard() {
     return () => {
       active = false;
     };
-  }, [locale, router, text.unavailable]);
+  }, [locale, router, text.categoriesUnavailable, text.unavailable]);
 
   async function handleApplicationSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
     setApplicationError('');
+    if (selectedCategorySlugs.length === 0) {
+      setApplicationError(text.chooseCategories);
+      setIsSubmitting(false);
+      return;
+    }
+    if (!locationValid) {
+      setApplicationError(text.invalidLocation);
+      setIsSubmitting(false);
+      return;
+    }
+    if (!/^[0-9().\s-]+$/.test(phone) || phone.replace(/\D/g, '').length < 5 || phone.replace(/\D/g, '').length > 14) {
+      setApplicationError(isKu ? 'ژمارەی تەلەفۆن بە دروستی بنووسە.' : isAr ? 'أدخل رقم هاتف صحيحاً.' : 'Enter a valid phone number.');
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const response = await fetch('/api/supplier/profile', {
@@ -131,11 +192,13 @@ export function SupplierDashboard() {
           business_type: businessType,
           contact_person: contactPerson,
           phone,
-          country,
+          country_code: countryCode,
+          governorate_code: governorateCode,
           city,
           address,
           description,
           website,
+          category_slugs: selectedCategorySlugs,
         }),
       });
       const result = await response.json();
@@ -219,7 +282,17 @@ export function SupplierDashboard() {
             <label htmlFor="supplier-business-type" className={labelClass}>{text.businessType}</label>
             <select id="supplier-business-type" value={businessType} onChange={(event) => setBusinessType(event.target.value as Supplier['business_type'])} className={inputClass}>
               {(['manufacturer', 'wholesaler', 'distributor', 'importer', 'supplier'] as const).map((type) => (
-                <option key={type} value={type}>{type}</option>
+                <option key={type} value={type}>
+                  {type === 'manufacturer'
+                    ? isKu ? 'بەرهەمهێنەر' : isAr ? 'مصنّع' : 'Manufacturer'
+                    : type === 'wholesaler'
+                      ? isKu ? 'کۆفرۆشیار' : isAr ? 'تاجر جملة' : 'Wholesaler'
+                      : type === 'distributor'
+                        ? isKu ? 'دابەشکەر' : isAr ? 'موزّع' : 'Distributor'
+                        : type === 'importer'
+                          ? isKu ? 'هاوردەکار' : isAr ? 'مستورد' : 'Importer'
+                          : isKu ? 'دابینکەر' : isAr ? 'مورد' : 'Supplier'}
+                </option>
               ))}
             </select>
           </div>
@@ -227,21 +300,44 @@ export function SupplierDashboard() {
             <label htmlFor="supplier-contact" className={labelClass}>{text.contactPerson}</label>
             <input id="supplier-contact" required minLength={2} maxLength={160} value={contactPerson} onChange={(event) => setContactPerson(event.target.value)} className={inputClass} />
           </div>
-          <div>
-            <label htmlFor="supplier-phone" className={labelClass}>{text.phone}</label>
-            <input id="supplier-phone" type="tel" required minLength={5} maxLength={40} value={phone} onChange={(event) => setPhone(event.target.value)} className={inputClass} />
-          </div>
-          <div>
-            <label htmlFor="supplier-country" className={labelClass}>{text.country}</label>
-            <input id="supplier-country" required value={country} onChange={(event) => setCountry(event.target.value)} className={inputClass} />
-          </div>
-          <div>
-            <label htmlFor="supplier-city" className={labelClass}>{text.city}</label>
-            <input id="supplier-city" required value={city} onChange={(event) => setCity(event.target.value)} className={inputClass} />
+          <div className="sm:col-span-2">
+            <LocationFields
+              idPrefix="supplier-application"
+              locale={locale}
+              dir={isKu || isAr ? 'rtl' : 'ltr'}
+              countryCode={countryCode}
+              governorateCode={governorateCode}
+              city={city}
+              phone={phone}
+              labels={{
+                country: text.country,
+                countryPlaceholder: text.countryPlaceholder,
+                countrySearch: text.countrySearch,
+                governorate: text.governorate,
+                governoratePlaceholder: text.governoratePlaceholder,
+                governorateSearch: text.governorateSearch,
+                city: text.city,
+                cityPlaceholder: text.cityPlaceholder,
+                citySearch: text.citySearch,
+                phone: text.phone,
+                noCities: text.noCities,
+                loading: text.loadingLocations,
+                moreResults: text.moreLocationResults,
+                noOptions: text.noLocationOptions,
+                clear: text.clearSelection,
+                locationUnavailable: text.locationsUnavailable,
+              }}
+              error={applicationError === text.invalidLocation ? text.invalidLocation : undefined}
+              onCountryChange={setCountryCode}
+              onGovernorateChange={setGovernorateCode}
+              onCityChange={setCity}
+              onPhoneChange={setPhone}
+              onValidityChange={setLocationValid}
+            />
           </div>
           <div>
             <label htmlFor="supplier-address" className={labelClass}>{text.address}</label>
-            <input id="supplier-address" value={address} onChange={(event) => setAddress(event.target.value)} className={inputClass} />
+            <input id="supplier-address" required minLength={2} maxLength={300} value={address} onChange={(event) => setAddress(event.target.value)} className={inputClass} />
           </div>
           <div className="sm:col-span-2">
             <label htmlFor="supplier-description" className={labelClass}>{text.description}</label>
@@ -250,6 +346,24 @@ export function SupplierDashboard() {
           <div className="sm:col-span-2">
             <label htmlFor="supplier-website" className={labelClass}>{text.website}</label>
             <input id="supplier-website" type="url" value={website} onChange={(event) => setWebsite(event.target.value)} className={inputClass} />
+          </div>
+          <div className="sm:col-span-2">
+            {categories.length === 0 ? (
+              <p role="alert" className="text-sm text-red-700">{text.categoriesUnavailable}</p>
+            ) : (
+              <SearchableMultiSelect
+                id="supplier-application-categories"
+                label={text.suppliedCategories}
+                searchPlaceholder={text.categorySearch}
+                emptyMessage={text.noMatchingCategories}
+                options={categoryOptions}
+                value={selectedCategorySlugs}
+                error={applicationError === text.chooseCategories ? text.chooseCategories : undefined}
+                dir={isKu || isAr ? 'rtl' : 'ltr'}
+                locale={locale === 'ku' ? 'ckb' : locale}
+                onChange={setSelectedCategorySlugs}
+              />
+            )}
           </div>
           {applicationError && <p role="alert" className="text-sm text-red-700 sm:col-span-2">{applicationError}</p>}
           <button type="submit" disabled={isSubmitting} className="min-h-11 rounded-xl bg-[#F4B942] px-4 py-2 text-sm font-bold text-neutral-950 hover:bg-[#E2A732] disabled:opacity-60 sm:col-span-2">
