@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRFQ, getRFQs } from '@/server/db/repositories/b2b';
-import { supabaseAdmin } from '@/server/db/supabaseAdmin';
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,9 +7,8 @@ export async function GET(request: NextRequest) {
     const buyerId = searchParams.get('buyerId') || undefined;
     const status = searchParams.get('status') || undefined;
     const categorySlug = searchParams.get('categorySlug') || undefined;
-    const limit = searchParams.get('limit') ? Number(searchParams.get('limit')) : 50;
 
-    const rfqs = await getRFQs({ buyerId, status, categorySlug, limit });
+    const rfqs = await getRFQs({ buyerId, status, categorySlug });
     return NextResponse.json({ success: true, rfqs });
   } catch (error: any) {
     console.error('Failed to fetch RFQs:', error);
@@ -23,43 +21,49 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       buyerId,
+      buyerName,
+      buyerBusinessName,
       title,
       categorySlug,
+      quantity,
+      unitMeasure,
+      specifications,
       governorate,
       city,
       deliveryLocation,
       requiredDeliveryDate,
-      targetBudgetIqd,
+      targetPriceIqd,
       items,
       notes,
     } = body;
 
-    if (!buyerId || !title || !items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json(
-        { error: 'buyerId, title, and at least one item are required' },
-        { status: 400 }
-      );
+    if (!buyerId || !title) {
+      return NextResponse.json({ error: 'buyerId and title are required' }, { status: 400 });
     }
 
     const rfq = await createRFQ({
-      buyerId,
+      buyer_id: buyerId,
+      buyer_name: buyerName || '',
+      buyer_business_name: buyerBusinessName,
       title,
-      categorySlug,
+      category_slug: categorySlug,
+      quantity: Math.max(1, Number(quantity) || 1),
+      unit_measure: unitMeasure || 'pcs',
+      specifications: specifications || '',
       governorate,
       city,
-      deliveryLocation,
-      requiredDeliveryDate,
-      targetBudgetIqd: targetBudgetIqd ? Number(targetBudgetIqd) : undefined,
+      delivery_location: deliveryLocation,
+      required_delivery_date: requiredDeliveryDate,
+      target_price_iqd: targetPriceIqd ? Number(targetPriceIqd) : undefined,
       notes,
-      items: items.map((it: any) => ({
-        productName: it.productName || it.name,
-        categorySlug: it.categorySlug,
-        quantity: Math.max(1, Number(it.quantity) || 1),
-        unit: it.unit || 'pcs',
-        targetUnitPriceIqd: it.targetUnitPriceIqd ? Number(it.targetUnitPriceIqd) : undefined,
-        specifications: it.specifications || {},
-        notes: it.notes,
-      })),
+      items: Array.isArray(items)
+        ? items.map((it: any) => ({
+          item_name: it.item_name || it.name || it.productName || '',
+          quantity: Math.max(1, Number(it.quantity) || 1),
+          target_unit_price_iqd: it.target_unit_price_iqd || it.targetUnitPriceIqd,
+          specifications: it.specifications,
+        }))
+        : undefined,
     });
 
     return NextResponse.json({ success: true, rfq }, { status: 201 });

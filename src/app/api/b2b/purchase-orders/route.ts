@@ -6,9 +6,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const buyerId = searchParams.get('buyerId') || undefined;
     const supplierId = searchParams.get('supplierId') || undefined;
-    const status = searchParams.get('status') || undefined;
 
-    const purchaseOrders = await getPurchaseOrders({ buyerId, supplierId, status });
+    const purchaseOrders = await getPurchaseOrders({ buyerId, supplierId });
     return NextResponse.json({ success: true, purchaseOrders });
   } catch (error: any) {
     console.error('Failed to fetch purchase orders:', error);
@@ -19,7 +18,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { quotationId, buyerId, deliveryAddress, paymentMethod, notes } = body;
+    const { quotationId, buyerId, deliveryAddress } = body;
 
     if (!quotationId || !buyerId || !deliveryAddress) {
       return NextResponse.json(
@@ -28,15 +27,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const purchaseOrder = await acceptQuotationAndCreatePO({
-      quotationId,
-      buyerId,
-      deliveryAddress,
-      paymentMethod,
-      notes,
-    });
+    const result = await acceptQuotationAndCreatePO(quotationId, buyerId, deliveryAddress);
 
-    return NextResponse.json({ success: true, purchaseOrder }, { status: 201 });
+    if (!result.success) {
+      return NextResponse.json({ error: result.error || 'Failed to create purchase order.' }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true, purchaseOrder: result.purchase_order }, { status: 201 });
   } catch (error: any) {
     console.error('Failed to accept quotation and create purchase order:', error);
     return NextResponse.json(

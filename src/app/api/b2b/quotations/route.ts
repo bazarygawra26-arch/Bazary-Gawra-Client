@@ -6,9 +6,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const rfqId = searchParams.get('rfqId') || undefined;
     const supplierId = searchParams.get('supplierId') || undefined;
-    const status = searchParams.get('status') || undefined;
+    const supplierOwnerId = searchParams.get('supplierOwnerId') || undefined;
 
-    const quotations = await getQuotations({ rfqId, supplierId, status });
+    const quotations = await getQuotations({ rfqId, supplierId, supplierOwnerId });
     return NextResponse.json({ success: true, quotations });
   } catch (error: any) {
     console.error('Failed to fetch quotations:', error);
@@ -22,38 +22,46 @@ export async function POST(request: NextRequest) {
     const {
       rfqId,
       supplierId,
+      supplierName,
+      supplierOwnerId,
+      unitPriceIqd,
+      quantity,
       deliveryCostIqd,
-      estimatedDeliveryDays,
+      deliveryDays,
       paymentTerms,
-      validUntil,
+      validityDate,
+      availabilityStatus,
       notes,
       items,
     } = body;
 
-    if (!rfqId || !supplierId || !validUntil || !items || !Array.isArray(items) || items.length === 0) {
+    if (!rfqId || !supplierId || !supplierOwnerId || unitPriceIqd === undefined || !quantity) {
       return NextResponse.json(
-        { error: 'rfqId, supplierId, validUntil, and items are required' },
+        { error: 'rfqId, supplierId, supplierOwnerId, unitPriceIqd, and quantity are required' },
         { status: 400 }
       );
     }
 
     const quotation = await createQuotation({
-      rfqId,
-      supplierId,
-      deliveryCostIqd: deliveryCostIqd ? Number(deliveryCostIqd) : 0,
-      estimatedDeliveryDays: estimatedDeliveryDays ? Number(estimatedDeliveryDays) : 3,
-      paymentTerms: paymentTerms || 'Cash on Delivery',
-      validUntil,
+      rfq_id: rfqId,
+      supplier_id: supplierId,
+      supplier_name: supplierName,
+      supplier_owner_id: supplierOwnerId,
+      unit_price_iqd: Number(unitPriceIqd),
+      quantity: Math.max(1, Number(quantity)),
+      delivery_cost_iqd: deliveryCostIqd ? Number(deliveryCostIqd) : undefined,
+      delivery_days: deliveryDays ? Number(deliveryDays) : undefined,
+      payment_terms: paymentTerms,
+      validity_date: validityDate,
+      availability_status: availabilityStatus,
       notes,
-      items: items.map((it: any) => ({
-        rfqItemId: it.rfqItemId,
-        productName: it.productName,
-        quantity: Math.max(1, Number(it.quantity) || 1),
-        unitPriceIqd: Number(it.unitPriceIqd) || 0,
-        pricingTiers: it.pricingTiers,
-        availability: it.availability || 'In Stock',
-        notes: it.notes,
-      })),
+      items: Array.isArray(items)
+        ? items.map((it: any) => ({
+            item_name: it.item_name || it.name || '',
+            quantity: Math.max(1, Number(it.quantity) || 1),
+            unit_price_iqd: Number(it.unit_price_iqd || it.unitPriceIqd) || 0,
+          }))
+        : undefined,
     });
 
     return NextResponse.json({ success: true, quotation }, { status: 201 });
