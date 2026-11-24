@@ -53,6 +53,11 @@ export interface Product {
   is_sponsored?: boolean;
   promotion_expires_at?: string;
   view_count?: number;
+  stock_quantity?: number;
+  low_stock_threshold?: number;
+  is_available?: boolean;
+  inventory_status?: 'in_stock' | 'low_stock' | 'out_of_stock';
+  discount_amount?: number;
 }
 
 export interface Promotion {
@@ -341,3 +346,238 @@ export interface PaginatedProductsResult {
   hasMore: boolean;
 }
 
+
+
+export type OrderStatus =
+  | 'pending'
+  | 'accepted'
+  | 'processing'
+  | 'ready_for_delivery'
+  | 'shipped'
+  | 'delivered'
+  | 'cancelled'
+  | 'rejected'
+  | 'returned';
+
+export type PaymentMethod =
+  | 'cash_on_delivery'
+  | 'fib'
+  | 'fastpay'
+  | 'zaincash'
+  | 'electronic';
+
+export type PaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
+
+export interface CustomerOrderItem {
+  id?: string;
+  order_id?: string;
+  product_id: string;
+  product_name: string;
+  unit_price_iqd: number;
+  quantity: number;
+  subtotal_iqd: number;
+}
+
+export interface CustomerOrder {
+  id: string;
+  order_number: string;
+  customer_id?: string | null;
+  seller_id: string;
+  seller_name?: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_city: string;
+  shipping_address: string;
+  subtotal_iqd: number;
+  discount_iqd: number;
+  delivery_fee_iqd: number;
+  total_amount_iqd: number;
+  payment_method: PaymentMethod;
+  payment_status: PaymentStatus;
+  order_status: OrderStatus;
+  order_notes?: string | null;
+  rejection_reason?: string | null;
+  items?: CustomerOrderItem[];
+  created_at: string;
+  updated_at?: string;
+}
+
+export type RFQStatus = 'open' | 'under_review' | 'quoted' | 'accepted' | 'fulfilled' | 'cancelled' | 'expired';
+
+export interface RFQItem {
+  id?: string;
+  rfq_id?: string;
+  item_name: string;
+  quantity: number;
+  target_unit_price_iqd?: number | null;
+  specifications?: string | null;
+}
+
+export interface RFQ {
+  id: string;
+  rfq_number: string;
+  buyer_id: string;
+  buyer_name?: string;
+  buyer_business_name?: string;
+  title: string;
+  category_slug?: string | null;
+  target_price_iqd?: number | null;
+  quantity: number;
+  unit_measure: string;
+  specifications: string;
+  delivery_location: string;
+  required_delivery_date?: string | null;
+  notes?: string | null;
+  status: RFQStatus;
+  items?: RFQItem[];
+  quotations_count?: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export type QuotationStatus = 'submitted' | 'under_negotiation' | 'accepted' | 'rejected' | 'expired';
+
+export interface QuotationItem {
+  id?: string;
+  quotation_id?: string;
+  item_name: string;
+  quantity: number;
+  unit_price_iqd: number;
+  subtotal_iqd: number;
+}
+
+export interface Quotation {
+  id: string;
+  quotation_number: string;
+  rfq_id: string;
+  rfq_title?: string;
+  supplier_id: string;
+  supplier_name?: string;
+  supplier_owner_id: string;
+  unit_price_iqd: number;
+  quantity: number;
+  subtotal_iqd: number;
+  delivery_cost_iqd: number;
+  total_amount_iqd: number;
+  delivery_days: number;
+  payment_terms: string;
+  validity_date: string;
+  availability_status: 'in_stock' | 'made_to_order' | 'import_scheduled';
+  notes?: string | null;
+  status: QuotationStatus;
+  items?: QuotationItem[];
+  created_at: string;
+  updated_at?: string;
+}
+
+export type PurchaseOrderStatus =
+  | 'issued'
+  | 'confirmed_by_supplier'
+  | 'in_production'
+  | 'shipped'
+  | 'delivered'
+  | 'completed'
+  | 'cancelled';
+
+export interface PurchaseOrderItem {
+  id?: string;
+  purchase_order_id?: string;
+  item_name: string;
+  quantity: number;
+  unit_price_iqd: number;
+  subtotal_iqd: number;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  po_number: string;
+  rfq_id?: string | null;
+  quotation_id: string;
+  buyer_id: string;
+  buyer_business_name?: string;
+  supplier_id: string;
+  supplier_name?: string;
+  total_amount_iqd: number;
+  payment_terms: string;
+  delivery_address: string;
+  expected_delivery_date?: string | null;
+  status: PurchaseOrderStatus;
+  notes?: string | null;
+  items?: PurchaseOrderItem[];
+  created_at: string;
+  updated_at?: string;
+}
+
+export type NotificationType =
+  | 'order_received'
+  | 'order_status_changed'
+  | 'order_cancelled'
+  | 'rfq_received'
+  | 'quotation_received'
+  | 'quotation_accepted'
+  | 'po_updated'
+  | 'seller_verified'
+  | 'seller_rejected'
+  | 'subscription_expiring'
+  | 'general';
+
+export interface MarketplaceNotification {
+  id: string;
+  user_id: string;
+  title_en: string;
+  title_ku: string;
+  title_ar: string;
+  message_en: string;
+  message_ku: string;
+  message_ar: string;
+  type: NotificationType;
+  reference_id?: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface Conversation {
+  id: string;
+  participant_one_id: string;
+  participant_two_id: string;
+  other_participant_name?: string;
+  subject?: string | null;
+  reference_type?: 'product' | 'order' | 'rfq' | 'quotation' | 'general' | null;
+  reference_id?: string | null;
+  last_message?: string;
+  last_message_at: string;
+  unread_count?: number;
+  created_at: string;
+}
+
+export interface Message {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  sender_name?: string;
+  message_text: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface CustomerAddress {
+  id: string;
+  user_id: string;
+  label: string;
+  recipient_name: string;
+  phone: string;
+  country: string;
+  city: string;
+  district?: string | null;
+  street_address: string;
+  is_default: boolean;
+  created_at: string;
+}
+
+export interface CustomerFavourite {
+  id: string;
+  user_id: string;
+  product_id: string;
+  product?: Product;
+  created_at: string;
+}

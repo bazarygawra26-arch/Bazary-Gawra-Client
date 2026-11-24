@@ -474,7 +474,10 @@ export async function getProductsForComparison(productIds: string[], lang: 'en' 
   return all.filter((p) => productIds.includes(p.id));
 }
 
-export interface CreateProductInput {
+export export interface CreateProductInput {
+  stock_quantity?: number;
+  low_stock_threshold?: number;
+  is_available?: boolean;
   name: string;
   name_ckb?: string;
   name_ar?: string;
